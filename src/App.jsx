@@ -2,21 +2,24 @@ import { useState, useRef, useCallback } from 'react'
 import html2canvas from 'html2canvas'
 import './App.css'
 
-const PRESET_COLORS = [
-  '#1a1a2e', '#16213e', '#0f3460',
-  '#e94560', '#ff6b6b', '#ffd93d',
-  '#6bcb77', '#4d96ff', '#ffffff',
-  '#2d2d2d', '#845ec2', '#ff9671',
-]
+const PAYSEND_LOGO = "https://www.figma.com/api/mcp/asset/1f6bb5a5-6415-4795-b56b-8a7068910934"
+const PA360_LOGO   = "https://www.figma.com/api/mcp/asset/339d6e4e-d220-4e90-a96a-d17bc820c2ef"
+const CALENDAR_ICON = "https://www.figma.com/api/mcp/asset/3eb32829-0f5c-4a72-9929-15f08bca2f6d"
+const PIN_ICON     = "https://www.figma.com/api/mcp/asset/d57df5ea-1a96-48c6-896d-f8d458555fdf"
+const DIVIDER      = "https://www.figma.com/api/mcp/asset/241e08a9-08aa-4208-ae69-a314d03ec4dd"
+const DEFAULT_PHOTO = "https://www.figma.com/api/mcp/asset/100f910c-97ac-4dca-bb4a-edee278a8ffc"
 
 export default function App() {
-  const [headline, setHeadline] = useState('Your Headline Here')
-  const [body, setBody] = useState('Add your message here. Keep it short and impactful for better engagement.')
-  const [bgColor, setBgColor] = useState('#1a1a2e')
-  const [photo, setPhoto] = useState(null)
+  const [headline, setHeadline]       = useState('Level up your payments game with Paysend\nat ICE Barcelona!')
+  const [subheadline, setSubheadline] = useState('Discover how Paysend can power your business!')
+  const [date, setDate]               = useState('January 19–21, 2026')
+  const [location, setLocation]       = useState('Barcelona, Spain')
+  const [personTitle, setPersonTitle] = useState('Head of Commercial EMEA')
+  const [personName, setPersonName]   = useState('Danny May')
+  const [photo, setPhoto]             = useState(null)
   const [downloading, setDownloading] = useState(false)
 
-  const canvasRef = useRef(null)
+  const canvasRef   = useRef(null)
   const fileInputRef = useRef(null)
 
   const handlePhotoUpload = useCallback((e) => {
@@ -40,13 +43,14 @@ export default function App() {
     if (!canvasRef.current || downloading) return
     setDownloading(true)
     try {
-      const canvas = await html2canvas(canvasRef.current, {
+      const el = canvasRef.current
+      const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        width: 540,
-        height: 540,
         logging: false,
+        width: el.offsetWidth,
+        height: el.offsetHeight,
       })
       const link = document.createElement('a')
       link.download = 'social-post.png'
@@ -59,89 +63,104 @@ export default function App() {
     }
   }, [downloading])
 
-  const textColor = isLightColor(bgColor) ? '#1a1a1a' : '#ffffff'
-
   return (
     <div className="app">
       <header className="header">
         <h1>Post Builder</h1>
-        <p>1080 × 1080 social template</p>
+        <p>1080 × 1350 LinkedIn template</p>
       </header>
 
       <main className="workspace">
-        {/* Preview */}
+
+        {/* ── Canvas preview ── */}
         <div className="preview-area">
           <div className="preview-wrapper">
             <div
               ref={canvasRef}
               className="post-canvas"
-              style={{ backgroundColor: bgColor }}
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
             >
-              {photo && (
-                <div className="photo-layer">
-                  <img src={photo} alt="uploaded" className="photo-img" />
+              {/* Top bar: logos + badges */}
+              <div className="post-header">
+                <div className="post-logos">
+                  <img src={PAYSEND_LOGO} alt="Paysend" className="logo-paysend" crossOrigin="anonymous" />
+                  <img src={DIVIDER}      alt=""        className="logo-divider"  crossOrigin="anonymous" />
+                  <img src={PA360_LOGO}   alt="Pay360"  className="logo-pa360"   crossOrigin="anonymous" />
                 </div>
-              )}
-              <div className="post-content" style={{ color: textColor }}>
-                <p className="post-headline">{headline || 'Your Headline Here'}</p>
-                <p className="post-body">{body}</p>
+                <div className="post-badges">
+                  <div className="badge">
+                    <img src={CALENDAR_ICON} alt="" className="badge-icon" crossOrigin="anonymous" />
+                    <span>{date}</span>
+                  </div>
+                  <div className="badge">
+                    <img src={PIN_ICON} alt="" className="badge-icon" crossOrigin="anonymous" />
+                    <span>{location}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text area */}
+              <div className="post-text-area">
+                <p className="post-subheadline">{subheadline}</p>
+                <p className="post-headline">{headline}</p>
+              </div>
+
+              {/* Photo card */}
+              <div className="post-card">
+                <div className="post-photo-bg">
+                  <img
+                    src={photo || DEFAULT_PHOTO}
+                    alt="Speaker"
+                    className="post-photo"
+                    crossOrigin="anonymous"
+                  />
+                </div>
+                <div className="post-nameplate">
+                  <p className="post-person-title">{personTitle}</p>
+                  <p className="post-person-name">{personName}</p>
+                </div>
               </div>
             </div>
           </div>
-          <p className="preview-hint">Preview scaled to 540×540 — export is full 1080×1080</p>
+          <p className="preview-hint">Preview at 540×675 — exports 1080×1350</p>
         </div>
 
-        {/* Controls */}
+        {/* ── Controls ── */}
         <aside className="controls">
           <section className="control-section">
             <label className="control-label">Headline</label>
-            <input
-              className="control-input"
-              type="text"
-              value={headline}
-              onChange={(e) => setHeadline(e.target.value)}
-              placeholder="Enter headline..."
-              maxLength={80}
-            />
-          </section>
-
-          <section className="control-section">
-            <label className="control-label">Body Text</label>
             <textarea
               className="control-textarea"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder="Enter body text..."
-              maxLength={300}
-              rows={4}
+              value={headline}
+              onChange={(e) => setHeadline(e.target.value)}
+              rows={3}
             />
           </section>
 
           <section className="control-section">
-            <label className="control-label">Background Color</label>
-            <div className="color-picker-row">
-              <input
-                type="color"
-                className="color-swatch-input"
-                value={bgColor}
-                onChange={(e) => setBgColor(e.target.value)}
-                title="Custom color"
-              />
-              <span className="color-value">{bgColor}</span>
-            </div>
-            <div className="color-presets">
-              {PRESET_COLORS.map((c) => (
-                <button
-                  key={c}
-                  className={`color-preset${bgColor === c ? ' active' : ''}`}
-                  style={{ backgroundColor: c, border: c === '#ffffff' ? '1px solid #ddd' : 'none' }}
-                  onClick={() => setBgColor(c)}
-                  title={c}
-                />
-              ))}
-            </div>
+            <label className="control-label">Subheadline</label>
+            <input className="control-input" type="text" value={subheadline} onChange={(e) => setSubheadline(e.target.value)} />
+          </section>
+
+          <section className="control-section">
+            <label className="control-label">Date</label>
+            <input className="control-input" type="text" value={date} onChange={(e) => setDate(e.target.value)} />
+          </section>
+
+          <section className="control-section">
+            <label className="control-label">Location</label>
+            <input className="control-input" type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
+          </section>
+
+          <section className="control-section">
+            <label className="control-label">Person Title</label>
+            <input className="control-input" type="text" value={personTitle} onChange={(e) => setPersonTitle(e.target.value)} />
+          </section>
+
+          <section className="control-section">
+            <label className="control-label">Person Name</label>
+            <input className="control-input" type="text" value={personName} onChange={(e) => setPersonName(e.target.value)} />
           </section>
 
           <section className="control-section">
@@ -155,10 +174,7 @@ export default function App() {
               {photo ? (
                 <div className="upload-preview">
                   <img src={photo} alt="preview" />
-                  <button
-                    className="remove-photo"
-                    onClick={(e) => { e.stopPropagation(); setPhoto(null) }}
-                  >
+                  <button className="remove-photo" onClick={(e) => { e.stopPropagation(); setPhoto(null) }}>
                     Remove
                   </button>
                 </div>
@@ -170,32 +186,14 @@ export default function App() {
                 </div>
               )}
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handlePhotoUpload}
-              style={{ display: 'none' }}
-            />
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
           </section>
 
-          <button
-            className="download-btn"
-            onClick={handleDownload}
-            disabled={downloading}
-          >
+          <button className="download-btn" onClick={handleDownload} disabled={downloading}>
             {downloading ? 'Exporting…' : 'Download PNG'}
           </button>
         </aside>
       </main>
     </div>
   )
-}
-
-function isLightColor(hex) {
-  const c = hex.replace('#', '')
-  const r = parseInt(c.substring(0, 2), 16)
-  const g = parseInt(c.substring(2, 4), 16)
-  const b = parseInt(c.substring(4, 6), 16)
-  return (r * 299 + g * 587 + b * 114) / 1000 > 128
 }
