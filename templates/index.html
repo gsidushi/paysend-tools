@@ -21,11 +21,15 @@
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       font-family: 'GT Standard', -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f0f0f0;
       color: #111;
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
@@ -49,9 +53,10 @@
       display: grid;
       grid-template-columns: 1fr 340px;
       min-height: 0;
+      overflow: hidden;
     }
 
-    /* ── Preview ── */
+    /* ── Preview — fixed, never scrolls ── */
     .preview-area {
       display: flex;
       flex-direction: column;
@@ -59,7 +64,7 @@
       justify-content: center;
       padding: 40px 32px;
       gap: 12px;
-      overflow: auto;
+      overflow: hidden;
     }
 
     .preview-wrapper {
