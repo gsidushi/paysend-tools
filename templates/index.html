@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Builder</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'GT Standard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f0f0f0;
+      color: #111;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── App header ── */
+    .header {
+      padding: 18px 32px;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .header h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p  { font-size: 13px; color: #999; }
+
+    /* ── Workspace ── */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      min-height: 0;
+    }
+
+    /* ── Preview ── */
+    .preview-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      gap: 12px;
+      overflow: auto;
+    }
+
+    /* Clip the 1080×1350 canvas down to 540×675 for display */
+    .preview-wrapper {
+      width: 540px;
+      height: 675px;
+      overflow: hidden;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.22);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .preview-hint { font-size: 12px; color: #aaa; }
+
+    /* ── Post canvas — full 1080×1350, scaled to 50% for preview ── */
+    #post-canvas {
+      width: 1080px;
+      height: 1350px;
+      transform: scale(0.5);
+      transform-origin: top left;
+      background: #141414;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: 'GT Standard', sans-serif;
+    }
+
+    /* Top bar */
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 40px 40px 0;
+      flex-shrink: 0;
+    }
+
+    .post-logos {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo-paysend { width: 313px; height: 53px; object-fit: contain; display: block; flex-shrink: 0; }
+    .logo-divider  { width: 2px; height: 34px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .logo-pa360    { width: 174px; height: 103px; object-fit: contain; display: block; flex-shrink: 0; }
+
+    /* Badges */
+    .post-badges {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .badge {
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 13px 14px;
+    }
+
+    .badge-icon { display: block; flex-shrink: 0; }
+
+    .badge span {
+      font-size: 28px;
+      font-weight: 400;
+      color: #141414;
+      letter-spacing: 0.56px;
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    /* Text area */
+    .post-text-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 40px 52px;
+      gap: 14px;
+    }
+
+    #preview-subheadline {
+      font-size: 28px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 0.56px;
+      line-height: 1.2;
+    }
+
+    #preview-headline {
+      font-size: 80px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 0.9;
+      letter-spacing: -0.8px;
+      white-space: pre-line;
+    }
+
+    /* Photo card */
+    .post-card { display: flex; flex-direction: column; flex-shrink: 0; }
+
+    .post-photo-bg {
+      background: #17bff2;
+      height: 654px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #preview-photo {
+      position: absolute;
+      width: 847px;
+      height: 1270px;
+      left: 75px;
+      top: -209px;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    .post-nameplate {
+      background: #fff;
+      padding: 33px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    #preview-person-title {
+      font-size: 28px;
+      font-weight: 400;
+      color: #141414;
+      letter-spacing: 0.56px;
+      line-height: 1.2;
+    }
+
+    #preview-person-name {
+      font-size: 52px;
+      font-weight: 600;
+      color: #141414;
+      letter-spacing: -0.52px;
+      line-height: 0.9;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      background: #fff;
+      border-left: 1px solid #e8e8e8;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow-y: auto;
+    }
+
+    .control-section { display: flex; flex-direction: column; gap: 6px; }
+
+    .control-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #888;
+    }
+
+    .control-input,
+    .control-textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1a1a;
+      background: #fafafa;
+      transition: border-color 0.15s;
+      resize: none;
+    }
+
+    .control-input:focus,
+    .control-textarea:focus {
+      outline: none;
+      border-color: #17bff2;
+      background: #fff;
+    }
+
+    .upload-zone {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 14px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .upload-zone:hover { border-color: #17bff2; background: #f0fbff; }
+
+    .upload-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #aaa;
+      font-size: 13px;
+    }
+
+    .upload-icon { font-size: 20px; line-height: 1; }
+    .upload-hint { font-size: 11px; color: #ccc; }
+
+    .upload-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .upload-preview img {
+      width: 100%;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .remove-photo {
+      font-size: 12px;
+      color: #e94560;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 6px;
+      font-family: inherit;
+    }
+
+    .remove-photo:hover { text-decoration: underline; }
+
+    .download-btn {
+      margin-top: auto;
+      padding: 13px 20px;
+      background: #141414;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .download-btn:hover:not(:disabled) { background: #333; }
+    .download-btn:active:not(:disabled) { transform: scale(0.98); }
+    .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    @media (max-width: 980px) {
+      .workspace { grid-template-columns: 1fr; }
+      .controls { border-left: none; border-top: 1px solid #e8e8e8; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>Post Builder</h1>
+    <p>1080 × 1350 LinkedIn template</p>
+  </header>
+
+  <main class="workspace">
+
+    <!-- Preview -->
+    <div class="preview-area">
+      <div class="preview-wrapper">
+        <div id="post-canvas">
+
+          <!-- Top bar -->
+          <div class="post-header">
+            <div class="post-logos">
+              <img class="logo-paysend" crossorigin="anonymous"
+                src="https://www.figma.com/api/mcp/asset/ecd58293-fa8b-4329-a034-74f56ce77b7e"
+                width="313" height="53" alt="Paysend" />
+              <div class="logo-divider"></div>
+              <img class="logo-pa360" crossorigin="anonymous"
+                src="https://www.figma.com/api/mcp/asset/140a57c1-21aa-4d23-a485-7e1e5326b6db"
+                width="174" height="103" alt="Pay360" />
+            </div>
+            <div class="post-badges">
+              <div class="badge">
+                <svg class="badge-icon" width="28" height="26" viewBox="0 0 28 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="1" y="4" width="26" height="21" rx="1" stroke="#141414" stroke-width="2"/>
+                  <path d="M1 10H27" stroke="#141414" stroke-width="2"/>
+                  <path d="M8 1V7" stroke="#141414" stroke-width="3" stroke-linecap="round"/>
+                  <path d="M20 1V7" stroke="#141414" stroke-width="3" stroke-linecap="round"/>
+                  <rect x="4" y="14" width="4" height="3" fill="#141414"/>
+                  <rect x="12" y="14" width="4" height="3" fill="#141414"/>
+                  <rect x="20" y="14" width="4" height="3" fill="#141414"/>
+                  <rect x="4" y="20" width="4" height="3" fill="#141414"/>
+                  <rect x="12" y="20" width="4" height="3" fill="#141414"/>
+                </svg>
+                <span id="preview-date">January 19–21, 2026</span>
+              </div>
+              <div class="badge">
+                <svg class="badge-icon" width="25" height="28" viewBox="0 0 25 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12.5 27C12.5 27 23 17.5 23 10.5C23 4.701 18.299 0 12.5 0C6.701 0 2 4.701 2 10.5C2 17.5 12.5 27 12.5 27Z" stroke="#141414" stroke-width="2" stroke-linejoin="round"/>
+                  <circle cx="12.5" cy="10.5" r="3.5" stroke="#141414" stroke-width="2"/>
+                </svg>
+                <span id="preview-location">Barcelona, Spain</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Text -->
+          <div class="post-text-area">
+            <p id="preview-subheadline">Discover how Paysend can power your business!</p>
+            <p id="preview-headline">Level up your payments game with Paysend&#10;at ICE Barcelona!</p>
+          </div>
+
+          <!-- Photo card -->
+          <div class="post-card">
+            <div class="post-photo-bg">
+              <img id="preview-photo" crossorigin="anonymous"
+                src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304"
+                alt="Speaker" />
+            </div>
+            <div class="post-nameplate">
+              <p id="preview-person-title">Head of Commercial EMEA</p>
+              <p id="preview-person-name">Danny May</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <p class="preview-hint">Preview at 540×675 — exports 1080×1350</p>
+    </div>
+
+    <!-- Controls -->
+    <aside class="controls">
+
+      <div class="control-section">
+        <label class="control-label">Headline</label>
+        <textarea class="control-textarea" id="input-headline" rows="3">Level up your payments game with Paysend
+at ICE Barcelona!</textarea>
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Subheadline</label>
+        <input class="control-input" id="input-subheadline" type="text" value="Discover how Paysend can power your business!" />
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Date</label>
+        <input class="control-input" id="input-date" type="text" value="January 19–21, 2026" />
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Location</label>
+        <input class="control-input" id="input-location" type="text" value="Barcelona, Spain" />
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Person Title</label>
+        <input class="control-input" id="input-person-title" type="text" value="Head of Commercial EMEA" />
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Person Name</label>
+        <input class="control-input" id="input-person-name" type="text" value="Danny May" />
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Photo</label>
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-placeholder" id="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Click or drag to upload</span>
+            <span class="upload-hint">PNG, JPG, WEBP</span>
+          </div>
+          <div class="upload-preview" id="upload-preview" style="display:none">
+            <img id="upload-thumb" src="" alt="preview" />
+            <button class="remove-photo" id="remove-photo-btn">Remove</button>
+          </div>
+        </div>
+        <input type="file" id="file-input" accept="image/*" style="display:none" />
+      </div>
+
+      <button class="download-btn" id="download-btn">Download PNG</button>
+
+    </aside>
+  </main>
+
+  <script>
+    // Live binding: input → preview
+    const bindings = [
+      ['input-headline',     'preview-headline'],
+      ['input-subheadline',  'preview-subheadline'],
+      ['input-date',         'preview-date'],
+      ['input-location',     'preview-location'],
+      ['input-person-title', 'preview-person-title'],
+      ['input-person-name',  'preview-person-name'],
+    ]
+
+    bindings.forEach(([inputId, previewId]) => {
+      const input   = document.getElementById(inputId)
+      const preview = document.getElementById(previewId)
+      input.addEventListener('input', () => { preview.textContent = input.value })
+    })
+
+    // Photo upload
+    const uploadZone    = document.getElementById('upload-zone')
+    const fileInput     = document.getElementById('file-input')
+    const placeholder   = document.getElementById('upload-placeholder')
+    const uploadPreview = document.getElementById('upload-preview')
+    const uploadThumb   = document.getElementById('upload-thumb')
+    const removeBtn     = document.getElementById('remove-photo-btn')
+    const previewPhoto  = document.getElementById('preview-photo')
+    const DEFAULT_PHOTO = 'https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304'
+
+    function setPhoto(src) {
+      previewPhoto.src = src
+      uploadThumb.src  = src
+      placeholder.style.display   = 'none'
+      uploadPreview.style.display = 'flex'
+    }
+
+    function clearPhoto() {
+      previewPhoto.src = DEFAULT_PHOTO
+      placeholder.style.display   = 'flex'
+      uploadPreview.style.display = 'none'
+    }
+
+    uploadZone.addEventListener('click', () => fileInput.click())
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0]
+      if (!file) return
+      const reader = new FileReader()
+      reader.onload = (ev) => setPhoto(ev.target.result)
+      reader.readAsDataURL(file)
+    })
+
+    uploadZone.addEventListener('dragover', (e) => e.preventDefault())
+    uploadZone.addEventListener('drop', (e) => {
+      e.preventDefault()
+      const file = e.dataTransfer.files[0]
+      if (!file || !file.type.startsWith('image/')) return
+      const reader = new FileReader()
+      reader.onload = (ev) => setPhoto(ev.target.result)
+      reader.readAsDataURL(file)
+    })
+
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation()
+      fileInput.value = ''
+      clearPhoto()
+    })
+
+    // Download — capture the canvas at its real 1080×1350 size (before CSS scale)
+    const downloadBtn = document.getElementById('download-btn')
+    downloadBtn.addEventListener('click', async () => {
+      downloadBtn.disabled    = true
+      downloadBtn.textContent = 'Exporting…'
+      try {
+        const el     = document.getElementById('post-canvas')
+        const canvas = await html2canvas(el, {
+          scale: 1,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          width: 1080,
+          height: 1350,
+        })
+        const link    = document.createElement('a')
+        link.download = 'social-post.png'
+        link.href     = canvas.toDataURL('image/png')
+        link.click()
+      } catch (err) {
+        console.error('Download failed:', err)
+      } finally {
+        downloadBtn.disabled    = false
+        downloadBtn.textContent = 'Download PNG'
+      }
+    })
+  </script>
+
+</body>
+</html>
