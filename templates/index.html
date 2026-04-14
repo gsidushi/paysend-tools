@@ -335,6 +335,49 @@
       box-shadow: 0 0 0 1px #fff inset;
     }
 
+    /* Photo position slider */
+    .position-slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .position-slider-wrap span {
+      font-size: 11px;
+      color: #999;
+      flex-shrink: 0;
+      width: 36px;
+      text-align: center;
+    }
+    .position-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: #e0e0e0;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    .position-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #141414;
+      cursor: pointer;
+      border: none;
+    }
+    .position-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #141414;
+      cursor: pointer;
+      border: none;
+    }
+
     .upload-zone {
       border: 2px dashed #ddd;
       border-radius: 8px;
@@ -631,6 +674,14 @@ at ICE Barcelona!</textarea>
           </div>
           <input type="file" accept="image/*" class="file-input" data-person="1" style="display:none" />
         </div>
+        <div class="control-section" id="photo-align-control">
+          <label class="control-label">Image Position</label>
+          <div class="position-slider-wrap">
+            <span>Top</span>
+            <input type="range" class="position-slider" id="photo-position-slider" min="0" max="100" value="0" />
+            <span>Bottom</span>
+          </div>
+        </div>
       </div>
 
       <!-- Person 2 -->
@@ -773,6 +824,15 @@ at ICE Barcelona!</textarea>
       if (nEl) nEl.addEventListener('input', () => { personState[key].name  = nEl.value; syncPerson(key) })
     })
 
+    // ── Photo position slider (1-person only) ─────────────
+    const alignControl = document.getElementById('photo-align-control')
+    const photo1 = document.getElementById('photo-1')
+    const posSlider = document.getElementById('photo-position-slider')
+
+    posSlider.addEventListener('input', () => {
+      photo1.style.objectPosition = `center ${posSlider.value}%`
+    })
+
     // ── Photo background color palette ─────────────────────
     document.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', () => {
@@ -816,16 +876,19 @@ at ICE Barcelona!</textarea>
           section2.style.display = 'none'
           section3.style.display = 'none'
           section4.style.display = 'none'
+          alignControl.style.display = 'block'
         } else if (mode === 2) {
           label1.textContent = 'Person 1'
-          section2.style.display = 'flex'   // Person 2 editor
-          section3.style.display = 'none'   // not needed — synced via state
+          section2.style.display = 'flex'
+          section3.style.display = 'none'
           section4.style.display = 'none'
+          alignControl.style.display = 'none'
         } else if (mode === 3) {
           label1.textContent = 'Person 1'
-          section2.style.display = 'flex'   // Person 2 editor
-          section3.style.display = 'none'   // not needed — synced via state
-          section4.style.display = 'flex'   // Person 3 editor
+          section2.style.display = 'flex'
+          section3.style.display = 'none'
+          section4.style.display = 'flex'
+          alignControl.style.display = 'none'
         }
       })
     })
