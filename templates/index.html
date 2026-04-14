@@ -208,39 +208,23 @@
 
     .card-2 .p-col:last-child { border-right: none; }
 
-    /* ── Mode 3: three people ── */
+    /* ── Mode 3: three equal columns ── */
     .card-3 {
       flex-direction: row;
       height: 820px;
     }
 
-    /* Left large column */
-    .card-3 .p-col-left {
-      width: 50%;
-      flex-shrink: 0;
+    .card-3 .p-col-left,
+    .card-3 .p-col-mid,
+    .card-3 .p-col-right {
+      flex: 1;
       display: flex;
       flex-direction: column;
       overflow: hidden;
       border-right: 1px solid #141414;
     }
 
-    /* Right side stacks two people vertically */
-    .card-3 .p-col-right {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .card-3 .p-sub-row {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border-bottom: 1px solid #141414;
-    }
-
-    .card-3 .p-sub-row:last-child { border-bottom: none; }
+    .card-3 .p-col-right { border-right: none; }
 
     /* ── Layout switcher ── */
     .layout-switcher {
@@ -488,9 +472,9 @@
             </div>
           </div>
 
-          <!-- ── Card: 3 people ── -->
+          <!-- ── Card: 3 people (3 equal columns) ── -->
           <div id="card-3" class="post-card card-3" style="display:none">
-            <!-- Left large: nameplate top, photo fills rest -->
+            <!-- Column 1 -->
             <div class="p-col-left">
               <div class="p-nameplate">
                 <p class="p-title" id="title-3a">Head of Commercial EMEA</p>
@@ -501,27 +485,26 @@
                   src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
               </div>
             </div>
-            <!-- Right: 2 people stacked -->
-            <div class="p-col-right">
-              <div class="p-sub-row">
-                <div class="p-nameplate">
-                  <p class="p-title" id="title-3b">Go To Market Lead</p>
-                  <p class="p-name"  id="name-3b">Craig Luther</p>
-                </div>
-                <div class="p-photo-bg">
-                  <img class="p-photo" id="photo-3b" crossorigin="anonymous"
-                    src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
-                </div>
+            <!-- Column 2 -->
+            <div class="p-col-mid">
+              <div class="p-nameplate">
+                <p class="p-title" id="title-3b">Go To Market Lead</p>
+                <p class="p-name"  id="name-3b">Craig Luther</p>
               </div>
-              <div class="p-sub-row">
-                <div class="p-nameplate">
-                  <p class="p-title" id="title-3c">Head of Sales</p>
-                  <p class="p-name"  id="name-3c">Person Name</p>
-                </div>
-                <div class="p-photo-bg">
-                  <img class="p-photo" id="photo-3c" crossorigin="anonymous"
-                    src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
-                </div>
+              <div class="p-photo-bg">
+                <img class="p-photo" id="photo-3b" crossorigin="anonymous"
+                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+              </div>
+            </div>
+            <!-- Column 3 -->
+            <div class="p-col-right">
+              <div class="p-nameplate">
+                <p class="p-title" id="title-3c">Head of Sales</p>
+                <p class="p-name"  id="name-3c">Person Name</p>
+              </div>
+              <div class="p-photo-bg">
+                <img class="p-photo" id="photo-3c" crossorigin="anonymous"
+                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
               </div>
             </div>
           </div>
