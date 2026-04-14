@@ -100,10 +100,10 @@
       flex-shrink: 0;
     }
 
-    .post-logos { display: flex; align-items: center; gap: 20px; }
+    .post-logos { display: flex; align-items: flex-start; gap: 20px; }
     .logo-paysend { width: 313px; height: 53px; object-fit: contain; display: block; flex-shrink: 0; }
-    .logo-divider  { width: 2px; height: 34px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
-    .logo-pa360    { width: 174px; height: 103px; object-fit: contain; display: block; flex-shrink: 0; }
+    .logo-divider  { width: 2px; height: 40px; background: rgba(255,255,255,0.55); flex-shrink: 0; margin-top: 6px; }
+    .logo-pa360    { width: 174px; height: 103px; object-fit: contain; display: block; flex-shrink: 0; margin-top: -40px; }
 
     .post-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .badge { background: #fff; display: flex; align-items: center; gap: 15px; padding: 13px 14px; }
@@ -119,7 +119,7 @@
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
-      padding: 0 40px 52px;
+      padding: 0 40px 40px;
       gap: 14px;
     }
 
@@ -163,7 +163,7 @@
 
     /* shared photo area */
     .p-photo-bg {
-      background: #17bff2;
+      background: #08ffce;
       position: relative;
       overflow: hidden;
       flex: 1;
@@ -174,8 +174,8 @@
       inset: 0;
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: top center;
+      object-fit: contain;
+      object-position: bottom center;
       display: block;
     }
 
@@ -187,15 +187,6 @@
 
     .card-1 .p-photo-bg { height: 654px; flex: none; }
 
-    /* Mode 1 uses specific Figma photo positioning */
-    .card-1 .p-photo {
-      width: 847px;
-      height: 1270px;
-      left: 75px;
-      top: -209px;
-      inset: unset;
-      object-fit: cover;
-    }
 
     /* ── Mode 2: two people ── */
     .card-2 {
@@ -321,6 +312,29 @@
     }
 
     .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
+
+    /* Color palette */
+    .color-palette {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .color-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s;
+      flex-shrink: 0;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active {
+      border-color: #141414;
+      transform: scale(1.1);
+      box-shadow: 0 0 0 1px #fff inset;
+    }
 
     .upload-zone {
       border: 2px dashed #ddd;
@@ -574,6 +588,22 @@ at ICE Barcelona!</textarea>
         <input class="control-input" id="input-location" type="text" value="Barcelona, Spain" />
       </div>
 
+      <div class="control-section">
+        <label class="control-label">Photo Background</label>
+        <div class="color-palette" id="color-palette">
+          <button class="color-swatch active" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+          <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
+          <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
+          <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
+          <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
+          <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
+          <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
+          <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+          <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+          <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+        </div>
+      </div>
+
       <div class="divider"></div>
 
       <!-- Person 1 -->
@@ -700,16 +730,6 @@ at ICE Barcelona!</textarea>
       ['input-subheadline', 'preview-subheadline'],
       ['input-date',        'preview-date'],
       ['input-location',    'preview-location'],
-      // person text fields → canvas text elements
-      ['input-title-1',  'title-1'],
-      ['input-name-1',   'name-1'],
-      ['input-title-2a', 'title-2a'],
-      ['input-name-2a',  'name-2a'],
-      ['input-title-2b', 'title-2b'],
-      ['input-name-2b',  'name-2b'],
-      // 3-person shares 2a/2b and adds 3c
-      ['input-title-3c', 'title-3c'],
-      ['input-name-3c',  'name-3c'],
     ]
 
     textBindings.forEach(([inputId, previewId]) => {
@@ -720,18 +740,50 @@ at ICE Barcelona!</textarea>
       }
     })
 
-    // 3-person mode also mirrors 2a/2b → 3a/3b
-    document.getElementById('input-title-2a').addEventListener('input', e => {
-      document.getElementById('title-3b').textContent = e.target.value
+    // ── Shared person state ────────────────────────────────
+    const personState = {
+      P1: { title: 'Head of Commercial EMEA', name: 'Danny May',    photo: null },
+      P2: { title: 'Go To Market Lead',       name: 'Craig Luther', photo: null },
+      P3: { title: 'Head of Sales',           name: 'Person Name',  photo: null }
+    }
+
+    // Which canvas elements each person appears in across all layouts
+    const personCanvasMap = {
+      P1: { titles: ['title-1','title-2b','title-3a'], names: ['name-1','name-2b','name-3a'], photos: ['photo-1','photo-2b','photo-3a'] },
+      P2: { titles: ['title-2a','title-3b'],           names: ['name-2a','name-3b'],           photos: ['photo-2a','photo-3b'] },
+      P3: { titles: ['title-3c'],                      names: ['name-3c'],                      photos: ['photo-3c'] }
+    }
+
+    function syncPerson(key) {
+      const s = personState[key], m = personCanvasMap[key]
+      m.titles.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = s.title })
+      m.names.forEach(id  => { const el = document.getElementById(id); if (el) el.textContent = s.name  })
+      m.photos.forEach(id => { const el = document.getElementById(id); if (el) el.src = s.photo || '' })
+    }
+
+    // Person text inputs → update state + sync all slots
+    const personInputMap = {
+      P1: { title: 'input-title-1',  name: 'input-name-1'  },
+      P2: { title: 'input-title-2a', name: 'input-name-2a' },
+      P3: { title: 'input-title-3c', name: 'input-name-3c' }
+    }
+    Object.entries(personInputMap).forEach(([key, {title, name}]) => {
+      const tEl = document.getElementById(title)
+      const nEl = document.getElementById(name)
+      if (tEl) tEl.addEventListener('input', () => { personState[key].title = tEl.value; syncPerson(key) })
+      if (nEl) nEl.addEventListener('input', () => { personState[key].name  = nEl.value; syncPerson(key) })
     })
-    document.getElementById('input-name-2a').addEventListener('input', e => {
-      document.getElementById('name-3b').textContent = e.target.value
-    })
-    document.getElementById('input-title-2b').addEventListener('input', e => {
-      document.getElementById('title-3a').textContent = e.target.value
-    })
-    document.getElementById('input-name-2b').addEventListener('input', e => {
-      document.getElementById('name-3a').textContent = e.target.value
+
+    // ── Photo background color palette ─────────────────────
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        const color = swatch.dataset.color
+        document.querySelectorAll('.p-photo-bg').forEach(bg => {
+          bg.style.background = color
+        })
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'))
+        swatch.classList.add('active')
+      })
     })
 
     // ── Layout switcher ────────────────────────────────────
@@ -767,57 +819,50 @@ at ICE Barcelona!</textarea>
           section4.style.display = 'none'
         } else if (mode === 2) {
           label1.textContent = 'Person 1'
-          label3.textContent = 'Person 2'
-          section2.style.display = 'none'   // section2 is unused (2a is person-section-1's mirror)
-          section3.style.display = 'flex'
+          section2.style.display = 'flex'   // Person 2 editor
+          section3.style.display = 'none'   // not needed — synced via state
           section4.style.display = 'none'
         } else if (mode === 3) {
           label1.textContent = 'Person 1'
-          label3.textContent = 'Person 3'
-          section2.style.display = 'flex'
-          section3.style.display = 'flex'
-          section4.style.display = 'flex'
+          section2.style.display = 'flex'   // Person 2 editor
+          section3.style.display = 'none'   // not needed — synced via state
+          section4.style.display = 'flex'   // Person 3 editor
         }
       })
     })
 
     // ── Photo uploads ──────────────────────────────────────
-    // Map person key → canvas photo element ids
-    const photoMap = {
-      '1':  ['photo-1'],
-      '2a': ['photo-2a', 'photo-3b'],
-      '2b': ['photo-2b', 'photo-3a'],
-      '3c': ['photo-3c'],
-    }
-
-    const DEFAULT_PHOTO = 'https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304'
+    // Map upload zone key → person state key
+    const zonePersonKey = { '1': 'P1', '2a': 'P2', '3c': 'P3' }
 
     document.querySelectorAll('.upload-zone').forEach(zone => {
-      const person      = zone.dataset.person
-      const fileInput   = document.querySelector(`.file-input[data-person="${person}"]`)
+      const zoneKey   = zone.dataset.person
+      const personKey = zonePersonKey[zoneKey]
+      if (!personKey) return  // skip non-primary zones (2b, 3a, 3b — synced via state)
+
+      const fileInput   = document.querySelector(`.file-input[data-person="${zoneKey}"]`)
       const placeholder = zone.querySelector('.upload-placeholder')
       const preview     = zone.querySelector('.upload-preview')
       const thumb       = zone.querySelector('.upload-preview img')
       const removeBtn   = zone.querySelector('.remove-photo')
 
       function setPhoto(src) {
-        photoMap[person]?.forEach(id => {
-          document.getElementById(id).src = src
-        })
+        personState[personKey].photo = src
+        syncPerson(personKey)
         thumb.src = src
         placeholder.style.display = 'none'
         preview.style.display     = 'flex'
       }
 
       function clearPhoto() {
-        photoMap[person]?.forEach(id => {
-          document.getElementById(id).src = DEFAULT_PHOTO
-        })
+        personState[personKey].photo = null
+        syncPerson(personKey)
+        fileInput.value = ''
         placeholder.style.display = 'flex'
         preview.style.display     = 'none'
       }
 
-      zone.addEventListener('click', (e) => {
+      zone.addEventListener('click', e => {
         if (e.target === removeBtn || removeBtn.contains(e.target)) return
         fileInput.click()
       })
@@ -842,7 +887,6 @@ at ICE Barcelona!</textarea>
 
       removeBtn.addEventListener('click', e => {
         e.stopPropagation()
-        fileInput.value = ''
         clearPhoto()
       })
     })
