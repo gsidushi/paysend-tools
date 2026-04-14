@@ -62,7 +62,6 @@
       overflow: auto;
     }
 
-    /* Clip the 1080×1350 canvas down to 540×675 for display */
     .preview-wrapper {
       width: 540px;
       height: 675px;
@@ -74,7 +73,7 @@
 
     .preview-hint { font-size: 12px; color: #aaa; }
 
-    /* ── Post canvas — full 1080×1350, scaled to 50% for preview ── */
+    /* ── Post canvas ── */
     #post-canvas {
       width: 1080px;
       height: 1350px;
@@ -87,7 +86,7 @@
       font-family: 'GT Standard', sans-serif;
     }
 
-    /* Top bar */
+    /* ── Post header ── */
     .post-header {
       display: flex;
       justify-content: space-between;
@@ -96,44 +95,20 @@
       flex-shrink: 0;
     }
 
-    .post-logos {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
+    .post-logos { display: flex; align-items: center; gap: 20px; }
     .logo-paysend { width: 313px; height: 53px; object-fit: contain; display: block; flex-shrink: 0; }
     .logo-divider  { width: 2px; height: 34px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
     .logo-pa360    { width: 174px; height: 103px; object-fit: contain; display: block; flex-shrink: 0; }
 
-    /* Badges */
-    .post-badges {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 4px;
-    }
-
-    .badge {
-      background: #fff;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 13px 14px;
-    }
-
+    .post-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .badge { background: #fff; display: flex; align-items: center; gap: 15px; padding: 13px 14px; }
     .badge-icon { display: block; flex-shrink: 0; }
-
     .badge span {
-      font-size: 28px;
-      font-weight: 400;
-      color: #141414;
-      letter-spacing: 0.56px;
-      white-space: nowrap;
-      line-height: 1.2;
+      font-size: 28px; font-weight: 400; color: #141414;
+      letter-spacing: 0.56px; white-space: nowrap; line-height: 1.2;
     }
 
-    /* Text area */
+    /* ── Text area ── */
     .post-text-area {
       flex: 1;
       display: flex;
@@ -144,65 +119,181 @@
     }
 
     #preview-subheadline {
-      font-size: 28px;
-      font-weight: 400;
+      font-size: 28px; font-weight: 400;
       color: rgba(255,255,255,0.6);
-      letter-spacing: 0.56px;
-      line-height: 1.2;
+      letter-spacing: 0.56px; line-height: 1.2;
     }
 
     #preview-headline {
-      font-size: 80px;
-      font-weight: 600;
-      color: #fff;
-      line-height: 0.9;
-      letter-spacing: -0.8px;
-      white-space: pre-line;
+      font-size: 80px; font-weight: 600;
+      color: #fff; line-height: 0.9;
+      letter-spacing: -0.8px; white-space: pre-line;
     }
 
-    /* Photo card */
-    .post-card { display: flex; flex-direction: column; flex-shrink: 0; }
-
-    .post-photo-bg {
-      background: #17bff2;
-      height: 654px;
-      position: relative;
-      overflow: hidden;
+    /* ── Card base ── */
+    .post-card {
+      display: flex;
+      flex-shrink: 0;
     }
 
-    #preview-photo {
-      position: absolute;
-      width: 847px;
-      height: 1270px;
-      left: 75px;
-      top: -209px;
-      object-fit: cover;
-      object-position: top center;
-      display: block;
-    }
-
-    .post-nameplate {
+    /* shared nameplate */
+    .p-nameplate {
       background: #fff;
       padding: 33px;
       display: flex;
       flex-direction: column;
       gap: 20px;
+      flex-shrink: 0;
     }
 
-    #preview-person-title {
-      font-size: 28px;
-      font-weight: 400;
-      color: #141414;
-      letter-spacing: 0.56px;
-      line-height: 1.2;
+    .p-title {
+      font-size: 28px; font-weight: 400; color: #141414;
+      letter-spacing: 0.56px; line-height: 1.2;
     }
 
-    #preview-person-name {
-      font-size: 52px;
+    .p-name {
+      font-size: 52px; font-weight: 600; color: #141414;
+      letter-spacing: -0.52px; line-height: 0.9;
+    }
+
+    /* shared photo area */
+    .p-photo-bg {
+      background: #17bff2;
+      position: relative;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .p-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    /* ── Mode 1: single person ── */
+    .card-1 {
+      flex-direction: column;
+      height: 820px;
+    }
+
+    .card-1 .p-photo-bg { height: 654px; flex: none; }
+
+    /* Mode 1 uses specific Figma photo positioning */
+    .card-1 .p-photo {
+      width: 847px;
+      height: 1270px;
+      left: 75px;
+      top: -209px;
+      inset: unset;
+      object-fit: cover;
+    }
+
+    /* ── Mode 2: two people ── */
+    .card-2 {
+      flex-direction: row;
+      height: 820px;
+    }
+
+    .card-2 .p-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid #141414;
+    }
+
+    .card-2 .p-col:last-child { border-right: none; }
+
+    /* ── Mode 3: three people ── */
+    .card-3 {
+      flex-direction: row;
+      height: 820px;
+    }
+
+    /* Left large column */
+    .card-3 .p-col-left {
+      width: 50%;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid #141414;
+    }
+
+    /* Right side stacks two people vertically */
+    .card-3 .p-col-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .card-3 .p-sub-row {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-bottom: 1px solid #141414;
+    }
+
+    .card-3 .p-sub-row:last-child { border-bottom: none; }
+
+    /* ── Layout switcher ── */
+    .layout-switcher {
+      display: flex;
+      gap: 6px;
+    }
+
+    .layout-btn {
+      flex: 1;
+      padding: 9px 6px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      background: #fafafa;
+      font-size: 12px;
       font-weight: 600;
+      font-family: inherit;
+      color: #888;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .layout-btn:hover { border-color: #141414; color: #141414; }
+
+    .layout-btn.active {
+      background: #141414;
+      border-color: #141414;
+      color: #fff;
+    }
+
+    .layout-btn svg { opacity: 0.5; }
+    .layout-btn.active svg { opacity: 1; }
+
+    /* ── Person section in controls ── */
+    .person-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 14px;
+      border: 1px solid #e8e8e8;
+      border-radius: 8px;
+    }
+
+    .person-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
       color: #141414;
-      letter-spacing: -0.52px;
-      line-height: 0.9;
+      margin-bottom: 2px;
     }
 
     /* ── Controls ── */
@@ -212,22 +303,18 @@
       padding: 24px 20px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
       overflow-y: auto;
     }
 
     .control-section { display: flex; flex-direction: column; gap: 6px; }
 
     .control-label {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      color: #888;
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px; color: #888;
     }
 
-    .control-input,
-    .control-textarea {
+    .control-input, .control-textarea {
       width: 100%;
       padding: 9px 11px;
       border: 1px solid #e0e0e0;
@@ -240,20 +327,19 @@
       resize: none;
     }
 
-    .control-input:focus,
-    .control-textarea:focus {
-      outline: none;
-      border-color: #17bff2;
-      background: #fff;
+    .control-input:focus, .control-textarea:focus {
+      outline: none; border-color: #17bff2; background: #fff;
     }
+
+    .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
 
     .upload-zone {
       border: 2px dashed #ddd;
       border-radius: 8px;
-      padding: 14px;
+      padding: 12px;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
-      min-height: 80px;
+      min-height: 70px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -262,40 +348,28 @@
     .upload-zone:hover { border-color: #17bff2; background: #f0fbff; }
 
     .upload-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      color: #aaa;
-      font-size: 13px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 3px;
+      color: #aaa; font-size: 12px;
     }
 
-    .upload-icon { font-size: 20px; line-height: 1; }
+    .upload-icon { font-size: 18px; line-height: 1; }
     .upload-hint { font-size: 11px; color: #ccc; }
 
     .upload-preview {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 6px; width: 100%;
     }
 
     .upload-preview img {
-      width: 100%;
-      height: 72px;
-      object-fit: cover;
-      border-radius: 4px;
+      width: 100%; height: 60px;
+      object-fit: cover; border-radius: 4px;
     }
 
     .remove-photo {
-      font-size: 12px;
-      color: #e94560;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 2px 6px;
-      font-family: inherit;
+      font-size: 11px; color: #e94560;
+      background: none; border: none;
+      cursor: pointer; padding: 2px 4px; font-family: inherit;
     }
 
     .remove-photo:hover { text-decoration: underline; }
@@ -303,14 +377,10 @@
     .download-btn {
       margin-top: auto;
       padding: 13px 20px;
-      background: #141414;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
+      background: #141414; color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
       transition: background 0.15s, transform 0.1s;
     }
 
@@ -333,7 +403,7 @@
 
   <main class="workspace">
 
-    <!-- Preview -->
+    <!-- ── Preview ── -->
     <div class="preview-area">
       <div class="preview-wrapper">
         <div id="post-canvas">
@@ -351,7 +421,7 @@
             </div>
             <div class="post-badges">
               <div class="badge">
-                <svg class="badge-icon" width="28" height="26" viewBox="0 0 28 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="badge-icon" width="28" height="26" viewBox="0 0 28 26" fill="none">
                   <rect x="1" y="4" width="26" height="21" rx="1" stroke="#141414" stroke-width="2"/>
                   <path d="M1 10H27" stroke="#141414" stroke-width="2"/>
                   <path d="M8 1V7" stroke="#141414" stroke-width="3" stroke-linecap="round"/>
@@ -365,7 +435,7 @@
                 <span id="preview-date">January 19–21, 2026</span>
               </div>
               <div class="badge">
-                <svg class="badge-icon" width="25" height="28" viewBox="0 0 25 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg class="badge-icon" width="25" height="28" viewBox="0 0 25 28" fill="none">
                   <path d="M12.5 27C12.5 27 23 17.5 23 10.5C23 4.701 18.299 0 12.5 0C6.701 0 2 4.701 2 10.5C2 17.5 12.5 27 12.5 27Z" stroke="#141414" stroke-width="2" stroke-linejoin="round"/>
                   <circle cx="12.5" cy="10.5" r="3.5" stroke="#141414" stroke-width="2"/>
                 </svg>
@@ -380,16 +450,79 @@
             <p id="preview-headline">Level up your payments game with Paysend&#10;at ICE Barcelona!</p>
           </div>
 
-          <!-- Photo card -->
-          <div class="post-card">
-            <div class="post-photo-bg">
-              <img id="preview-photo" crossorigin="anonymous"
-                src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304"
-                alt="Speaker" />
+          <!-- ── Card: 1 person ── -->
+          <div id="card-1" class="post-card card-1">
+            <div class="p-photo-bg">
+              <img class="p-photo" id="photo-1" crossorigin="anonymous"
+                src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
             </div>
-            <div class="post-nameplate">
-              <p id="preview-person-title">Head of Commercial EMEA</p>
-              <p id="preview-person-name">Danny May</p>
+            <div class="p-nameplate">
+              <p class="p-title" id="title-1">Head of Commercial EMEA</p>
+              <p class="p-name"  id="name-1">Danny May</p>
+            </div>
+          </div>
+
+          <!-- ── Card: 2 people ── -->
+          <div id="card-2" class="post-card card-2" style="display:none">
+            <!-- Left: photo top, nameplate bottom -->
+            <div class="p-col">
+              <div class="p-photo-bg">
+                <img class="p-photo" id="photo-2a" crossorigin="anonymous"
+                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+              </div>
+              <div class="p-nameplate">
+                <p class="p-title" id="title-2a">Go To Market Lead</p>
+                <p class="p-name"  id="name-2a">Craig Luther</p>
+              </div>
+            </div>
+            <!-- Right: nameplate top, photo bottom -->
+            <div class="p-col">
+              <div class="p-nameplate">
+                <p class="p-title" id="title-2b">Head of Commercial EMEA</p>
+                <p class="p-name"  id="name-2b">Danny May</p>
+              </div>
+              <div class="p-photo-bg">
+                <img class="p-photo" id="photo-2b" crossorigin="anonymous"
+                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Card: 3 people ── -->
+          <div id="card-3" class="post-card card-3" style="display:none">
+            <!-- Left large: nameplate top, photo fills rest -->
+            <div class="p-col-left">
+              <div class="p-nameplate">
+                <p class="p-title" id="title-3a">Head of Commercial EMEA</p>
+                <p class="p-name"  id="name-3a">Danny May</p>
+              </div>
+              <div class="p-photo-bg">
+                <img class="p-photo" id="photo-3a" crossorigin="anonymous"
+                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+              </div>
+            </div>
+            <!-- Right: 2 people stacked -->
+            <div class="p-col-right">
+              <div class="p-sub-row">
+                <div class="p-nameplate">
+                  <p class="p-title" id="title-3b">Go To Market Lead</p>
+                  <p class="p-name"  id="name-3b">Craig Luther</p>
+                </div>
+                <div class="p-photo-bg">
+                  <img class="p-photo" id="photo-3b" crossorigin="anonymous"
+                    src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+                </div>
+              </div>
+              <div class="p-sub-row">
+                <div class="p-nameplate">
+                  <p class="p-title" id="title-3c">Head of Sales</p>
+                  <p class="p-name"  id="name-3c">Person Name</p>
+                </div>
+                <div class="p-photo-bg">
+                  <img class="p-photo" id="photo-3c" crossorigin="anonymous"
+                    src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -398,9 +531,40 @@
       <p class="preview-hint">Preview at 540×675 — exports 1080×1350</p>
     </div>
 
-    <!-- Controls -->
+    <!-- ── Controls ── -->
     <aside class="controls">
 
+      <!-- Layout switcher -->
+      <div class="control-section">
+        <label class="control-label">Layout</label>
+        <div class="layout-switcher">
+          <button class="layout-btn active" data-mode="1">
+            <svg width="32" height="20" viewBox="0 0 32 20" fill="currentColor">
+              <rect x="0" y="0" width="32" height="20" rx="2"/>
+            </svg>
+            1 Person
+          </button>
+          <button class="layout-btn" data-mode="2">
+            <svg width="32" height="20" viewBox="0 0 32 20" fill="currentColor">
+              <rect x="0" y="0" width="15" height="20" rx="2"/>
+              <rect x="17" y="0" width="15" height="20" rx="2"/>
+            </svg>
+            2 People
+          </button>
+          <button class="layout-btn" data-mode="3">
+            <svg width="32" height="20" viewBox="0 0 32 20" fill="currentColor">
+              <rect x="0" y="0" width="15" height="20" rx="2"/>
+              <rect x="17" y="0" width="15" height="9" rx="2"/>
+              <rect x="17" y="11" width="15" height="9" rx="2"/>
+            </svg>
+            3 People
+          </button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Text fields -->
       <div class="control-section">
         <label class="control-label">Headline</label>
         <textarea class="control-textarea" id="input-headline" rows="3">Level up your payments game with Paysend
@@ -422,30 +586,118 @@ at ICE Barcelona!</textarea>
         <input class="control-input" id="input-location" type="text" value="Barcelona, Spain" />
       </div>
 
-      <div class="control-section">
-        <label class="control-label">Person Title</label>
-        <input class="control-input" id="input-person-title" type="text" value="Head of Commercial EMEA" />
-      </div>
+      <div class="divider"></div>
 
-      <div class="control-section">
-        <label class="control-label">Person Name</label>
-        <input class="control-input" id="input-person-name" type="text" value="Danny May" />
-      </div>
-
-      <div class="control-section">
-        <label class="control-label">Photo</label>
-        <div class="upload-zone" id="upload-zone">
-          <div class="upload-placeholder" id="upload-placeholder">
-            <span class="upload-icon">↑</span>
-            <span>Click or drag to upload</span>
-            <span class="upload-hint">PNG, JPG, WEBP</span>
-          </div>
-          <div class="upload-preview" id="upload-preview" style="display:none">
-            <img id="upload-thumb" src="" alt="preview" />
-            <button class="remove-photo" id="remove-photo-btn">Remove</button>
-          </div>
+      <!-- Person 1 -->
+      <div class="person-section" id="person-section-1">
+        <div class="person-section-label" id="person-label-1">Person</div>
+        <div class="control-section">
+          <label class="control-label">Title</label>
+          <input class="control-input" id="input-title-1" type="text" value="Head of Commercial EMEA" />
         </div>
-        <input type="file" id="file-input" accept="image/*" style="display:none" />
+        <div class="control-section">
+          <label class="control-label">Name</label>
+          <input class="control-input" id="input-name-1" type="text" value="Danny May" />
+        </div>
+        <div class="control-section">
+          <label class="control-label">Photo</label>
+          <div class="upload-zone" data-person="1">
+            <div class="upload-placeholder">
+              <span class="upload-icon">↑</span>
+              <span>Click or drag</span>
+              <span class="upload-hint">PNG, JPG, WEBP</span>
+            </div>
+            <div class="upload-preview" style="display:none">
+              <img src="" alt="thumb" />
+              <button class="remove-photo">Remove</button>
+            </div>
+          </div>
+          <input type="file" accept="image/*" class="file-input" data-person="1" style="display:none" />
+        </div>
+      </div>
+
+      <!-- Person 2 -->
+      <div class="person-section" id="person-section-2" style="display:none">
+        <div class="person-section-label">Person 2</div>
+        <div class="control-section">
+          <label class="control-label">Title</label>
+          <input class="control-input" id="input-title-2a" type="text" value="Go To Market Lead" />
+        </div>
+        <div class="control-section">
+          <label class="control-label">Name</label>
+          <input class="control-input" id="input-name-2a" type="text" value="Craig Luther" />
+        </div>
+        <div class="control-section">
+          <label class="control-label">Photo</label>
+          <div class="upload-zone" data-person="2a">
+            <div class="upload-placeholder">
+              <span class="upload-icon">↑</span>
+              <span>Click or drag</span>
+              <span class="upload-hint">PNG, JPG, WEBP</span>
+            </div>
+            <div class="upload-preview" style="display:none">
+              <img src="" alt="thumb" />
+              <button class="remove-photo">Remove</button>
+            </div>
+          </div>
+          <input type="file" accept="image/*" class="file-input" data-person="2a" style="display:none" />
+        </div>
+      </div>
+
+      <!-- Person 3 (right in 2-person, top-right in 3-person) -->
+      <div class="person-section" id="person-section-3" style="display:none">
+        <div class="person-section-label" id="person-label-3">Person 3</div>
+        <div class="control-section">
+          <label class="control-label">Title</label>
+          <input class="control-input" id="input-title-2b" type="text" value="Head of Commercial EMEA" />
+        </div>
+        <div class="control-section">
+          <label class="control-label">Name</label>
+          <input class="control-input" id="input-name-2b" type="text" value="Danny May" />
+        </div>
+        <div class="control-section">
+          <label class="control-label">Photo</label>
+          <div class="upload-zone" data-person="2b">
+            <div class="upload-placeholder">
+              <span class="upload-icon">↑</span>
+              <span>Click or drag</span>
+              <span class="upload-hint">PNG, JPG, WEBP</span>
+            </div>
+            <div class="upload-preview" style="display:none">
+              <img src="" alt="thumb" />
+              <button class="remove-photo">Remove</button>
+            </div>
+          </div>
+          <input type="file" accept="image/*" class="file-input" data-person="2b" style="display:none" />
+        </div>
+      </div>
+
+      <!-- Person 4 (bottom-right in 3-person only) -->
+      <div class="person-section" id="person-section-4" style="display:none">
+        <div class="person-section-label">Person 4</div>
+        <div class="control-section">
+          <label class="control-label">Title</label>
+          <input class="control-input" id="input-title-3c" type="text" value="Head of Sales" />
+        </div>
+        <div class="control-section">
+          <label class="control-label">Name</label>
+          <input class="control-input" id="input-name-3c" type="text" value="Person Name" />
+        </div>
+        <div class="control-section">
+          <label class="control-label">Photo</label>
+          <div class="upload-zone" data-person="3c">
+            <div class="upload-placeholder">
+              <span class="upload-icon">↑</span>
+              <span>Click or drag</span>
+              <span class="upload-hint">PNG, JPG, WEBP</span>
+            </div>
+            <div class="upload-preview" style="display:none">
+              <img src="" alt="thumb" />
+              <button class="remove-photo">Remove</button>
+            </div>
+          </div>
+          <input type="file" accept="image/*" class="file-input" data-person="3c" style="display:none" />
+        </div>
       </div>
 
       <button class="download-btn" id="download-btn">Download PNG</button>
@@ -454,71 +706,160 @@ at ICE Barcelona!</textarea>
   </main>
 
   <script>
-    // Live binding: input → preview
-    const bindings = [
-      ['input-headline',     'preview-headline'],
-      ['input-subheadline',  'preview-subheadline'],
-      ['input-date',         'preview-date'],
-      ['input-location',     'preview-location'],
-      ['input-person-title', 'preview-person-title'],
-      ['input-person-name',  'preview-person-name'],
+    // ── Text bindings ──────────────────────────────────────
+    const textBindings = [
+      ['input-headline',    'preview-headline'],
+      ['input-subheadline', 'preview-subheadline'],
+      ['input-date',        'preview-date'],
+      ['input-location',    'preview-location'],
+      // person text fields → canvas text elements
+      ['input-title-1',  'title-1'],
+      ['input-name-1',   'name-1'],
+      ['input-title-2a', 'title-2a'],
+      ['input-name-2a',  'name-2a'],
+      ['input-title-2b', 'title-2b'],
+      ['input-name-2b',  'name-2b'],
+      // 3-person shares 2a/2b and adds 3c
+      ['input-title-3c', 'title-3c'],
+      ['input-name-3c',  'name-3c'],
     ]
 
-    bindings.forEach(([inputId, previewId]) => {
+    textBindings.forEach(([inputId, previewId]) => {
       const input   = document.getElementById(inputId)
       const preview = document.getElementById(previewId)
-      input.addEventListener('input', () => { preview.textContent = input.value })
+      if (input && preview) {
+        input.addEventListener('input', () => { preview.textContent = input.value })
+      }
     })
 
-    // Photo upload
-    const uploadZone    = document.getElementById('upload-zone')
-    const fileInput     = document.getElementById('file-input')
-    const placeholder   = document.getElementById('upload-placeholder')
-    const uploadPreview = document.getElementById('upload-preview')
-    const uploadThumb   = document.getElementById('upload-thumb')
-    const removeBtn     = document.getElementById('remove-photo-btn')
-    const previewPhoto  = document.getElementById('preview-photo')
+    // 3-person mode also mirrors 2a/2b → 3a/3b
+    document.getElementById('input-title-2a').addEventListener('input', e => {
+      document.getElementById('title-3b').textContent = e.target.value
+    })
+    document.getElementById('input-name-2a').addEventListener('input', e => {
+      document.getElementById('name-3b').textContent = e.target.value
+    })
+    document.getElementById('input-title-2b').addEventListener('input', e => {
+      document.getElementById('title-3a').textContent = e.target.value
+    })
+    document.getElementById('input-name-2b').addEventListener('input', e => {
+      document.getElementById('name-3a').textContent = e.target.value
+    })
+
+    // ── Layout switcher ────────────────────────────────────
+    let currentMode = 1
+
+    const cards   = { 1: 'card-1', 2: 'card-2', 3: 'card-3' }
+    const section2 = document.getElementById('person-section-2')
+    const section3 = document.getElementById('person-section-3')
+    const section4 = document.getElementById('person-section-4')
+    const label1   = document.getElementById('person-label-1')
+    const label3   = document.getElementById('person-label-3')
+
+    document.querySelectorAll('.layout-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = parseInt(btn.dataset.mode)
+        if (mode === currentMode) return
+        currentMode = mode
+
+        // Toggle buttons
+        document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'))
+        btn.classList.add('active')
+
+        // Toggle cards
+        Object.entries(cards).forEach(([m, id]) => {
+          document.getElementById(id).style.display = parseInt(m) === mode ? 'flex' : 'none'
+        })
+
+        // Toggle control sections
+        if (mode === 1) {
+          label1.textContent = 'Person'
+          section2.style.display = 'none'
+          section3.style.display = 'none'
+          section4.style.display = 'none'
+        } else if (mode === 2) {
+          label1.textContent = 'Person 1'
+          label3.textContent = 'Person 2'
+          section2.style.display = 'none'   // section2 is unused (2a is person-section-1's mirror)
+          section3.style.display = 'flex'
+          section4.style.display = 'none'
+        } else if (mode === 3) {
+          label1.textContent = 'Person 1'
+          label3.textContent = 'Person 3'
+          section2.style.display = 'flex'
+          section3.style.display = 'flex'
+          section4.style.display = 'flex'
+        }
+      })
+    })
+
+    // ── Photo uploads ──────────────────────────────────────
+    // Map person key → canvas photo element ids
+    const photoMap = {
+      '1':  ['photo-1'],
+      '2a': ['photo-2a', 'photo-3b'],
+      '2b': ['photo-2b', 'photo-3a'],
+      '3c': ['photo-3c'],
+    }
+
     const DEFAULT_PHOTO = 'https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304'
 
-    function setPhoto(src) {
-      previewPhoto.src = src
-      uploadThumb.src  = src
-      placeholder.style.display   = 'none'
-      uploadPreview.style.display = 'flex'
-    }
+    document.querySelectorAll('.upload-zone').forEach(zone => {
+      const person      = zone.dataset.person
+      const fileInput   = document.querySelector(`.file-input[data-person="${person}"]`)
+      const placeholder = zone.querySelector('.upload-placeholder')
+      const preview     = zone.querySelector('.upload-preview')
+      const thumb       = zone.querySelector('.upload-preview img')
+      const removeBtn   = zone.querySelector('.remove-photo')
 
-    function clearPhoto() {
-      previewPhoto.src = DEFAULT_PHOTO
-      placeholder.style.display   = 'flex'
-      uploadPreview.style.display = 'none'
-    }
+      function setPhoto(src) {
+        photoMap[person]?.forEach(id => {
+          document.getElementById(id).src = src
+        })
+        thumb.src = src
+        placeholder.style.display = 'none'
+        preview.style.display     = 'flex'
+      }
 
-    uploadZone.addEventListener('click', () => fileInput.click())
-    fileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0]
-      if (!file) return
-      const reader = new FileReader()
-      reader.onload = (ev) => setPhoto(ev.target.result)
-      reader.readAsDataURL(file)
+      function clearPhoto() {
+        photoMap[person]?.forEach(id => {
+          document.getElementById(id).src = DEFAULT_PHOTO
+        })
+        placeholder.style.display = 'flex'
+        preview.style.display     = 'none'
+      }
+
+      zone.addEventListener('click', (e) => {
+        if (e.target === removeBtn || removeBtn.contains(e.target)) return
+        fileInput.click()
+      })
+
+      fileInput.addEventListener('change', e => {
+        const file = e.target.files[0]
+        if (!file) return
+        const reader = new FileReader()
+        reader.onload = ev => setPhoto(ev.target.result)
+        reader.readAsDataURL(file)
+      })
+
+      zone.addEventListener('dragover', e => e.preventDefault())
+      zone.addEventListener('drop', e => {
+        e.preventDefault()
+        const file = e.dataTransfer.files[0]
+        if (!file || !file.type.startsWith('image/')) return
+        const reader = new FileReader()
+        reader.onload = ev => setPhoto(ev.target.result)
+        reader.readAsDataURL(file)
+      })
+
+      removeBtn.addEventListener('click', e => {
+        e.stopPropagation()
+        fileInput.value = ''
+        clearPhoto()
+      })
     })
 
-    uploadZone.addEventListener('dragover', (e) => e.preventDefault())
-    uploadZone.addEventListener('drop', (e) => {
-      e.preventDefault()
-      const file = e.dataTransfer.files[0]
-      if (!file || !file.type.startsWith('image/')) return
-      const reader = new FileReader()
-      reader.onload = (ev) => setPhoto(ev.target.result)
-      reader.readAsDataURL(file)
-    })
-
-    removeBtn.addEventListener('click', (e) => {
-      e.stopPropagation()
-      fileInput.value = ''
-      clearPhoto()
-    })
-
-    // Download — capture the canvas at its real 1080×1350 size (before CSS scale)
+    // ── Download ───────────────────────────────────────────
     const downloadBtn = document.getElementById('download-btn')
     downloadBtn.addEventListener('click', async () => {
       downloadBtn.disabled    = true
@@ -526,12 +867,8 @@ at ICE Barcelona!</textarea>
       try {
         const el     = document.getElementById('post-canvas')
         const canvas = await html2canvas(el, {
-          scale: 1,
-          useCORS: true,
-          allowTaint: true,
-          logging: false,
-          width: 1080,
-          height: 1350,
+          scale: 1, useCORS: true, allowTaint: true,
+          logging: false, width: 1080, height: 1350,
         })
         const link    = document.createElement('a')
         link.download = 'social-post.png'
