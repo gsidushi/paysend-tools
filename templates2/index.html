@@ -18,42 +18,52 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f2f2f2; }
+    html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
 
-    /* ── App shell ── */
-    .app { display: flex; height: 100vh; }
-
-    /* ── Preview side ── */
-    .preview-side {
+    /* ── App header ── */
+    .header {
+      padding: 14px 24px;
+      background: #fff;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       flex-shrink: 0;
-      width: 540px;
+    }
+    .header-logo { width: 28px; height: 28px; flex-shrink: 0; display: block; }
+    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p  { font-size: 13px; color: #999; }
+
+    /* ── Workspace ── */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 25vw;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* ── Preview area ── */
+    .preview-area {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 40px 32px;
       gap: 12px;
+      overflow: hidden;
     }
-
-    .app-title {
-      font-size: 14px; font-weight: 600; color: #141414;
-      align-self: flex-start;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .app-title a { display: flex; align-items: center; flex-shrink: 0; }
-    .app-title img { width: 26px; height: 26px; display: block; }
-    .app-title span { font-weight: 400; color: #999; margin-left: 8px; }
 
     .preview-wrapper {
       width: 500px;
       height: 261px;
       overflow: hidden;
-      border-radius: 4px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.14);
+      box-shadow: 0 8px 48px rgba(0,0,0,0.22);
+      border-radius: 3px;
       flex-shrink: 0;
     }
 
-    .preview-note { font-size: 11px; color: #bbb; }
+    .preview-hint { font-size: 12px; color: #aaa; }
 
     /* ── Canvas (1200×627, displayed at 50%) ── */
     #post-canvas {
@@ -209,37 +219,40 @@
       white-space: nowrap; line-height: 1.2;
     }
 
-    /* ── Controls side ── */
-    .controls-side {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px 24px 40px;
+    /* ── Controls (matches Layout 1) ── */
+    .controls {
+      background: #fff;
+      border-left: 1px solid #e8e8e8;
+      padding: 24px 20px;
       display: flex;
       flex-direction: column;
-      border-left: 1px solid #e8e8e8;
-      background: #fff;
+      gap: 16px;
+      overflow-y: auto;
     }
 
-    /* ── Control styles (same as template 1) ── */
-    .control-section { padding: 10px 0; }
+    .control-section { display: flex; flex-direction: column; gap: 6px; }
+
     .control-label {
-      font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
-      text-transform: uppercase; color: #999; margin-bottom: 6px; display: block;
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px; color: #888;
     }
-    .control-input {
-      width: 100%; padding: 10px 12px;
-      border: 1.5px solid #e8e8e8; border-radius: 6px;
-      font-family: inherit; font-size: 14px; color: #141414;
-      outline: none; background: #fafafa;
+
+    .control-input, .control-textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #1a1a1a;
+      background: #fafafa;
+      transition: border-color 0.15s;
+      resize: none;
     }
-    .control-input:focus { border-color: #08ffce; background: #fff; }
-    .control-textarea {
-      width: 100%; padding: 10px 12px;
-      border: 1.5px solid #e8e8e8; border-radius: 6px;
-      font-family: inherit; font-size: 14px; color: #141414;
-      outline: none; background: #fafafa; resize: vertical; line-height: 1.4;
+
+    .control-input:focus, .control-textarea:focus {
+      outline: none; border-color: #17bff2; background: #fff;
     }
-    .control-textarea:focus { border-color: #08ffce; background: #fff; }
 
     .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
 
@@ -254,10 +267,6 @@
     .color-swatch.active { border-color: #141414; transform: scale(1.1); box-shadow: 0 0 0 1px #fff inset; }
 
     /* Layout switcher */
-    .section-label {
-      font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
-      text-transform: uppercase; color: #999; margin-bottom: 8px;
-    }
     .layout-switcher { display: flex; gap: 8px; }
     .layout-btn {
       flex: 1; display: flex; flex-direction: column; align-items: center;
@@ -272,24 +281,22 @@
 
     /* Upload zone */
     .upload-zone {
-      border: 2px dashed #ddd; border-radius: 8px; padding: 16px;
-      text-align: center; cursor: pointer; transition: border-color 0.15s; background: #fafafa;
+      border: 2px dashed #ddd; border-radius: 8px; padding: 12px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      min-height: 70px; display: flex; align-items: center; justify-content: center;
     }
-    .upload-zone:hover { border-color: #aaa; }
-    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .upload-icon { font-size: 20px; color: #999; }
-    .upload-placeholder span { font-size: 12px; color: #666; }
-    .upload-hint { font-size: 10px !important; color: #bbb !important; }
-    .upload-preview { display: flex; align-items: center; gap: 10px; }
-    .upload-preview img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
-    .remove-photo {
-      font-size: 12px; color: #e55; background: none; border: none;
-      cursor: pointer; padding: 2px 6px; font-family: inherit;
-    }
+    .upload-zone:hover { border-color: #17bff2; background: #f0fbff; }
+    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #aaa; font-size: 12px; }
+    .upload-icon { font-size: 18px; line-height: 1; }
+    .upload-hint { font-size: 11px; color: #ccc; }
+    .upload-preview { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+    .upload-preview img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px; }
+    .remove-photo { font-size: 11px; color: #e94560; background: none; border: none; cursor: pointer; padding: 2px 4px; font-family: inherit; }
+    .remove-photo:hover { text-decoration: underline; }
 
     .person-section-label {
-      font-size: 12px; font-weight: 600; color: #141414;
-      padding: 8px 0 4px; border-bottom: 1px solid #f0f0f0; margin-bottom: 4px;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px; color: #141414; margin-bottom: 2px;
     }
 
     /* Photo position slider */
@@ -299,34 +306,36 @@
       flex: 1; -webkit-appearance: none; appearance: none;
       height: 4px; background: #e0e0e0; border-radius: 2px; outline: none; cursor: pointer;
     }
-    .position-slider::-webkit-slider-thumb {
-      -webkit-appearance: none; width: 18px; height: 18px;
-      border-radius: 50%; background: #141414; cursor: pointer; border: none;
-    }
-    .position-slider::-moz-range-thumb {
-      width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none;
-    }
+    .position-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
+    .position-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
 
     /* Download */
     .download-btn {
-      width: 100%; padding: 14px; margin-top: 12px;
+      margin-top: auto; padding: 13px 20px;
       background: #141414; color: #fff; border: none;
       border-radius: 8px; font-size: 14px; font-weight: 600;
-      font-family: inherit; cursor: pointer;
+      cursor: pointer; font-family: inherit;
+      transition: background 0.15s, transform 0.1s;
     }
-    .download-btn:hover { background: #333; }
+    .download-btn:hover:not(:disabled) { background: #333; }
+    .download-btn:active:not(:disabled) { transform: scale(0.98); }
+    .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
   </style>
 </head>
 <body>
-<div class="app">
+
+  <header class="header">
+    <a href="/" title="Back to layouts">
+      <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </a>
+    <h1>Post Builder</h1>
+    <p>1200 × 627 LinkedIn template</p>
+  </header>
+
+  <main class="workspace">
 
   <!-- ── Preview ── -->
-  <div class="preview-side">
-    <div class="app-title">
-      <a href="/" title="Back to layouts"><img src="/assets/logo-planet.svg" alt="Paysend" /></a>
-      Post Builder <span>1200 × 627 LinkedIn template</span>
-    </div>
-
+  <div class="preview-area">
     <div class="preview-wrapper">
       <div id="post-canvas" style="--accent:#08ffce">
 
@@ -453,15 +462,15 @@
 
       </div><!-- /post-canvas -->
     </div><!-- /preview-wrapper -->
-    <div class="preview-note">Preview at 600×314 — exports 1200×627</div>
-  </div>
+    <p class="preview-hint">Preview at 500×261 — exports 1200×627</p>
+  </div><!-- /preview-area -->
 
   <!-- ── Controls ── -->
-  <div class="controls-side">
+  <div class="controls">
 
     <!-- Layout switcher -->
     <div class="control-section">
-      <div class="section-label">Layout</div>
+      <label class="control-label">Layout</label>
       <div class="layout-switcher">
         <button class="layout-btn active" data-mode="1">
           <svg width="32" height="20" viewBox="0 0 32 20" fill="currentColor">
@@ -645,8 +654,8 @@ at GFTN Japan</textarea>
     </div>
 
     <button class="download-btn" id="download-btn">Download PNG</button>
-  </div>
-</div>
+  </div><!-- /controls -->
+  </main><!-- /workspace -->
 
 <script>
   const canvas = document.getElementById('post-canvas');
