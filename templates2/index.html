@@ -35,7 +35,13 @@
       gap: 12px;
     }
 
-    .app-title { font-size: 14px; font-weight: 600; color: #141414; align-self: flex-start; }
+    .app-title {
+      font-size: 14px; font-weight: 600; color: #141414;
+      align-self: flex-start;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .app-title a { display: flex; align-items: center; flex-shrink: 0; }
+    .app-title img { width: 26px; height: 26px; display: block; }
     .app-title span { font-weight: 400; color: #999; margin-left: 8px; }
 
     .preview-wrapper {
@@ -316,7 +322,10 @@
 
   <!-- ── Preview ── -->
   <div class="preview-side">
-    <div class="app-title">Post Builder <span>1200 × 627 LinkedIn template</span></div>
+    <div class="app-title">
+      <a href="/" title="Back to layouts"><img src="/assets/logo-planet.svg" alt="Paysend" /></a>
+      Post Builder <span>1200 × 627 LinkedIn template</span>
+    </div>
 
     <div class="preview-wrapper">
       <div id="post-canvas" style="--accent:#08ffce">
