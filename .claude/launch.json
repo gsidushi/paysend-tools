@@ -4,7 +4,7 @@
     {
       "name": "dev",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-l", "5173", "./templates"],
+      "runtimeArgs": ["serve", "-l", "5173", "."],
       "port": 5173
     }
   ]

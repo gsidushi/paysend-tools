@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Builder — Landscape</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
+      font-weight: 600; font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f2f2f2; }
+
+    /* ── App shell ── */
+    .app { display: flex; height: 100vh; }
+
+    /* ── Preview side ── */
+    .preview-side {
+      flex-shrink: 0;
+      width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 12px;
+    }
+
+    .app-title { font-size: 14px; font-weight: 600; color: #141414; align-self: flex-start; }
+    .app-title span { font-weight: 400; color: #999; margin-left: 8px; }
+
+    .preview-wrapper {
+      width: 500px;
+      height: 261px;
+      overflow: hidden;
+      border-radius: 4px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.14);
+      flex-shrink: 0;
+    }
+
+    .preview-note { font-size: 11px; color: #bbb; }
+
+    /* ── Canvas (1200×627, displayed at 50%) ── */
+    #post-canvas {
+      width: 1200px;
+      height: 627px;
+      transform: scale(0.4167);
+      transform-origin: top left;
+      font-family: 'GT Standard', sans-serif;
+      background: #141414;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top dark section ── */
+    .post-header {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 40px 40px 0;
+      min-height: 0;
+    }
+
+    #preview-headline {
+      font-size: 80px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 0.9;
+      letter-spacing: -0.8px;
+      white-space: pre-line;
+      max-width: 620px;
+    }
+
+    /* Top-right: logos + badges */
+    .post-top-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 20px;
+      flex-shrink: 0;
+    }
+
+    .post-logos { display: flex; align-items: flex-start; gap: 16px; }
+    .logo-paysend { height: 36px; width: auto; display: block; flex-shrink: 0; }
+    .logo-divider { width: 2px; height: 28px; background: rgba(255,255,255,0.55); flex-shrink: 0; margin-top: 4px; }
+    .logo-partner { height: 43px; width: auto; display: block; flex-shrink: 0; margin-top: -8px; }
+
+    .post-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .badge { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
+    .badge-location { background: #fff; }
+    .badge-date { background: var(--accent, #08ffce); }
+    .badge-icon { display: block; flex-shrink: 0; }
+    .badge span {
+      font-size: 22px; font-weight: 600; color: #141414;
+      white-space: nowrap; line-height: 1.2;
+    }
+
+    /* ── Bottom card area (313px) ── */
+    .post-card {
+      height: 313px;
+      flex-shrink: 0;
+      display: none;
+    }
+    .post-card.active { display: flex; }
+
+    /* ── Shared column ── */
+    .p-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid #141414;
+      background: #fff;
+    }
+    .p-col:last-child { border-right: none; }
+
+    .p-photo-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    .p-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+    }
+
+    /* Nameplate: colored strip, full width of column */
+    .p-nameplate {
+      background: var(--accent, #08ffce);
+      padding: 0 24px;
+      height: 89px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .p-title {
+      font-size: 18px; font-weight: 400; color: #141414;
+      letter-spacing: 0.36px; line-height: 1.2;
+    }
+    .p-name {
+      font-size: 34px; font-weight: 600; color: #141414;
+      letter-spacing: -0.34px; line-height: 1;
+    }
+
+    /* Nameplate at top: nameplate first, then photo */
+    .nameplate-top .p-nameplate { order: -1; }
+
+    /* ── Mode 1: venue photo (left) + 1 person (right) ── */
+    .venue-col {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      border-right: 1px solid #141414;
+      background: #222;
+      display: flex;
+      flex-direction: column;
+    }
+    .venue-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+    /* Date overlay on venue photo */
+    .venue-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+    }
+    .venue-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+    }
+    .venue-badge span {
+      font-size: 20px; font-weight: 600; color: #141414;
+      white-space: nowrap; line-height: 1.2;
+    }
+
+    /* ── Controls side ── */
+    .controls-side {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid #e8e8e8;
+      background: #fff;
+    }
+
+    /* ── Control styles (same as template 1) ── */
+    .control-section { padding: 10px 0; }
+    .control-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+      text-transform: uppercase; color: #999; margin-bottom: 6px; display: block;
+    }
+    .control-input {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid #e8e8e8; border-radius: 6px;
+      font-family: inherit; font-size: 14px; color: #141414;
+      outline: none; background: #fafafa;
+    }
+    .control-input:focus { border-color: #08ffce; background: #fff; }
+    .control-textarea {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid #e8e8e8; border-radius: 6px;
+      font-family: inherit; font-size: 14px; color: #141414;
+      outline: none; background: #fafafa; resize: vertical; line-height: 1.4;
+    }
+    .control-textarea:focus { border-color: #08ffce; background: #fff; }
+
+    .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
+
+    /* Color palette */
+    .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .color-swatch {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s; flex-shrink: 0;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: #141414; transform: scale(1.1); box-shadow: 0 0 0 1px #fff inset; }
+
+    /* Layout switcher */
+    .section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+      text-transform: uppercase; color: #999; margin-bottom: 8px;
+    }
+    .layout-switcher { display: flex; gap: 8px; }
+    .layout-btn {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 4px; padding: 10px 8px;
+      background: #f5f5f5; border: 1.5px solid transparent;
+      border-radius: 8px; cursor: pointer;
+      font-size: 11px; font-weight: 500; color: #666;
+      font-family: inherit; transition: all 0.12s;
+    }
+    .layout-btn:hover { background: #ebebeb; }
+    .layout-btn.active { background: #141414; border-color: #141414; color: #fff; }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed #ddd; border-radius: 8px; padding: 16px;
+      text-align: center; cursor: pointer; transition: border-color 0.15s; background: #fafafa;
+    }
+    .upload-zone:hover { border-color: #aaa; }
+    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .upload-icon { font-size: 20px; color: #999; }
+    .upload-placeholder span { font-size: 12px; color: #666; }
+    .upload-hint { font-size: 10px !important; color: #bbb !important; }
+    .upload-preview { display: flex; align-items: center; gap: 10px; }
+    .upload-preview img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; }
+    .remove-photo {
+      font-size: 12px; color: #e55; background: none; border: none;
+      cursor: pointer; padding: 2px 6px; font-family: inherit;
+    }
+
+    .person-section-label {
+      font-size: 12px; font-weight: 600; color: #141414;
+      padding: 8px 0 4px; border-bottom: 1px solid #f0f0f0; margin-bottom: 4px;
+    }
+
+    /* Photo position slider */
+    .position-slider-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .position-slider-wrap span { font-size: 11px; color: #999; flex-shrink: 0; width: 36px; text-align: center; }
+    .position-slider {
+      flex: 1; -webkit-appearance: none; appearance: none;
+      height: 4px; background: #e0e0e0; border-radius: 2px; outline: none; cursor: pointer;
+    }
+    .position-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px;
+      border-radius: 50%; background: #141414; cursor: pointer; border: none;
+    }
+    .position-slider::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none;
+    }
+
+    /* Download */
+    .download-btn {
+      width: 100%; padding: 14px; margin-top: 12px;
+      background: #141414; color: #fff; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 600;
+      font-family: inherit; cursor: pointer;
+    }
+    .download-btn:hover { background: #333; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Preview ── -->
+  <div class="preview-side">
+    <div class="app-title">Post Builder <span>1200 × 627 LinkedIn template</span></div>
+
+    <div class="preview-wrapper">
+      <div id="post-canvas" style="--accent:#08ffce">
+
+        <!-- Top dark section -->
+        <div class="post-header">
+          <p id="preview-headline">Paysend on&#10;the Ground&#10;at GFTN Japan</p>
+
+          <div class="post-top-right">
+            <div class="post-logos">
+              <!-- Paysend logo -->
+              <img class="logo-paysend" crossorigin="anonymous"
+                src="https://www.figma.com/api/mcp/asset/ecd58293-fa8b-4329-a034-74f56ce77b7e"
+                alt="Paysend" />
+              <div class="logo-divider"></div>
+              <!-- Partner logo -->
+              <img class="logo-partner" crossorigin="anonymous"
+                src="https://www.figma.com/api/mcp/asset/140a57c1-21aa-4d23-a485-7e1e5326b6db"
+                alt="Partner" />
+            </div>
+            <div class="post-badges">
+              <div class="badge badge-location">
+                <svg class="badge-icon" width="20" height="22" viewBox="0 0 25 28" fill="none">
+                  <path d="M12.5 27C12.5 27 23 17.5 23 10.5C23 4.701 18.299 0 12.5 0C6.701 0 2 4.701 2 10.5C2 17.5 12.5 27 12.5 27Z" stroke="#141414" stroke-width="2" stroke-linejoin="round"/>
+                  <circle cx="12.5" cy="10.5" r="3.5" stroke="#141414" stroke-width="2"/>
+                </svg>
+                <span id="preview-location">San Francisco, USA</span>
+              </div>
+              <div class="badge badge-date">
+                <svg class="badge-icon" width="20" height="20" viewBox="0 0 28 26" fill="none">
+                  <rect x="1" y="4" width="26" height="21" rx="1" stroke="#141414" stroke-width="2"/>
+                  <path d="M1 10H27" stroke="#141414" stroke-width="2"/>
+                  <path d="M8 1V7" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M20 1V7" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span id="preview-date">January 19–21, 2026</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Card 1: Venue photo + 1 person ── -->
+        <div id="card-1" class="post-card active">
+          <!-- Left: venue/event photo -->
+          <div class="venue-col">
+            <img class="venue-photo" id="venue-photo" src="" alt="" />
+            <div class="venue-overlay">
+              <div class="badge badge-date" style="background:#fff">
+                <span id="venue-date-overlay">January 19–21, 2026</span>
+              </div>
+              <div class="badge badge-location" style="background:var(--accent,#08ffce)">
+                <span id="venue-loc-overlay">San Francisco, USA</span>
+              </div>
+            </div>
+          </div>
+          <!-- Right: person -->
+          <div class="p-col">
+            <div class="p-photo-wrap">
+              <img class="p-photo" id="photo-1" src="" alt="" />
+            </div>
+            <div class="p-nameplate">
+              <p class="p-title" id="title-c1">Head of Commercial EMEA</p>
+              <p class="p-name"  id="name-c1">Danny May</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Card 2: 2 people ── -->
+        <div id="card-2" class="post-card">
+          <!-- Left: nameplate at TOP -->
+          <div class="p-col nameplate-top">
+            <div class="p-nameplate">
+              <p class="p-title" id="title-c2a">Head of Commercial EMEA</p>
+              <p class="p-name"  id="name-c2a">Danny May</p>
+            </div>
+            <div class="p-photo-wrap">
+              <img class="p-photo" id="photo-2a" src="" alt="" />
+            </div>
+          </div>
+          <!-- Right: nameplate at BOTTOM -->
+          <div class="p-col">
+            <div class="p-photo-wrap">
+              <img class="p-photo" id="photo-2b" src="" alt="" />
+            </div>
+            <div class="p-nameplate">
+              <p class="p-title" id="title-c2b">Go To Market Lead</p>
+              <p class="p-name"  id="name-c2b">Craig Luther</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Card 3: 3 people ── -->
+        <div id="card-3" class="post-card">
+          <!-- Col 1: nameplate at BOTTOM -->
+          <div class="p-col">
+            <div class="p-photo-wrap">
+              <img class="p-photo" id="photo-3a" src="" alt="" />
+            </div>
+            <div class="p-nameplate">
+              <p class="p-title" id="title-c3a">Head of Commercial EMEA</p>
+              <p class="p-name"  id="name-c3a">Danny May</p>
+            </div>
+          </div>
+          <!-- Col 2: nameplate at TOP -->
+          <div class="p-col nameplate-top">
+            <div class="p-nameplate">
+              <p class="p-title" id="title-c3b">Go To Market Lead</p>
+              <p class="p-name"  id="name-c3b">Craig Luther</p>
+            </div>
+            <div class="p-photo-wrap">
+              <img class="p-photo" id="photo-3b" src="" alt="" />
+            </div>
+          </div>
+          <!-- Col 3: nameplate at BOTTOM -->
+          <div class="p-col">
+            <div class="p-photo-wrap">
+              <img class="p-photo" id="photo-3c" src="" alt="" />
+            </div>
+            <div class="p-nameplate">
+              <p class="p-title" id="title-c3c">Head of Commercial</p>
+              <p class="p-name"  id="name-c3c">Person Name</p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /post-canvas -->
+    </div><!-- /preview-wrapper -->
+    <div class="preview-note">Preview at 600×314 — exports 1200×627</div>
+  </div>
+
+  <!-- ── Controls ── -->
+  <div class="controls-side">
+
+    <!-- Layout switcher -->
+    <div class="control-section">
+      <div class="section-label">Layout</div>
+      <div class="layout-switcher">
+        <button class="layout-btn active" data-mode="1">
+          <svg width="32" height="20" viewBox="0 0 32 20" fill="currentColor">
+            <rect x="0" y="0" width="15" height="20" rx="2"/>
+            <rect x="17" y="0" width="15" height="20" rx="2"/>
+          </svg>
+          Venue + 1
+        </button>
+        <button class="layout-btn" data-mode="2">
+          <svg width="32" height="20" viewBox="0 0 32 20" fill="currentColor">
+            <rect x="0" y="0" width="15" height="20" rx="2"/>
+            <rect x="17" y="0" width="15" height="20" rx="2"/>
+          </svg>
+          2 People
+        </button>
+        <button class="layout-btn" data-mode="3">
+          <svg width="32" height="20" viewBox="0 0 32 20" fill="currentColor">
+            <rect x="0"  y="0" width="9"  height="20" rx="2"/>
+            <rect x="11" y="0" width="10" height="20" rx="2"/>
+            <rect x="23" y="0" width="9"  height="20" rx="2"/>
+          </svg>
+          3 People
+        </button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Headline -->
+    <div class="control-section">
+      <label class="control-label">Headline</label>
+      <textarea class="control-textarea" id="input-headline" rows="3">Paysend on
+the Ground
+at GFTN Japan</textarea>
+    </div>
+
+    <!-- Date -->
+    <div class="control-section">
+      <label class="control-label">Date</label>
+      <input class="control-input" id="input-date" type="text" value="January 19–21, 2026" />
+    </div>
+
+    <!-- Location -->
+    <div class="control-section">
+      <label class="control-label">Location</label>
+      <input class="control-input" id="input-location" type="text" value="San Francisco, USA" />
+    </div>
+
+    <!-- Accent color (drives nameplates + date badge) -->
+    <div class="control-section">
+      <label class="control-label">Accent Color</label>
+      <div class="color-palette" id="color-palette">
+        <button class="color-swatch active" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+        <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
+        <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
+        <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
+        <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
+        <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
+        <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
+        <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+        <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Venue photo (mode 1 only) -->
+    <div id="venue-section">
+      <div class="person-section-label">Event / Venue Photo</div>
+      <div class="control-section">
+        <label class="control-label">Photo</label>
+        <div class="upload-zone" id="venue-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Click or drag</span>
+            <span class="upload-hint">PNG, JPG, WEBP</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*" id="venue-file" style="display:none" />
+      </div>
+      <div class="divider"></div>
+    </div>
+
+    <!-- Person 1 -->
+    <div id="person-section-1">
+      <div class="person-section-label">Person 1</div>
+      <div class="control-section">
+        <label class="control-label">Title</label>
+        <input class="control-input" id="input-title-1" type="text" value="Head of Commercial EMEA" />
+      </div>
+      <div class="control-section">
+        <label class="control-label">Name</label>
+        <input class="control-input" id="input-name-1" type="text" value="Danny May" />
+      </div>
+      <div class="control-section">
+        <label class="control-label">Photo</label>
+        <div class="upload-zone" data-person="1">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Click or drag</span>
+            <span class="upload-hint">PNG, JPG, WEBP</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*" class="file-input" data-person="1" style="display:none" />
+      </div>
+      <div class="control-section" id="photo1-position-ctrl">
+        <label class="control-label">Image Position</label>
+        <div class="position-slider-wrap">
+          <span>Top</span>
+          <input type="range" class="position-slider" id="photo1-slider" min="0" max="100" value="0" />
+          <span>Bottom</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Person 2 -->
+    <div id="person-section-2" style="display:none">
+      <div class="divider"></div>
+      <div class="person-section-label">Person 2</div>
+      <div class="control-section">
+        <label class="control-label">Title</label>
+        <input class="control-input" id="input-title-2" type="text" value="Go To Market Lead" />
+      </div>
+      <div class="control-section">
+        <label class="control-label">Name</label>
+        <input class="control-input" id="input-name-2" type="text" value="Craig Luther" />
+      </div>
+      <div class="control-section">
+        <label class="control-label">Photo</label>
+        <div class="upload-zone" data-person="2">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Click or drag</span>
+            <span class="upload-hint">PNG, JPG, WEBP</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*" class="file-input" data-person="2" style="display:none" />
+      </div>
+    </div>
+
+    <!-- Person 3 -->
+    <div id="person-section-3" style="display:none">
+      <div class="divider"></div>
+      <div class="person-section-label">Person 3</div>
+      <div class="control-section">
+        <label class="control-label">Title</label>
+        <input class="control-input" id="input-title-3" type="text" value="Head of Commercial" />
+      </div>
+      <div class="control-section">
+        <label class="control-label">Name</label>
+        <input class="control-input" id="input-name-3" type="text" value="Person Name" />
+      </div>
+      <div class="control-section">
+        <label class="control-label">Photo</label>
+        <div class="upload-zone" data-person="3">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Click or drag</span>
+            <span class="upload-hint">PNG, JPG, WEBP</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*" class="file-input" data-person="3" style="display:none" />
+      </div>
+    </div>
+
+    <button class="download-btn" id="download-btn">Download PNG</button>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('post-canvas');
+
+  // ── Accent color ─────────────────────────────────────────
+  document.querySelectorAll('.color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      canvas.style.setProperty('--accent', sw.dataset.color);
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+    });
+  });
+
+  // ── Text inputs ──────────────────────────────────────────
+  document.getElementById('input-headline').addEventListener('input', e => {
+    document.getElementById('preview-headline').textContent = e.target.value;
+  });
+  document.getElementById('input-date').addEventListener('input', e => {
+    document.getElementById('preview-date').textContent = e.target.value;
+    document.getElementById('venue-date-overlay').textContent = e.target.value;
+  });
+  document.getElementById('input-location').addEventListener('input', e => {
+    document.getElementById('preview-location').textContent = e.target.value;
+    document.getElementById('venue-loc-overlay').textContent = e.target.value;
+  });
+
+  // Person inputs → sync across all card slots
+  const personMap = [
+    {
+      title: 'input-title-1', name: 'input-name-1',
+      titleIds: ['title-c1', 'title-c2a', 'title-c3a'],
+      nameIds:  ['name-c1',  'name-c2a',  'name-c3a'],
+      photoIds: ['photo-1',  'photo-2a',  'photo-3a'],
+    },
+    {
+      title: 'input-title-2', name: 'input-name-2',
+      titleIds: ['title-c2b', 'title-c3b'],
+      nameIds:  ['name-c2b',  'name-c3b'],
+      photoIds: ['photo-2b',  'photo-3b'],
+    },
+    {
+      title: 'input-title-3', name: 'input-name-3',
+      titleIds: ['title-c3c'],
+      nameIds:  ['name-c3c'],
+      photoIds: ['photo-3c'],
+    },
+  ];
+
+  personMap.forEach(({ title, name, titleIds, nameIds }) => {
+    document.getElementById(title)?.addEventListener('input', e => {
+      titleIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = e.target.value; });
+    });
+    document.getElementById(name)?.addEventListener('input', e => {
+      nameIds.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = e.target.value; });
+    });
+  });
+
+  // ── Layout switcher ──────────────────────────────────────
+  let currentMode = 1;
+
+  document.querySelectorAll('.layout-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentMode = parseInt(btn.dataset.mode);
+      document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      // Toggle cards
+      ['card-1','card-2','card-3'].forEach((id, i) => {
+        document.getElementById(id).classList.toggle('active', i + 1 === currentMode);
+      });
+
+      // Toggle venue section (mode 1 only)
+      document.getElementById('venue-section').style.display = currentMode === 1 ? '' : 'none';
+
+      // Toggle person sections
+      document.getElementById('person-section-2').style.display = currentMode >= 2 ? '' : 'none';
+      document.getElementById('person-section-3').style.display = currentMode === 3 ? '' : 'none';
+
+      // Photo position slider: only for mode 1
+      document.getElementById('photo1-position-ctrl').style.display = currentMode === 1 ? '' : 'none';
+    });
+  });
+
+  // ── Photo position slider (person 1, mode 1) ─────────────
+  document.getElementById('photo1-slider').addEventListener('input', e => {
+    document.getElementById('photo-1').style.objectPosition = `center ${e.target.value}%`;
+  });
+
+  // ── Photo uploads ────────────────────────────────────────
+  function handleFile(file, zone, photoIds) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const src = ev.target.result;
+      photoIds.forEach(id => { const el = document.getElementById(id); if (el) el.src = src; });
+      const preview = zone.querySelector('.upload-preview');
+      preview.querySelector('img').src = src;
+      preview.style.display = 'flex';
+      zone.querySelector('.upload-placeholder').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setupUpload(zone, fileInput, photoIds) {
+    if (!zone || !fileInput) return;
+    zone.addEventListener('click', () => fileInput.click());
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.style.borderColor = '';
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], zone, photoIds);
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files[0]) handleFile(fileInput.files[0], zone, fileInput.dataset.person ? personMap[parseInt(fileInput.dataset.person) - 1].photoIds : photoIds);
+    });
+    zone.querySelector('.remove-photo')?.addEventListener('click', e => {
+      e.stopPropagation();
+      photoIds.forEach(id => { const el = document.getElementById(id); if (el) el.src = ''; });
+      zone.querySelector('.upload-placeholder').style.display = '';
+      zone.querySelector('.upload-preview').style.display = 'none';
+    });
+  }
+
+  // Venue photo
+  const venueZone = document.getElementById('venue-zone');
+  const venueFile = document.getElementById('venue-file');
+  venueZone.addEventListener('click', () => venueFile.click());
+  venueZone.addEventListener('dragover', e => e.preventDefault());
+  venueZone.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], venueZone, ['venue-photo']);
+  });
+  venueFile.addEventListener('change', () => {
+    if (venueFile.files[0]) handleFile(venueFile.files[0], venueZone, ['venue-photo']);
+  });
+  venueZone.querySelector('.remove-photo').addEventListener('click', e => {
+    e.stopPropagation();
+    document.getElementById('venue-photo').src = '';
+    venueZone.querySelector('.upload-placeholder').style.display = '';
+    venueZone.querySelector('.upload-preview').style.display = 'none';
+  });
+
+  // Person photos
+  personMap.forEach(({ photoIds }, i) => {
+    const zone = document.querySelector(`.upload-zone[data-person="${i + 1}"]`);
+    const input = document.querySelector(`.file-input[data-person="${i + 1}"]`);
+    setupUpload(zone, input, photoIds);
+  });
+
+  // ── Download ─────────────────────────────────────────────
+  document.getElementById('download-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('download-btn');
+    btn.textContent = 'Exporting…'; btn.disabled = true;
+    try {
+      const result = await html2canvas(canvas, {
+        scale: 1, width: 1200, height: 627,
+        useCORS: true, allowTaint: true, backgroundColor: null
+      });
+      const link = document.createElement('a');
+      link.download = 'paysend-landscape.png';
+      link.href = result.toDataURL('image/png');
+      link.click();
+    } finally {
+      btn.textContent = 'Download PNG'; btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

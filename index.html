@@ -9,29 +9,64 @@
 
     body {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 16px;
       min-height: 100vh;
       background: #fff;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    a.start-btn {
-      padding: 16px 40px;
+    .label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #999;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    a.layout-btn {
+      padding: 16px 32px;
       background: #141414;
       color: #fff;
       text-decoration: none;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
       border-radius: 8px;
       transition: background 0.15s, transform 0.1s;
+      text-align: center;
     }
 
-    a.start-btn:hover  { background: #333; }
-    a.start-btn:active { transform: scale(0.97); }
+    a.layout-btn:hover  { background: #333; }
+    a.layout-btn:active { transform: scale(0.97); }
+
+    a.layout-btn .sub {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.55);
+      margin-top: 3px;
+    }
   </style>
 </head>
 <body>
-  <a class="start-btn" href="/templates">Start Building</a>
+  <p class="label">Choose a template</p>
+  <div class="btn-group">
+    <a class="layout-btn" href="/templates">
+      Layout Option 1
+      <span class="sub">1080 × 1350 Portrait</span>
+    </a>
+    <a class="layout-btn" href="/templates2">
+      Layout Option 2
+      <span class="sub">1200 × 627 Landscape</span>
+    </a>
+  </div>
 </body>
 </html>
