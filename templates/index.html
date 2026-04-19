@@ -109,6 +109,21 @@
     .logo-pa360    { width: 174px; height: 103px; object-fit: contain; display: block; flex-shrink: 0; margin-top: -40px; }
 
     .post-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .post-badges.hidden { display: none !important; }
+    .p-nameplate.hidden { display: none !important; }
+    .logo-pa360.hidden { display: none !important; }
+    .logo-divider.hidden { display: none !important; }
+    #preview-subheadline.hidden { display: none !important; }
+
+    /* Toggle switch */
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+    .toggle-wrap > label { font-size: 12px; color: #555; cursor: pointer; user-select: none; }
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #141414; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
     .badge { background: #fff; display: flex; align-items: center; gap: 15px; padding: 13px 14px; }
     .badge-icon { display: block; flex-shrink: 0; }
     .badge span {
@@ -623,7 +638,25 @@ at ICE Barcelona!</textarea>
 
       <div class="control-section">
         <label class="control-label">Subheadline</label>
+        <div class="toggle-wrap" style="margin-bottom:8px">
+          <label class="toggle-switch">
+            <input type="checkbox" id="subheadline-toggle" checked />
+            <span class="toggle-slider"></span>
+          </label>
+          <label for="subheadline-toggle">Show on post</label>
+        </div>
         <input class="control-input" id="input-subheadline" type="text" value="Discover how Paysend can power your business!" />
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Date &amp; Location Tags</label>
+        <div class="toggle-wrap">
+          <label class="toggle-switch">
+            <input type="checkbox" id="badges-toggle" checked />
+            <span class="toggle-slider"></span>
+          </label>
+          <label for="badges-toggle">Show on post</label>
+        </div>
       </div>
 
       <div class="control-section">
@@ -654,6 +687,13 @@ at ICE Barcelona!</textarea>
 
       <div class="control-section">
         <label class="control-label">Partner Logo</label>
+        <div class="toggle-wrap" style="margin-bottom:8px">
+          <label class="toggle-switch">
+            <input type="checkbox" id="partner-logo-toggle" checked />
+            <span class="toggle-slider"></span>
+          </label>
+          <label for="partner-logo-toggle">Show on post</label>
+        </div>
         <div class="upload-zone" id="partner-logo-zone">
           <div class="upload-placeholder">
             <span class="upload-icon">↑</span>
@@ -682,6 +722,16 @@ at ICE Barcelona!</textarea>
       <!-- Person 1 -->
       <div class="person-section" id="person-section-1">
         <div class="person-section-label" id="person-label-1">Person</div>
+        <div class="control-section">
+          <label class="control-label">Nameplate</label>
+          <div class="toggle-wrap">
+            <label class="toggle-switch">
+              <input type="checkbox" class="nameplate-toggle" data-person="P1" checked />
+              <span class="toggle-slider"></span>
+            </label>
+            <label>Show on post</label>
+          </div>
+        </div>
         <div class="control-section">
           <label class="control-label">Title</label>
           <input class="control-input" id="input-title-1" type="text" value="Head of Commercial EMEA" />
@@ -718,6 +768,16 @@ at ICE Barcelona!</textarea>
       <!-- Person 2 -->
       <div class="person-section" id="person-section-2" style="display:none">
         <div class="person-section-label">Person 2</div>
+        <div class="control-section">
+          <label class="control-label">Nameplate</label>
+          <div class="toggle-wrap">
+            <label class="toggle-switch">
+              <input type="checkbox" class="nameplate-toggle" data-person="P2" checked />
+              <span class="toggle-slider"></span>
+            </label>
+            <label>Show on post</label>
+          </div>
+        </div>
         <div class="control-section">
           <label class="control-label">Title</label>
           <input class="control-input" id="input-title-2a" type="text" value="Go To Market Lead" />
@@ -774,6 +834,16 @@ at ICE Barcelona!</textarea>
       <!-- Person 4 (bottom-right in 3-person only) -->
       <div class="person-section" id="person-section-4" style="display:none">
         <div class="person-section-label">Person 4</div>
+        <div class="control-section">
+          <label class="control-label">Nameplate</label>
+          <div class="toggle-wrap">
+            <label class="toggle-switch">
+              <input type="checkbox" class="nameplate-toggle" data-person="P3" checked />
+              <span class="toggle-slider"></span>
+            </label>
+            <label>Show on post</label>
+          </div>
+        </div>
         <div class="control-section">
           <label class="control-label">Title</label>
           <input class="control-input" id="input-title-3c" type="text" value="Head of Sales" />
@@ -907,6 +977,43 @@ at ICE Barcelona!</textarea>
       partnerPlaceholder.style.display = ''
       partnerPreview.style.display = 'none'
       partnerLogoFile.value = ''
+    })
+
+    // ── Visibility toggles ─────────────────────────────────
+    const logoDivider = document.querySelector('.logo-divider')
+    const postBadgesEl = document.querySelector('.post-badges')
+    const subheadEl = document.getElementById('preview-subheadline')
+
+    document.getElementById('partner-logo-toggle').addEventListener('change', e => {
+      const off = !e.target.checked
+      partnerLogo.classList.toggle('hidden', off)
+      logoDivider.classList.toggle('hidden', off)
+    })
+
+    document.getElementById('badges-toggle').addEventListener('change', e => {
+      postBadgesEl.classList.toggle('hidden', !e.target.checked)
+    })
+
+    document.getElementById('subheadline-toggle').addEventListener('change', e => {
+      subheadEl.classList.toggle('hidden', !e.target.checked)
+    })
+
+    // Per-person nameplate toggles. Each person's text appears in multiple
+    // cards across layouts — hide the .p-nameplate wrapper around each.
+    const nameplateTitleIdsByPerson = {
+      P1: ['title-1', 'title-2b', 'title-3a'],
+      P2: ['title-2a', 'title-3b'],
+      P3: ['title-3c'],
+    }
+    document.querySelectorAll('.nameplate-toggle').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const ids = nameplateTitleIdsByPerson[cb.dataset.person] || []
+        ids.forEach(id => {
+          const el = document.getElementById(id)
+          const plate = el && el.closest('.p-nameplate')
+          if (plate) plate.classList.toggle('hidden', !cb.checked)
+        })
+      })
     })
 
     // ── Photo background color palette ─────────────────────

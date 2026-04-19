@@ -115,6 +115,9 @@
     .post-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .post-badges.hidden { display: none !important; }
     .venue-overlay.hidden { display: none !important; }
+    .p-nameplate.hidden { display: none !important; }
+    .logo-partner.hidden { display: none !important; }
+    .logo-divider.hidden { display: none !important; }
 
     /* Badges toggle switch */
     .toggle-wrap { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
@@ -536,6 +539,13 @@ at GFTN Japan</textarea>
     <!-- Partner logo upload -->
     <div class="control-section">
       <label class="control-label">Partner Logo</label>
+      <div class="toggle-wrap" style="margin-bottom:8px">
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner-logo-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <label for="partner-logo-toggle">Show on post</label>
+      </div>
       <div class="upload-zone" id="partner-logo-zone">
         <div class="upload-placeholder">
           <span class="upload-icon">↑</span>
@@ -577,6 +587,16 @@ at GFTN Japan</textarea>
     <div id="person-section-1">
       <div class="person-section-label">Person 1</div>
       <div class="control-section">
+        <label class="control-label">Nameplate</label>
+        <div class="toggle-wrap">
+          <label class="toggle-switch">
+            <input type="checkbox" class="nameplate-toggle" data-person="1" checked />
+            <span class="toggle-slider"></span>
+          </label>
+          <label>Show on post</label>
+        </div>
+      </div>
+      <div class="control-section">
         <label class="control-label">Name</label>
         <input class="control-input" id="input-name-1" type="text" value="Danny May" />
       </div>
@@ -610,6 +630,16 @@ at GFTN Japan</textarea>
       <div class="divider"></div>
       <div class="person-section-label">Person 2</div>
       <div class="control-section">
+        <label class="control-label">Nameplate</label>
+        <div class="toggle-wrap">
+          <label class="toggle-switch">
+            <input type="checkbox" class="nameplate-toggle" data-person="2" checked />
+            <span class="toggle-slider"></span>
+          </label>
+          <label>Show on post</label>
+        </div>
+      </div>
+      <div class="control-section">
         <label class="control-label">Name</label>
         <input class="control-input" id="input-name-2" type="text" value="Craig Luther" />
       </div>
@@ -634,6 +664,16 @@ at GFTN Japan</textarea>
     <div id="person-section-3" style="display:none">
       <div class="divider"></div>
       <div class="person-section-label">Person 3</div>
+      <div class="control-section">
+        <label class="control-label">Nameplate</label>
+        <div class="toggle-wrap">
+          <label class="toggle-switch">
+            <input type="checkbox" class="nameplate-toggle" data-person="3" checked />
+            <span class="toggle-slider"></span>
+          </label>
+          <label>Show on post</label>
+        </div>
+      </div>
       <div class="control-section">
         <label class="control-label">Name</label>
         <input class="control-input" id="input-name-3" type="text" value="Person Name" />
@@ -739,6 +779,38 @@ at GFTN Japan</textarea>
   // Default: OFF for mode 1, ON for 2 & 3
   badgesToggle.checked = false;
   applyBadgesVisibility();
+
+  // ── Partner logo toggle ─────────────────────────────────
+  const partnerLogoToggle = document.getElementById('partner-logo-toggle');
+  const partnerLogoEl = document.getElementById('logo-partner');
+  const logoDivider = document.querySelector('.logo-divider');
+  function applyPartnerLogoVisibility() {
+    const off = !partnerLogoToggle.checked;
+    partnerLogoEl.classList.toggle('hidden', off);
+    logoDivider.classList.toggle('hidden', off);
+  }
+  partnerLogoToggle.addEventListener('change', applyPartnerLogoVisibility);
+
+  // ── Nameplate toggles (per person) ──────────────────────
+  // Person 1's nameplate appears as name-c1 / name-c2a / name-c3a;
+  // Person 2 as name-c2b / name-c3b; Person 3 as name-c3c.
+  const nameplateIdsByPerson = {
+    '1': ['name-c1', 'name-c2a', 'name-c3a'],
+    '2': ['name-c2b', 'name-c3b'],
+    '3': ['name-c3c'],
+  };
+  function applyNameplateVisibility(personKey, visible) {
+    (nameplateIdsByPerson[personKey] || []).forEach(id => {
+      const el = document.getElementById(id);
+      const plate = el && el.closest('.p-nameplate');
+      if (plate) plate.classList.toggle('hidden', !visible);
+    });
+  }
+  document.querySelectorAll('.nameplate-toggle').forEach(cb => {
+    cb.addEventListener('change', () => {
+      applyNameplateVisibility(cb.dataset.person, cb.checked);
+    });
+  });
 
   document.querySelectorAll('.layout-btn').forEach(btn => {
     btn.addEventListener('click', () => {
