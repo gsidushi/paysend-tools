@@ -55,8 +55,6 @@
     }
 
     .preview-wrapper {
-      width: 500px;
-      height: 261px;
       overflow: hidden;
       box-shadow: 0 8px 48px rgba(0,0,0,0.22);
       border-radius: 3px;
@@ -69,7 +67,6 @@
     #post-canvas {
       width: 1200px;
       height: 627px;
-      transform: scale(0.4167);
       transform-origin: top left;
       font-family: 'GT Standard', sans-serif;
       background: #141414;
@@ -334,6 +331,36 @@
     .download-btn:hover:not(:disabled) { background: #333; }
     .download-btn:active:not(:disabled) { transform: scale(0.98); }
     .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Responsive sidebar widths ── */
+    @media (max-width: 1199px) {
+      .workspace { grid-template-columns: 1fr 33vw; }
+    }
+    @media (max-width: 799px) {
+      .workspace { grid-template-columns: 1fr 40vw; }
+    }
+    /* ── Mobile stacked layout (< 375px) ── */
+    @media (max-width: 374px) {
+      html, body { height: auto; overflow: auto; }
+      .workspace {
+        display: flex; flex-direction: column;
+        overflow: visible; height: auto;
+      }
+      .preview-area {
+        padding: 0; overflow: visible;
+        justify-content: flex-start; align-items: stretch;
+        flex-shrink: 0; height: auto;
+      }
+      .preview-wrapper {
+        width: 100vw !important; border-radius: 0;
+        box-shadow: none; flex-shrink: 0;
+      }
+      .preview-hint { display: none; }
+      .controls {
+        border-left: none; border-top: 1px solid #e8e8e8;
+        height: auto; overflow-y: visible; flex: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -996,6 +1023,41 @@ at GFTN Japan</textarea>
     const input = document.querySelector(`.file-input[data-person="${i + 1}"]`);
     setupUpload(zone, input, photoIds);
   });
+
+  // ── Responsive preview scaling ───────────────────────────
+  (function scalePreview() {
+    const CANVAS_W = 1200, CANVAS_H = 627;
+    const PREVIEW_PAD = 64; // 32px × 2 sides
+    const HEADER_H = 60;
+    const wrapper = document.querySelector('.preview-wrapper');
+    const cvs = document.getElementById('post-canvas');
+
+    function update() {
+      const w = window.innerWidth, h = window.innerHeight;
+      let sidebarFrac;
+      if (w < 375)       sidebarFrac = 0;
+      else if (w < 800)  sidebarFrac = 0.40;
+      else if (w < 1200) sidebarFrac = 0.33;
+      else               sidebarFrac = 0.25;
+
+      let availW, availH;
+      if (w < 375) {
+        availW = w;
+        availH = Infinity; // stacked layout scrolls, don't cap height
+      } else {
+        availW = w * (1 - sidebarFrac) - PREVIEW_PAD;
+        availH = h - HEADER_H - 80;
+      }
+
+      const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
+      wrapper.style.width  = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
+      cvs.style.transform  = `scale(${scale})`;
+    }
+
+    update();
+    window.addEventListener('resize', update);
+  })();
 
   // ── Download ─────────────────────────────────────────────
   document.getElementById('download-btn').addEventListener('click', async () => {

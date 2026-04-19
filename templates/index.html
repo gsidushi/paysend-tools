@@ -71,8 +71,6 @@
     }
 
     .preview-wrapper {
-      width: 540px;
-      height: 675px;
       overflow: hidden;
       box-shadow: 0 8px 48px rgba(0,0,0,0.22);
       border-radius: 3px;
@@ -85,7 +83,6 @@
     #post-canvas {
       width: 1080px;
       height: 1350px;
-      transform: scale(0.5);
       transform-origin: top left;
       background: #141414;
       display: flex;
@@ -459,9 +456,34 @@
     .download-btn:active:not(:disabled) { transform: scale(0.98); }
     .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    @media (max-width: 980px) {
-      .workspace { grid-template-columns: 1fr; }
-      .controls { border-left: none; border-top: 1px solid #e8e8e8; }
+    /* ── Responsive sidebar widths ── */
+    @media (max-width: 1199px) {
+      .workspace { grid-template-columns: 1fr 33vw; }
+    }
+    @media (max-width: 799px) {
+      .workspace { grid-template-columns: 1fr 40vw; }
+    }
+    /* ── Mobile stacked layout (< 375px) ── */
+    @media (max-width: 374px) {
+      html, body { height: auto; overflow: auto; }
+      .workspace {
+        display: flex; flex-direction: column;
+        overflow: visible; height: auto;
+      }
+      .preview-area {
+        padding: 0; overflow: visible;
+        justify-content: flex-start; align-items: stretch;
+        flex-shrink: 0; height: auto;
+      }
+      .preview-wrapper {
+        width: 100vw !important; border-radius: 0;
+        box-shadow: none; flex-shrink: 0;
+      }
+      .preview-hint { display: none; }
+      .controls {
+        border-left: none; border-top: 1px solid #e8e8e8;
+        height: auto; overflow-y: visible; flex: none;
+      }
     }
   </style>
 </head>
@@ -1205,6 +1227,41 @@ at ICE Barcelona!</textarea>
         clearPhoto()
       })
     })
+
+    // ── Responsive preview scaling ─────────────────────────
+    ;(function scalePreview() {
+      const CANVAS_W = 1080, CANVAS_H = 1350;
+      const PREVIEW_PAD = 64; // 32px × 2 sides
+      const HEADER_H = 60;
+      const wrapper = document.querySelector('.preview-wrapper')
+      const cvs = document.getElementById('post-canvas')
+
+      function update() {
+        const w = window.innerWidth, h = window.innerHeight
+        let sidebarFrac
+        if (w < 375)       sidebarFrac = 0
+        else if (w < 800)  sidebarFrac = 0.40
+        else if (w < 1200) sidebarFrac = 0.33
+        else               sidebarFrac = 0.25
+
+        let availW, availH
+        if (w < 375) {
+          availW = w
+          availH = Infinity // stacked layout scrolls, don't cap height
+        } else {
+          availW = w * (1 - sidebarFrac) - PREVIEW_PAD
+          availH = h - HEADER_H - 80
+        }
+
+        const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H)
+        wrapper.style.width  = Math.round(CANVAS_W * scale) + 'px'
+        wrapper.style.height = Math.round(CANVAS_H * scale) + 'px'
+        cvs.style.transform  = `scale(${scale})`
+      }
+
+      update()
+      window.addEventListener('resize', update)
+    })()
 
     // ── Download ───────────────────────────────────────────
     const downloadBtn = document.getElementById('download-btn')
