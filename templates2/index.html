@@ -772,18 +772,42 @@ at GFTN Japan</textarea>
     document.getElementById('photo-1').style.objectPosition = `center ${e.target.value}%`;
   });
 
+  // ── Image optimization ───────────────────────────────────
+  // SVG and small raster files: use object URL (instant, no copy).
+  // Large raster files: decode off-thread via createImageBitmap,
+  // downscale to MAX_EDGE on canvas, return a blob: URL.
+  const MAX_EDGE = 2400;
+  const SMALL_FILE_BYTES = 400 * 1024;
+
+  async function fileToOptimizedSrc(file) {
+    if (file.type === 'image/svg+xml' || file.size <= SMALL_FILE_BYTES) {
+      return URL.createObjectURL(file);
+    }
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+      if (scale === 1) { bitmap.close(); return URL.createObjectURL(file); }
+      const w = Math.round(bitmap.width * scale);
+      const h = Math.round(bitmap.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+      bitmap.close();
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.88));
+      return URL.createObjectURL(blob);
+    } catch {
+      return URL.createObjectURL(file);
+    }
+  }
+
   // ── Photo uploads ────────────────────────────────────────
-  function handleFile(file, zone, photoIds) {
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const src = ev.target.result;
-      photoIds.forEach(id => { const el = document.getElementById(id); if (el) el.src = src; });
-      const preview = zone.querySelector('.upload-preview');
-      preview.querySelector('img').src = src;
-      preview.style.display = 'flex';
-      zone.querySelector('.upload-placeholder').style.display = 'none';
-    };
-    reader.readAsDataURL(file);
+  async function handleFile(file, zone, photoIds) {
+    const src = await fileToOptimizedSrc(file);
+    photoIds.forEach(id => { const el = document.getElementById(id); if (el) el.src = src; });
+    const preview = zone.querySelector('.upload-preview');
+    preview.querySelector('img').src = src;
+    preview.style.display = 'flex';
+    zone.querySelector('.upload-placeholder').style.display = 'none';
   }
 
   function setupUpload(zone, fileInput, photoIds) {
@@ -843,14 +867,14 @@ at GFTN Japan</textarea>
   partnerLogoZone.addEventListener('click', () => partnerLogoFile.click());
   partnerLogoZone.addEventListener('dragover', e => { e.preventDefault(); partnerLogoZone.style.borderColor = '#141414'; });
   partnerLogoZone.addEventListener('dragleave', () => { partnerLogoZone.style.borderColor = ''; });
-  partnerLogoZone.addEventListener('drop', e => {
+  partnerLogoZone.addEventListener('drop', async e => {
     e.preventDefault(); partnerLogoZone.style.borderColor = '';
     const f = e.dataTransfer.files[0];
-    if (f) { const r = new FileReader(); r.onload = ev => applyPartnerLogo(ev.target.result); r.readAsDataURL(f); }
+    if (f) applyPartnerLogo(await fileToOptimizedSrc(f));
   });
-  partnerLogoFile.addEventListener('change', () => {
+  partnerLogoFile.addEventListener('change', async () => {
     const f = partnerLogoFile.files[0];
-    if (f) { const r = new FileReader(); r.onload = ev => applyPartnerLogo(ev.target.result); r.readAsDataURL(f); }
+    if (f) applyPartnerLogo(await fileToOptimizedSrc(f));
   });
   partnerLogoZone.querySelector('.remove-photo').addEventListener('click', e => {
     e.stopPropagation();
