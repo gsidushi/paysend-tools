@@ -107,19 +107,30 @@
       flex-shrink: 0;
     }
 
-    .post-logos { display: flex; align-items: flex-start; gap: 16px; }
+    .post-logos { display: flex; align-items: center; gap: 16px; }
     .logo-paysend { height: 36px; width: auto; display: block; flex-shrink: 0; }
-    .logo-divider { width: 2px; height: 28px; background: rgba(255,255,255,0.55); flex-shrink: 0; margin-top: 4px; }
-    .logo-partner { height: 43px; width: auto; display: block; flex-shrink: 0; margin-top: -8px; }
+    .logo-divider { width: 2px; align-self: stretch; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .logo-partner { height: 36px; width: auto; display: block; flex-shrink: 0; }
 
     .post-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-    .badge { display: flex; align-items: center; gap: 10px; padding: 10px 14px; }
-    .badge-location { background: #fff; }
-    .badge-date { background: var(--accent, #08ffce); }
-    .badge-icon { display: block; flex-shrink: 0; }
+    .post-badges.hidden { display: none !important; }
+    .venue-overlay.hidden { display: none !important; }
+
+    /* Badges toggle switch */
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+    .toggle-wrap > label { font-size: 12px; color: #555; cursor: pointer; user-select: none; }
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #141414; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
+    .badge { display: flex; align-items: center; padding: 0 10px; }
+    .badge-location { background: #fff; height: 40px; }
+    .badge-date { background: var(--accent, #08ffce); height: 43px; }
     .badge span {
-      font-size: 22px; font-weight: 600; color: #141414;
-      white-space: nowrap; line-height: 1.2;
+      font-size: 32px; font-weight: 600; color: #141414;
+      white-space: nowrap; line-height: 1;
     }
 
     /* ── Bottom card area (313px) ── */
@@ -160,20 +171,14 @@
     .p-nameplate {
       background: var(--accent, #08ffce);
       padding: 0 24px;
-      height: 89px;
+      height: 60px;
       display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 2px;
+      align-items: center;
       flex-shrink: 0;
     }
-    .p-title {
-      font-size: 18px; font-weight: 400; color: #141414;
-      letter-spacing: 0.36px; line-height: 1.2;
-    }
     .p-name {
-      font-size: 34px; font-weight: 600; color: #141414;
-      letter-spacing: -0.34px; line-height: 1;
+      font-size: 32px; font-weight: 600; color: #141414;
+      letter-spacing: -0.32px; line-height: 1;
     }
 
     /* Nameplate at top: nameplate first, then photo */
@@ -211,12 +216,12 @@
     .venue-badge {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+      padding: 0 10px;
+      height: 40px;
     }
     .venue-badge span {
-      font-size: 20px; font-weight: 600; color: #141414;
-      white-space: nowrap; line-height: 1.2;
+      font-size: 28px; font-weight: 600; color: #141414;
+      white-space: nowrap; line-height: 1;
     }
 
     /* ── Controls (matches Layout 1) ── */
@@ -346,30 +351,16 @@
           <div class="post-top-right">
             <div class="post-logos">
               <!-- Paysend logo -->
-              <img class="logo-paysend" crossorigin="anonymous"
-                src="https://www.figma.com/api/mcp/asset/ecd58293-fa8b-4329-a034-74f56ce77b7e"
-                alt="Paysend" />
+              <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
               <div class="logo-divider"></div>
-              <!-- Partner logo -->
-              <img class="logo-partner" crossorigin="anonymous"
-                src="https://www.figma.com/api/mcp/asset/140a57c1-21aa-4d23-a485-7e1e5326b6db"
-                alt="Partner" />
+              <!-- Partner logo: placeholder, replaceable via upload -->
+              <img class="logo-partner" id="logo-partner" src="/assets/partner-logo.png" alt="Partner Logo" />
             </div>
             <div class="post-badges">
               <div class="badge badge-location">
-                <svg class="badge-icon" width="20" height="22" viewBox="0 0 25 28" fill="none">
-                  <path d="M12.5 27C12.5 27 23 17.5 23 10.5C23 4.701 18.299 0 12.5 0C6.701 0 2 4.701 2 10.5C2 17.5 12.5 27 12.5 27Z" stroke="#141414" stroke-width="2" stroke-linejoin="round"/>
-                  <circle cx="12.5" cy="10.5" r="3.5" stroke="#141414" stroke-width="2"/>
-                </svg>
                 <span id="preview-location">San Francisco, USA</span>
               </div>
               <div class="badge badge-date">
-                <svg class="badge-icon" width="20" height="20" viewBox="0 0 28 26" fill="none">
-                  <rect x="1" y="4" width="26" height="21" rx="1" stroke="#141414" stroke-width="2"/>
-                  <path d="M1 10H27" stroke="#141414" stroke-width="2"/>
-                  <path d="M8 1V7" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M20 1V7" stroke="#141414" stroke-width="2" stroke-linecap="round"/>
-                </svg>
                 <span id="preview-date">January 19–21, 2026</span>
               </div>
             </div>
@@ -380,7 +371,7 @@
         <div id="card-1" class="post-card active">
           <!-- Left: venue/event photo -->
           <div class="venue-col">
-            <img class="venue-photo" id="venue-photo" src="" alt="" />
+            <img class="venue-photo" id="venue-photo" src="/assets/city-placeholder.png" alt="" />
             <div class="venue-overlay">
               <div class="badge badge-date" style="background:#fff">
                 <span id="venue-date-overlay">January 19–21, 2026</span>
@@ -393,11 +384,10 @@
           <!-- Right: person -->
           <div class="p-col">
             <div class="p-photo-wrap">
-              <img class="p-photo" id="photo-1" src="" alt="" />
+              <img class="p-photo" id="photo-1" src="/assets/person_placeholder.png" alt="" />
             </div>
             <div class="p-nameplate">
-              <p class="p-title" id="title-c1">Head of Commercial EMEA</p>
-              <p class="p-name"  id="name-c1">Danny May</p>
+              <p class="p-name" id="name-c1">Danny May</p>
             </div>
           </div>
         </div>
@@ -407,21 +397,19 @@
           <!-- Left: nameplate at TOP -->
           <div class="p-col nameplate-top">
             <div class="p-nameplate">
-              <p class="p-title" id="title-c2a">Head of Commercial EMEA</p>
-              <p class="p-name"  id="name-c2a">Danny May</p>
+              <p class="p-name" id="name-c2a">Danny May</p>
             </div>
             <div class="p-photo-wrap">
-              <img class="p-photo" id="photo-2a" src="" alt="" />
+              <img class="p-photo" id="photo-2a" src="/assets/person_placeholder.png" alt="" />
             </div>
           </div>
           <!-- Right: nameplate at BOTTOM -->
           <div class="p-col">
             <div class="p-photo-wrap">
-              <img class="p-photo" id="photo-2b" src="" alt="" />
+              <img class="p-photo" id="photo-2b" src="/assets/person_placeholder.png" alt="" />
             </div>
             <div class="p-nameplate">
-              <p class="p-title" id="title-c2b">Go To Market Lead</p>
-              <p class="p-name"  id="name-c2b">Craig Luther</p>
+              <p class="p-name" id="name-c2b">Craig Luther</p>
             </div>
           </div>
         </div>
@@ -431,31 +419,28 @@
           <!-- Col 1: nameplate at BOTTOM -->
           <div class="p-col">
             <div class="p-photo-wrap">
-              <img class="p-photo" id="photo-3a" src="" alt="" />
+              <img class="p-photo" id="photo-3a" src="/assets/person_placeholder.png" alt="" />
             </div>
             <div class="p-nameplate">
-              <p class="p-title" id="title-c3a">Head of Commercial EMEA</p>
-              <p class="p-name"  id="name-c3a">Danny May</p>
+              <p class="p-name" id="name-c3a">Danny May</p>
             </div>
           </div>
           <!-- Col 2: nameplate at TOP -->
           <div class="p-col nameplate-top">
             <div class="p-nameplate">
-              <p class="p-title" id="title-c3b">Go To Market Lead</p>
-              <p class="p-name"  id="name-c3b">Craig Luther</p>
+              <p class="p-name" id="name-c3b">Craig Luther</p>
             </div>
             <div class="p-photo-wrap">
-              <img class="p-photo" id="photo-3b" src="" alt="" />
+              <img class="p-photo" id="photo-3b" src="/assets/person_placeholder.png" alt="" />
             </div>
           </div>
           <!-- Col 3: nameplate at BOTTOM -->
           <div class="p-col">
             <div class="p-photo-wrap">
-              <img class="p-photo" id="photo-3c" src="" alt="" />
+              <img class="p-photo" id="photo-3c" src="/assets/person_placeholder.png" alt="" />
             </div>
             <div class="p-nameplate">
-              <p class="p-title" id="title-c3c">Head of Commercial</p>
-              <p class="p-name"  id="name-c3c">Person Name</p>
+              <p class="p-name" id="name-c3c">Person Name</p>
             </div>
           </div>
         </div>
@@ -494,6 +479,18 @@
           </svg>
           3 People
         </button>
+      </div>
+    </div>
+
+    <!-- Date/location badges toggle -->
+    <div class="control-section">
+      <label class="control-label">Date &amp; Location Tags</label>
+      <div class="toggle-wrap">
+        <label class="toggle-switch">
+          <input type="checkbox" id="badges-toggle" />
+          <span class="toggle-slider"></span>
+        </label>
+        <label for="badges-toggle">Show on post</label>
       </div>
     </div>
 
@@ -536,6 +533,23 @@ at GFTN Japan</textarea>
       </div>
     </div>
 
+    <!-- Partner logo upload -->
+    <div class="control-section">
+      <label class="control-label">Partner Logo</label>
+      <div class="upload-zone" id="partner-logo-zone">
+        <div class="upload-placeholder">
+          <span class="upload-icon">↑</span>
+          <span>Upload logo</span>
+          <span class="upload-hint">PNG, SVG, JPG</span>
+        </div>
+        <div class="upload-preview" style="display:none">
+          <img src="" alt="thumb" style="object-fit:contain; background:#1a1a1a;" />
+          <button class="remove-photo">Remove</button>
+        </div>
+      </div>
+      <input type="file" accept="image/*,.svg" id="partner-logo-file" style="display:none" />
+    </div>
+
     <div class="divider"></div>
 
     <!-- Venue photo (mode 1 only) -->
@@ -562,10 +576,6 @@ at GFTN Japan</textarea>
     <!-- Person 1 -->
     <div id="person-section-1">
       <div class="person-section-label">Person 1</div>
-      <div class="control-section">
-        <label class="control-label">Title</label>
-        <input class="control-input" id="input-title-1" type="text" value="Head of Commercial EMEA" />
-      </div>
       <div class="control-section">
         <label class="control-label">Name</label>
         <input class="control-input" id="input-name-1" type="text" value="Danny May" />
@@ -600,10 +610,6 @@ at GFTN Japan</textarea>
       <div class="divider"></div>
       <div class="person-section-label">Person 2</div>
       <div class="control-section">
-        <label class="control-label">Title</label>
-        <input class="control-input" id="input-title-2" type="text" value="Go To Market Lead" />
-      </div>
-      <div class="control-section">
         <label class="control-label">Name</label>
         <input class="control-input" id="input-name-2" type="text" value="Craig Luther" />
       </div>
@@ -628,10 +634,6 @@ at GFTN Japan</textarea>
     <div id="person-section-3" style="display:none">
       <div class="divider"></div>
       <div class="person-section-label">Person 3</div>
-      <div class="control-section">
-        <label class="control-label">Title</label>
-        <input class="control-input" id="input-title-3" type="text" value="Head of Commercial" />
-      </div>
       <div class="control-section">
         <label class="control-label">Name</label>
         <input class="control-input" id="input-name-3" type="text" value="Person Name" />
@@ -716,6 +718,28 @@ at GFTN Japan</textarea>
   // ── Layout switcher ──────────────────────────────────────
   let currentMode = 1;
 
+  // ── Badges toggle ────────────────────────────────────────
+  const badgesToggle = document.getElementById('badges-toggle');
+  const postBadges = document.querySelector('.post-badges');
+  const venueOverlay = document.querySelector('.venue-overlay');
+
+  function applyBadgesVisibility() {
+    if (currentMode === 1) {
+      // Layout 1: top-right badges always off; toggle controls bottom-left overlay
+      postBadges.classList.add('hidden');
+      venueOverlay.classList.toggle('hidden', !badgesToggle.checked);
+    } else {
+      postBadges.classList.toggle('hidden', !badgesToggle.checked);
+      venueOverlay.classList.add('hidden');
+    }
+  }
+
+  badgesToggle.addEventListener('change', applyBadgesVisibility);
+
+  // Default: OFF for mode 1, ON for 2 & 3
+  badgesToggle.checked = false;
+  applyBadgesVisibility();
+
   document.querySelectorAll('.layout-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       currentMode = parseInt(btn.dataset.mode);
@@ -736,6 +760,10 @@ at GFTN Japan</textarea>
 
       // Photo position slider: only for mode 1
       document.getElementById('photo1-position-ctrl').style.display = currentMode === 1 ? '' : 'none';
+
+      // Auto-set badges toggle default per layout
+      badgesToggle.checked = currentMode !== 1;
+      applyBadgesVisibility();
     });
   });
 
@@ -795,6 +823,41 @@ at GFTN Japan</textarea>
     document.getElementById('venue-photo').src = '';
     venueZone.querySelector('.upload-placeholder').style.display = '';
     venueZone.querySelector('.upload-preview').style.display = 'none';
+  });
+
+  // ── Partner logo upload ──────────────────────────────────
+  const partnerLogoZone = document.getElementById('partner-logo-zone');
+  const partnerLogoFile = document.getElementById('partner-logo-file');
+  const partnerLogoImg = document.getElementById('logo-partner');
+
+  function applyPartnerLogo(src) {
+    partnerLogoImg.src = src;
+    // Let the image load then reset height to its natural proportional size
+    partnerLogoImg.onload = () => { partnerLogoImg.style.height = '36px'; };
+    const preview = partnerLogoZone.querySelector('.upload-preview');
+    preview.querySelector('img').src = src;
+    preview.style.display = 'flex';
+    partnerLogoZone.querySelector('.upload-placeholder').style.display = 'none';
+  }
+
+  partnerLogoZone.addEventListener('click', () => partnerLogoFile.click());
+  partnerLogoZone.addEventListener('dragover', e => { e.preventDefault(); partnerLogoZone.style.borderColor = '#141414'; });
+  partnerLogoZone.addEventListener('dragleave', () => { partnerLogoZone.style.borderColor = ''; });
+  partnerLogoZone.addEventListener('drop', e => {
+    e.preventDefault(); partnerLogoZone.style.borderColor = '';
+    const f = e.dataTransfer.files[0];
+    if (f) { const r = new FileReader(); r.onload = ev => applyPartnerLogo(ev.target.result); r.readAsDataURL(f); }
+  });
+  partnerLogoFile.addEventListener('change', () => {
+    const f = partnerLogoFile.files[0];
+    if (f) { const r = new FileReader(); r.onload = ev => applyPartnerLogo(ev.target.result); r.readAsDataURL(f); }
+  });
+  partnerLogoZone.querySelector('.remove-photo').addEventListener('click', e => {
+    e.stopPropagation();
+    partnerLogoImg.src = '/assets/partner-logo.png';
+    partnerLogoImg.style.height = '';
+    partnerLogoZone.querySelector('.upload-placeholder').style.display = '';
+    partnerLogoZone.querySelector('.upload-preview').style.display = 'none';
   });
 
   // Person photos

@@ -466,9 +466,9 @@
                 src="https://www.figma.com/api/mcp/asset/ecd58293-fa8b-4329-a034-74f56ce77b7e"
                 width="313" height="53" alt="Paysend" />
               <div class="logo-divider"></div>
-              <img class="logo-pa360" crossorigin="anonymous"
-                src="https://www.figma.com/api/mcp/asset/140a57c1-21aa-4d23-a485-7e1e5326b6db"
-                width="174" height="103" alt="Pay360" />
+              <img class="logo-pa360"
+                src="/assets/partner-logo.png"
+                width="174" height="103" alt="Partner Logo" />
             </div>
             <div class="post-badges">
               <div class="badge">
@@ -505,7 +505,7 @@
           <div id="card-1" class="post-card card-1">
             <div class="p-photo-bg">
               <img class="p-photo" id="photo-1" crossorigin="anonymous"
-                src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+                src="/assets/person_placeholder.png" alt="" />
             </div>
             <div class="p-nameplate">
               <p class="p-title" id="title-1">Head of Commercial EMEA</p>
@@ -519,7 +519,7 @@
             <div class="p-col">
               <div class="p-photo-bg">
                 <img class="p-photo" id="photo-2a" crossorigin="anonymous"
-                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+                  src="/assets/person_placeholder.png" alt="" />
               </div>
               <div class="p-nameplate">
                 <p class="p-title" id="title-2a">Go To Market Lead</p>
@@ -534,7 +534,7 @@
               </div>
               <div class="p-photo-bg">
                 <img class="p-photo" id="photo-2b" crossorigin="anonymous"
-                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+                  src="/assets/person_placeholder.png" alt="" />
               </div>
             </div>
           </div>
@@ -549,7 +549,7 @@
               </div>
               <div class="p-photo-bg">
                 <img class="p-photo" id="photo-3a" crossorigin="anonymous"
-                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+                  src="/assets/person_placeholder.png" alt="" />
               </div>
             </div>
             <!-- Column 2 -->
@@ -560,7 +560,7 @@
               </div>
               <div class="p-photo-bg">
                 <img class="p-photo" id="photo-3b" crossorigin="anonymous"
-                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+                  src="/assets/person_placeholder.png" alt="" />
               </div>
             </div>
             <!-- Column 3 -->
@@ -571,7 +571,7 @@
               </div>
               <div class="p-photo-bg">
                 <img class="p-photo" id="photo-3c" crossorigin="anonymous"
-                  src="https://www.figma.com/api/mcp/asset/d66e1d6d-dd05-4051-aab3-b0f40079a304" alt="" />
+                  src="/assets/person_placeholder.png" alt="" />
               </div>
             </div>
           </div>
@@ -649,6 +649,31 @@ at ICE Barcelona!</textarea>
           <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
           <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
           <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+        </div>
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Partner Logo</label>
+        <div class="upload-zone" id="partner-logo-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Upload logo</span>
+            <span class="upload-hint">PNG, SVG, JPG</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" style="object-fit:contain; background:#1a1a1a;" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*,.svg" id="partner-logo-file" style="display:none" />
+      </div>
+
+      <div class="control-section">
+        <label class="control-label">Partner Logo Position</label>
+        <div class="position-slider-wrap">
+          <span>Up</span>
+          <input type="range" class="position-slider" id="partner-logo-position-slider" min="-80" max="40" value="-40" />
+          <span>Down</span>
         </div>
       </div>
 
@@ -837,6 +862,51 @@ at ICE Barcelona!</textarea>
 
     posSlider.addEventListener('input', () => {
       photo1.style.objectPosition = `center ${posSlider.value}%`
+    })
+
+    // ── Partner logo vertical position slider ─────────────
+    const partnerLogo = document.querySelector('.logo-pa360')
+    const partnerSlider = document.getElementById('partner-logo-position-slider')
+    partnerSlider.addEventListener('input', () => {
+      partnerLogo.style.marginTop = `${partnerSlider.value}px`
+    })
+
+    // ── Partner logo upload ───────────────────────────────
+    const partnerLogoZone = document.getElementById('partner-logo-zone')
+    const partnerLogoFile = document.getElementById('partner-logo-file')
+    const partnerPlaceholder = partnerLogoZone.querySelector('.upload-placeholder')
+    const partnerPreview = partnerLogoZone.querySelector('.upload-preview')
+    const partnerPreviewImg = partnerPreview.querySelector('img')
+    const DEFAULT_PARTNER_LOGO = '/assets/partner-logo.png'
+
+    function applyPartnerLogo(src) {
+      partnerLogo.src = src
+      partnerPreviewImg.src = src
+      partnerPlaceholder.style.display = 'none'
+      partnerPreview.style.display = ''
+    }
+
+    partnerLogoZone.addEventListener('click', e => {
+      if (e.target.closest('.remove-photo')) return
+      partnerLogoFile.click()
+    })
+    partnerLogoZone.addEventListener('dragover', e => { e.preventDefault(); partnerLogoZone.style.borderColor = '#141414' })
+    partnerLogoZone.addEventListener('dragleave', () => { partnerLogoZone.style.borderColor = '' })
+    partnerLogoZone.addEventListener('drop', e => {
+      e.preventDefault(); partnerLogoZone.style.borderColor = ''
+      const f = e.dataTransfer.files[0]
+      if (f) { const r = new FileReader(); r.onload = ev => applyPartnerLogo(ev.target.result); r.readAsDataURL(f) }
+    })
+    partnerLogoFile.addEventListener('change', () => {
+      const f = partnerLogoFile.files[0]
+      if (f) { const r = new FileReader(); r.onload = ev => applyPartnerLogo(ev.target.result); r.readAsDataURL(f) }
+    })
+    partnerPreview.querySelector('.remove-photo').addEventListener('click', e => {
+      e.stopPropagation()
+      partnerLogo.src = DEFAULT_PARTNER_LOGO
+      partnerPlaceholder.style.display = ''
+      partnerPreview.style.display = 'none'
+      partnerLogoFile.value = ''
     })
 
     // ── Photo background color palette ─────────────────────
