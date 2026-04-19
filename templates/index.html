@@ -463,8 +463,8 @@
     @media (max-width: 799px) {
       .workspace { grid-template-columns: 1fr 40vw; }
     }
-    /* ── Mobile stacked layout (< 375px) ── */
-    @media (max-width: 374px) {
+    /* ── Mobile stacked layout (< 500px) ── */
+    @media (max-width: 499px) {
       html, body { height: auto; overflow: auto; }
       .workspace {
         display: flex; flex-direction: column;
@@ -1239,13 +1239,13 @@ at ICE Barcelona!</textarea>
       function update() {
         const w = window.innerWidth, h = window.innerHeight
         let sidebarFrac
-        if (w < 375)       sidebarFrac = 0
+        if (w < 500)       sidebarFrac = 0
         else if (w < 800)  sidebarFrac = 0.40
         else if (w < 1200) sidebarFrac = 0.33
         else               sidebarFrac = 0.25
 
         let availW, availH
-        if (w < 375) {
+        if (w < 500) {
           availW = w
           availH = Infinity // stacked layout scrolls, don't cap height
         } else {
