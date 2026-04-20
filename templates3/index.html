@@ -93,6 +93,8 @@
       line-height: 0.9; letter-spacing: -0.52px; white-space: nowrap;
     }
     .t-badge-date { background: var(--accent, #08ffce); }
+    /* Date badge sits on accent bg — use variable so dark-blue → white text */
+    .t-badge-date span { color: var(--text-on-accent, #141414); }
     .t-badge-event { background: #fff; }
     .t-badge-event span { font-size: 36px; letter-spacing: -0.36px; }
 
@@ -143,7 +145,7 @@
       align-self: flex-start;
     }
     .np-name p {
-      font-size: 120px; font-weight: 600; color: #141414;
+      font-size: 120px; font-weight: 600; color: var(--text-on-accent, #141414);
       line-height: 0.9; letter-spacing: -1.2px; white-space: nowrap;
     }
     .np-title {
@@ -369,7 +371,7 @@
 
         <!-- Person photo -->
         <div class="person-wrap">
-          <img class="person-photo" id="person-photo" src="/assets/person_placeholder.png" alt="" />
+          <img class="person-photo" id="person-photo" src="/assets/person_placeholder_alpha.png" alt="" />
         </div>
 
         <!-- Bottom-left: Name + Title -->
@@ -655,9 +657,12 @@
   bindPartnerToggle('partner2-toggle', 'logo-partner-2', 'divider-2');
 
   // ── Accent color palette ───────────────────────────────────
+  // Colors dark enough to need white text on top
+  const DARK_ACCENT = new Set(['#4a57c5']);
   document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
     sw.addEventListener('click', () => {
       canvas.style.setProperty('--accent', sw.dataset.color);
+      canvas.style.setProperty('--text-on-accent', DARK_ACCENT.has(sw.dataset.color) ? '#fff' : '#141414');
       document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
       sw.classList.add('active');
     });
@@ -760,7 +765,7 @@
       preview.style.display = 'flex';
     }
     function clearPhoto() {
-      photoEl.src = '/assets/person_placeholder.png';
+      photoEl.src = '/assets/person_placeholder_alpha.png';
       fileInput.value = '';
       placeholder.style.display = 'flex';
       preview.style.display = 'none';

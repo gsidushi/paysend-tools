@@ -183,9 +183,12 @@
       flex-shrink: 0;
     }
     .p-name {
-      font-size: 32px; font-weight: 600; color: #141414;
+      font-size: 32px; font-weight: 600; color: var(--text-on-accent, #141414);
       letter-spacing: -0.32px; line-height: 1;
     }
+    /* Date badge + venue-location overlay are always on accent bg */
+    .badge-date span { color: var(--text-on-accent, #141414); }
+    #venue-loc-overlay { color: var(--text-on-accent, #141414); }
 
     /* Nameplate at top: nameplate first, then photo */
     .nameplate-top .p-nameplate { order: -1; }
@@ -855,9 +858,12 @@ at GFTN Japan</textarea>
   const canvas = document.getElementById('post-canvas');
 
   // ── Accent color ─────────────────────────────────────────
+  // Colors dark enough to need white text on top
+  const DARK_ACCENT = new Set(['#4a57c5']);
   document.querySelectorAll('.color-swatch').forEach(sw => {
     sw.addEventListener('click', () => {
       canvas.style.setProperty('--accent', sw.dataset.color);
+      canvas.style.setProperty('--text-on-accent', DARK_ACCENT.has(sw.dataset.color) ? '#fff' : '#141414');
       document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
       sw.classList.add('active');
     });
