@@ -332,6 +332,37 @@
     .download-btn:active:not(:disabled) { transform: scale(0.98); }
     .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
+    /* ── Remove background checkbox ── */
+    .bg-remove-check {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: #555; margin-top: 6px;
+      cursor: pointer; user-select: none;
+    }
+    .bg-remove-check input { cursor: pointer; }
+
+    /* ── Background-removal overlay ── */
+    .bg-overlay {
+      position: fixed; inset: 0;
+      background: rgba(20,20,20,0.68);
+      display: none; align-items: center; justify-content: center;
+      z-index: 9999; color: #fff;
+      font-family: 'GT Standard', sans-serif;
+    }
+    .bg-overlay.visible { display: flex; }
+    .bg-overlay-inner {
+      background: #1f1f1f; padding: 24px 32px; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      max-width: 360px; text-align: center;
+    }
+    .bg-overlay-spinner {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.2); border-top-color: #08ffce;
+      animation: bg-spin 0.9s linear infinite;
+    }
+    @keyframes bg-spin { to { transform: rotate(360deg); } }
+    .bg-overlay-title { font-size: 16px; font-weight: 600; }
+    .bg-overlay-hint { font-size: 12px; color: #aaa; line-height: 1.4; }
+
     /* ── Responsive sidebar widths ── */
     @media (max-width: 1199px) {
       .workspace { grid-template-columns: 1fr 33vw; }
@@ -364,6 +395,15 @@
   </style>
 </head>
 <body>
+
+  <!-- Background removal overlay -->
+  <div class="bg-overlay" id="bg-overlay" role="dialog" aria-live="polite">
+    <div class="bg-overlay-inner">
+      <div class="bg-overlay-spinner"></div>
+      <div class="bg-overlay-title">Removing background…</div>
+      <div class="bg-overlay-hint">First run may take 10–30 seconds while the model loads.</div>
+    </div>
+  </div>
 
   <header class="header">
     <a href="/" title="Back to layouts">
@@ -654,6 +694,10 @@ at GFTN Japan</textarea>
           </div>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="1" style="display:none" />
+        <label class="bg-remove-check">
+          <input type="checkbox" class="remove-bg-check" data-person="1" />
+          <span>Remove background</span>
+        </label>
       </div>
       <div class="control-section">
         <label class="control-label">Image Position</label>
@@ -698,6 +742,10 @@ at GFTN Japan</textarea>
           </div>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="2" style="display:none" />
+        <label class="bg-remove-check">
+          <input type="checkbox" class="remove-bg-check" data-person="2" />
+          <span>Remove background</span>
+        </label>
       </div>
       <div class="control-section">
         <label class="control-label">Image Position</label>
@@ -742,6 +790,10 @@ at GFTN Japan</textarea>
           </div>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="3" style="display:none" />
+        <label class="bg-remove-check">
+          <input type="checkbox" class="remove-bg-check" data-person="3" />
+          <span>Remove background</span>
+        </label>
       </div>
       <div class="control-section">
         <label class="control-label">Image Position</label>
@@ -959,9 +1011,56 @@ at GFTN Japan</textarea>
     }
   }
 
+  // ── Background removal helpers ───────────────────────────
+  const BG_MAX_EDGE = 2000;
+  let bgRemoveModule = null;
+  async function loadBgRemoval() {
+    if (bgRemoveModule) return bgRemoveModule;
+    const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal/+esm');
+    bgRemoveModule = mod.removeBackground || mod.default?.removeBackground || mod.default;
+    return bgRemoveModule;
+  }
+
+  async function fileToDownscaledBlob(file, maxEdge) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    return await new Promise(res => canvas.toBlob(res, 'image/png'));
+  }
+
+  const bgOverlay = document.getElementById('bg-overlay');
+  function showBgOverlay() { bgOverlay.classList.add('visible'); }
+  function hideBgOverlay() { bgOverlay.classList.remove('visible'); }
+
+  async function removeImageBackground(file) {
+    showBgOverlay();
+    try {
+      const remove = await loadBgRemoval();
+      const inputBlob = await fileToDownscaledBlob(file, BG_MAX_EDGE);
+      const resultBlob = await remove(inputBlob);
+      return URL.createObjectURL(resultBlob);
+    } catch (err) {
+      console.error('Background removal failed, falling back to original image:', err);
+      return await fileToOptimizedSrc(file);
+    } finally {
+      hideBgOverlay();
+    }
+  }
+
   // ── Photo uploads ────────────────────────────────────────
+  async function resolveSrc(file, zone) {
+    const removeBg = zone?.querySelector('.remove-bg-check')?.checked;
+    if (removeBg) return await removeImageBackground(file);
+    return await fileToOptimizedSrc(file);
+  }
+
   async function handleFile(file, zone, photoIds) {
-    const src = await fileToOptimizedSrc(file);
+    const src = await resolveSrc(file, zone);
     photoIds.forEach(id => { const el = document.getElementById(id); if (el) el.src = src; });
     const preview = zone.querySelector('.upload-preview');
     preview.querySelector('img').src = src;
@@ -971,7 +1070,11 @@ at GFTN Japan</textarea>
 
   function setupUpload(zone, fileInput, photoIds) {
     if (!zone || !fileInput) return;
-    zone.addEventListener('click', () => fileInput.click());
+    zone.addEventListener('click', e => {
+      // Don't open file picker when clicking the Remove background checkbox/label
+      if (e.target.closest('.bg-remove-check')) return;
+      fileInput.click();
+    });
     zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
     zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
     zone.addEventListener('drop', e => {
