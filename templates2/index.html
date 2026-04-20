@@ -655,11 +655,11 @@ at GFTN Japan</textarea>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="1" style="display:none" />
       </div>
-      <div class="control-section" id="photo1-position-ctrl">
+      <div class="control-section">
         <label class="control-label">Image Position</label>
         <div class="position-slider-wrap">
           <span>Top</span>
-          <input type="range" class="position-slider" id="photo1-slider" min="0" max="100" value="0" />
+          <input type="range" class="position-slider photo-position-slider" data-person="1" min="0" max="100" value="50" />
           <span>Bottom</span>
         </div>
       </div>
@@ -699,6 +699,14 @@ at GFTN Japan</textarea>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="2" style="display:none" />
       </div>
+      <div class="control-section">
+        <label class="control-label">Image Position</label>
+        <div class="position-slider-wrap">
+          <span>Top</span>
+          <input type="range" class="position-slider photo-position-slider" data-person="2" min="0" max="100" value="50" />
+          <span>Bottom</span>
+        </div>
+      </div>
     </div>
 
     <!-- Person 3 -->
@@ -734,6 +742,14 @@ at GFTN Japan</textarea>
           </div>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="3" style="display:none" />
+      </div>
+      <div class="control-section">
+        <label class="control-label">Image Position</label>
+        <div class="position-slider-wrap">
+          <span>Top</span>
+          <input type="range" class="position-slider photo-position-slider" data-person="3" min="0" max="100" value="50" />
+          <span>Bottom</span>
+        </div>
       </div>
     </div>
 
@@ -891,18 +907,28 @@ at GFTN Japan</textarea>
       document.getElementById('person-section-2').style.display = currentMode >= 2 ? '' : 'none';
       document.getElementById('person-section-3').style.display = currentMode === 3 ? '' : 'none';
 
-      // Photo position slider: only for mode 1
-      document.getElementById('photo1-position-ctrl').style.display = currentMode === 1 ? '' : 'none';
-
       // Auto-set badges toggle default per layout
       badgesToggle.checked = currentMode !== 1;
       applyBadgesVisibility();
     });
   });
 
-  // ── Photo position slider (person 1, mode 1) ─────────────
-  document.getElementById('photo1-slider').addEventListener('input', e => {
-    document.getElementById('photo-1').style.objectPosition = `center ${e.target.value}%`;
+  // ── Photo position sliders (per person, syncs across all layouts) ──
+  const photoIdsByPerson = {
+    '1': ['photo-1', 'photo-2a', 'photo-3a'],
+    '2': ['photo-2b', 'photo-3b'],
+    '3': ['photo-3c'],
+  };
+  function applyPhotoPosition(personKey, pct) {
+    (photoIdsByPerson[personKey] || []).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.objectPosition = `center ${pct}%`;
+    });
+  }
+  document.querySelectorAll('.photo-position-slider').forEach(s => {
+    const apply = () => applyPhotoPosition(s.dataset.person, s.value);
+    s.addEventListener('input', apply);
+    apply(); // set initial center position on load
   });
 
   // ── Image optimization ───────────────────────────────────
