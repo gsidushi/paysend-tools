@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Builder — Event Portrait</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
+      font-weight: 600; font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
+
+    /* ── App header ── */
+    .header {
+      padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8;
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .header-logo { width: 28px; height: 28px; flex-shrink: 0; display: block; }
+    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p  { font-size: 13px; color: #999; }
+
+    /* ── Workspace ── */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 25vw;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* ── Preview area ── */
+    .preview-area {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 32px; gap: 12px; overflow: hidden;
+    }
+    .preview-wrapper {
+      overflow: hidden;
+      box-shadow: 0 8px 48px rgba(0,0,0,0.22);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .preview-hint { font-size: 12px; color: #aaa; }
+
+    /* ── Canvas (1080 × 1440, 3:4 portrait) ── */
+    #post-canvas {
+      width: 1080px; height: 1440px;
+      transform-origin: top left;
+      font-family: 'GT Standard', sans-serif;
+      background: #141414;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Planet silhouette behind person */
+    .canvas-planet {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -45%);
+      width: 92%;
+      color: var(--accent, #d4a0ff);
+      display: block;
+      pointer-events: none;
+    }
+    .canvas-planet svg { width: 100%; height: auto; display: block; fill: currentColor; }
+
+    /* Top-left date + event badges */
+    .top-badges {
+      position: absolute;
+      top: 41px; left: 41px;
+      display: flex; flex-direction: column; gap: 2px;
+      max-width: 640px;
+    }
+    .top-badges.hidden { display: none !important; }
+    .t-badge {
+      padding: 10px 12px;
+      display: inline-flex; align-items: center;
+      align-self: flex-start;
+    }
+    .t-badge span {
+      font-size: 52px; font-weight: 600; color: #141414;
+      line-height: 0.9; letter-spacing: -0.52px; white-space: nowrap;
+    }
+    .t-badge-date { background: var(--accent, #d4a0ff); }
+    .t-badge-event { background: #fff; }
+    .t-badge-event span { font-size: 36px; letter-spacing: -0.36px; }
+
+    /* Top-right logos */
+    .top-logos {
+      position: absolute;
+      top: 41px; right: 41px;
+      display: flex; align-items: center; gap: 20px;
+    }
+    .top-logos .logo-paysend { height: 40px; width: auto; display: block; flex-shrink: 0; }
+    .top-logos .logo-partner { height: 80px; width: auto; max-width: 220px; display: block; flex-shrink: 0; object-fit: contain; }
+    .top-logos .logo-partner.small { height: 40px; max-width: 180px; }
+    .top-logos .logo-divider { width: 2px; height: 40px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .top-logos .logo-partner.hidden,
+    .top-logos .logo-divider.hidden { display: none !important; }
+
+    /* Person photo area */
+    .person-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .person-photo {
+      display: block;
+      width: auto;
+      height: 85%;
+      max-width: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    /* Bottom-left nameplate */
+    .nameplate-stack {
+      position: absolute;
+      left: 41px; bottom: 35px;
+      display: flex; flex-direction: column; gap: 2px;
+      max-width: 1000px;
+    }
+    .nameplate-stack.hidden { display: none !important; }
+    .np-name {
+      background: var(--accent, #d4a0ff);
+      padding: 10px 14px;
+      align-self: flex-start;
+    }
+    .np-name p {
+      font-size: 120px; font-weight: 600; color: #141414;
+      line-height: 0.9; letter-spacing: -1.2px; white-space: nowrap;
+    }
+    .np-title {
+      background: #fff;
+      padding: 10px 14px;
+      align-self: flex-start;
+    }
+    .np-title p {
+      font-size: 36px; font-weight: 600; color: #141414;
+      line-height: 0.95; letter-spacing: -0.36px; white-space: pre-line;
+    }
+
+    /* ── Toggle switch + collapsible section ── */
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #141414; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
+    .section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .section-row .control-label { margin-bottom: 0; }
+    .section-body { display: flex; flex-direction: column; gap: 10px; }
+    .control-section.section-off .section-body { display: none; }
+    .sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 4px; display: block; }
+
+    /* ── Controls ── */
+    .controls {
+      background: #fff;
+      border-left: 1px solid #e8e8e8;
+      padding: 24px 20px;
+      display: flex; flex-direction: column; gap: 16px;
+      overflow-y: auto;
+    }
+    .control-section { display: flex; flex-direction: column; gap: 6px; }
+    .control-label {
+      font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.6px; color: #888;
+    }
+    .control-input, .control-textarea {
+      width: 100%; padding: 9px 11px;
+      border: 1px solid #e0e0e0; border-radius: 6px;
+      font-size: 14px; font-family: inherit; color: #1a1a1a;
+      background: #fafafa; transition: border-color 0.15s; resize: none;
+    }
+    .control-input:focus, .control-textarea:focus {
+      outline: none; border-color: #17bff2; background: #fff;
+    }
+    .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
+
+    /* Color palette */
+    .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .color-swatch {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s; flex-shrink: 0;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: #141414; transform: scale(1.1); box-shadow: 0 0 0 1px #fff inset; }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed #ddd; border-radius: 8px; padding: 12px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      min-height: 70px; display: flex; align-items: center; justify-content: center;
+    }
+    .upload-zone:hover { border-color: #17bff2; background: #f0fbff; }
+    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #aaa; font-size: 12px; }
+    .upload-icon { font-size: 18px; line-height: 1; }
+    .upload-hint { font-size: 11px; color: #ccc; }
+    .upload-preview { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+    .upload-preview img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px; }
+    .remove-photo { font-size: 11px; color: #e94560; background: none; border: none; cursor: pointer; padding: 2px 4px; font-family: inherit; }
+    .remove-photo:hover { text-decoration: underline; }
+
+    .person-section-label {
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px; color: #141414; margin-bottom: 2px;
+    }
+
+    /* Photo position slider */
+    .position-slider-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .position-slider-wrap span { font-size: 11px; color: #999; flex-shrink: 0; width: 36px; text-align: center; }
+    .position-slider {
+      flex: 1; -webkit-appearance: none; appearance: none;
+      height: 4px; background: #e0e0e0; border-radius: 2px; outline: none; cursor: pointer;
+    }
+    .position-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
+    .position-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
+
+    /* Download */
+    .download-btn {
+      margin-top: auto; padding: 13px 20px;
+      background: #141414; color: #fff; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .download-btn:hover:not(:disabled) { background: #333; }
+    .download-btn:active:not(:disabled) { transform: scale(0.98); }
+    .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Remove background button ── */
+    .bg-remove-btn {
+      margin-top: 8px; width: 100%; padding: 8px 12px;
+      background: #fff; color: #141414;
+      border: 1px solid #d0d0d0; border-radius: 4px;
+      font-size: 12px; font-weight: 500; cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .bg-remove-btn:hover:not(:disabled) { background: #f4f4f4; border-color: #141414; }
+    .bg-remove-btn:active:not(:disabled) { transform: scale(0.99); }
+    .bg-remove-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Background-removal overlay ── */
+    .bg-overlay {
+      position: fixed; inset: 0;
+      background: rgba(20,20,20,0.68);
+      display: none; align-items: center; justify-content: center;
+      z-index: 9999; color: #fff;
+    }
+    .bg-overlay.visible { display: flex; }
+    .bg-overlay-inner {
+      background: #1f1f1f; padding: 24px 32px; border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      max-width: 360px; text-align: center;
+    }
+    .bg-overlay-spinner {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 3px solid rgba(255,255,255,0.2); border-top-color: #d4a0ff;
+      animation: bg-spin 0.9s linear infinite;
+    }
+    @keyframes bg-spin { to { transform: rotate(360deg); } }
+    .bg-overlay-title { font-size: 16px; font-weight: 600; }
+    .bg-overlay-hint { font-size: 12px; color: #aaa; line-height: 1.4; }
+
+    /* ── Responsive sidebar widths ── */
+    @media (max-width: 1199px) {
+      .workspace { grid-template-columns: 1fr 33vw; }
+    }
+    @media (max-width: 799px) {
+      .workspace { grid-template-columns: 1fr 40vw; }
+    }
+    @media (max-width: 499px) {
+      html, body { height: auto; overflow: auto; }
+      .workspace {
+        display: flex; flex-direction: column;
+        overflow: visible; height: auto;
+      }
+      .preview-area {
+        padding: 0; overflow: visible;
+        justify-content: flex-start; align-items: stretch;
+        flex-shrink: 0; height: auto;
+      }
+      .preview-wrapper {
+        width: 100vw !important; border-radius: 0;
+        box-shadow: none; flex-shrink: 0;
+      }
+      .preview-hint { display: none; }
+      .controls {
+        border-left: none; border-top: 1px solid #e8e8e8;
+        height: auto; overflow-y: visible; flex: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background removal overlay -->
+  <div class="bg-overlay" id="bg-overlay" role="dialog" aria-live="polite">
+    <div class="bg-overlay-inner">
+      <div class="bg-overlay-spinner"></div>
+      <div class="bg-overlay-title">Removing background…</div>
+      <div class="bg-overlay-hint">First run may take 10–30 seconds while the model loads.</div>
+    </div>
+  </div>
+
+  <header class="header">
+    <a href="/" title="Back to layouts">
+      <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </a>
+    <h1>Post Builder</h1>
+    <p>1080 × 1440 Event Portrait</p>
+  </header>
+
+  <main class="workspace">
+
+  <!-- ── Preview ── -->
+  <div class="preview-area">
+    <div class="preview-wrapper">
+      <div id="post-canvas" style="--accent:#d4a0ff">
+
+        <!-- Planet silhouette background -->
+        <div class="canvas-planet" id="canvas-planet">
+          <svg viewBox="0 0 361 329" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M179.955 0C252.312 0 313.868 45.6934 336.681 109.47H350.607C356.731 126.59 360.064 145.013 360.064 164.205C360.064 183.397 356.731 201.82 350.607 218.94H336.681C313.868 282.717 252.312 328.41 179.955 328.41C107.598 328.41 46.0424 282.717 23.2288 218.94H9.45723C3.33319 201.82 0 183.397 0 164.205C0 145.013 3.33319 126.59 9.45723 109.47H23.2288C46.0424 45.6934 107.598 0 179.955 0ZM245.775 48.4731C255.357 65.5403 262.833 86.3133 267.458 109.47H281.384C284.804 126.59 286.667 145.013 286.667 164.205C286.667 183.398 284.804 201.82 281.384 218.94H267.458C262.833 242.096 255.357 262.869 245.775 279.936C270.602 266.12 290.535 244.731 302.366 218.94H316.292C323.948 202.252 328.212 183.721 328.212 164.205C328.212 144.69 323.948 126.159 316.292 109.47H302.366C290.535 83.6787 270.603 62.2887 245.775 48.4731ZM43.7716 109.47C36.1162 126.159 31.8517 144.69 31.8517 164.205C31.8517 183.721 36.1161 202.252 43.7716 218.94H57.5432C69.3742 244.731 89.3069 266.12 114.134 279.936C104.552 262.869 97.0757 242.097 92.4504 218.94H78.6785C75.2589 201.82 73.3975 183.397 73.3975 164.205C73.3975 145.013 75.2591 126.59 78.6785 109.47H92.4504C97.0756 86.3132 104.552 65.5403 114.134 48.4731C89.3066 62.2887 69.3741 83.6788 57.5432 109.47H43.7716ZM111.234 109.47C107.44 126.018 105.25 144.482 105.25 164.205C105.25 183.928 107.44 202.393 111.234 218.94H125.005C129.099 236.792 135.059 252.413 142.156 264.973C156.417 290.21 171.072 296.938 179.955 296.938C188.838 296.938 203.493 290.21 217.753 264.973C224.851 252.413 230.811 236.792 234.905 218.94H248.831C252.625 202.393 254.815 183.928 254.815 164.205C254.815 144.482 252.625 126.018 248.831 109.47H234.905C230.811 91.6183 224.851 75.9977 217.753 63.4371C203.493 38.2001 188.838 31.4727 179.955 31.4727C171.072 31.4727 156.417 38.2001 142.156 63.4371C135.059 75.9977 129.099 91.6183 125.005 109.47H111.234Z"/>
+          </svg>
+        </div>
+
+        <!-- Top-left: Date + Event name badges -->
+        <div class="top-badges" id="top-badges">
+          <div class="t-badge t-badge-date"><span id="preview-date">January 19</span></div>
+          <div class="t-badge t-badge-event"><span id="preview-event">FinTec Symposium</span></div>
+        </div>
+
+        <!-- Top-right: Paysend + partner logos -->
+        <div class="top-logos" id="top-logos">
+          <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+          <div class="logo-divider" id="divider-1"></div>
+          <img class="logo-partner" id="logo-partner-1" src="/assets/partner-logo.png" alt="Partner 1" />
+          <div class="logo-divider" id="divider-2"></div>
+          <img class="logo-partner small" id="logo-partner-2" src="/assets/partner-logo.png" alt="Partner 2" />
+        </div>
+
+        <!-- Person photo -->
+        <div class="person-wrap">
+          <img class="person-photo" id="person-photo" src="/assets/person_placeholder.png" alt="" />
+        </div>
+
+        <!-- Bottom-left: Name + Title -->
+        <div class="nameplate-stack" id="nameplate-stack">
+          <div class="np-name"><p id="preview-name">Full Name</p></div>
+          <div class="np-title"><p id="preview-title">Job Title</p></div>
+        </div>
+
+      </div><!-- /post-canvas -->
+    </div><!-- /preview-wrapper -->
+    <p class="preview-hint">Preview scaled — exports 1080 × 1440</p>
+  </div><!-- /preview-area -->
+
+  <!-- ── Controls ── -->
+  <div class="controls">
+
+    <!-- Event date + name (top-left badges) -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Event Badges</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="badges-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <div>
+          <label class="sub-label">Date</label>
+          <input class="control-input" id="input-date" type="text" value="January 19" />
+        </div>
+        <div>
+          <label class="sub-label">Event Name</label>
+          <input class="control-input" id="input-event" type="text" value="FinTec Symposium" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Accent color -->
+    <div class="control-section">
+      <label class="control-label">Accent Color</label>
+      <div class="color-palette" id="color-palette">
+        <button class="color-swatch active" data-color="#d4a0ff" style="background:#d4a0ff" title="Purple"></button>
+        <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+        <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
+        <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
+        <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
+        <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
+        <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
+        <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+        <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Partner logo 1 -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Partner Logo 1</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner1-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <div class="upload-zone" id="partner1-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Upload logo</span>
+            <span class="upload-hint">PNG, SVG, JPG</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" style="object-fit:contain; background:#1a1a1a;" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*,.svg" id="partner1-file" style="display:none" />
+      </div>
+    </div>
+
+    <!-- Partner logo 2 -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Partner Logo 2</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner2-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <div class="upload-zone" id="partner2-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Upload logo</span>
+            <span class="upload-hint">PNG, SVG, JPG</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" style="object-fit:contain; background:#1a1a1a;" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*,.svg" id="partner2-file" style="display:none" />
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Person (nameplate + photo) -->
+    <div class="person-section-label">Person</div>
+
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Nameplate</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="nameplate-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <div>
+          <label class="sub-label">Name</label>
+          <input class="control-input" id="input-name" type="text" value="Full Name" />
+        </div>
+        <div>
+          <label class="sub-label">Title</label>
+          <textarea class="control-textarea" id="input-title" rows="2">Job Title</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="control-section">
+      <label class="control-label">Photo</label>
+      <div class="upload-zone" id="person-zone">
+        <div class="upload-placeholder">
+          <span class="upload-icon">↑</span>
+          <span>Click or drag</span>
+          <span class="upload-hint">PNG, JPG, WEBP</span>
+        </div>
+        <div class="upload-preview" style="display:none">
+          <img src="" alt="thumb" />
+          <button class="remove-photo">Remove</button>
+        </div>
+      </div>
+      <input type="file" accept="image/*" id="person-file" style="display:none" />
+      <button type="button" class="bg-remove-btn" id="person-bg-remove" disabled>Remove background</button>
+    </div>
+
+    <div class="control-section">
+      <label class="control-label">Image Position</label>
+      <div class="position-slider-wrap">
+        <span>Top</span>
+        <input type="range" class="position-slider" id="photo-position-slider" min="0" max="100" value="50" />
+        <span>Bottom</span>
+      </div>
+    </div>
+
+    <button class="download-btn" id="download-btn">Download PNG</button>
+
+  </div><!-- /controls -->
+  </main>
+
+  <script>
+  // ── Image optimization ──────────────────────────────────────
+  const MAX_EDGE = 2400;
+  const SMALL_FILE_BYTES = 400 * 1024;
+
+  async function fileToOptimizedSrc(file) {
+    if (file.type === 'image/svg+xml' || file.size <= SMALL_FILE_BYTES) {
+      return URL.createObjectURL(file);
+    }
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+      if (scale === 1) { bitmap.close(); return URL.createObjectURL(file); }
+      const w = Math.round(bitmap.width * scale);
+      const h = Math.round(bitmap.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+      bitmap.close();
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.88));
+      return URL.createObjectURL(blob);
+    } catch {
+      return URL.createObjectURL(file);
+    }
+  }
+
+  // ── Background removal helpers ──────────────────────────────
+  const BG_MAX_EDGE = 2000;
+  let bgRemoveFn = null;
+  async function loadBgRemoval() {
+    if (bgRemoveFn) return bgRemoveFn;
+    const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal/+esm');
+    bgRemoveFn = mod.removeBackground || mod.default?.removeBackground || mod.default;
+    return bgRemoveFn;
+  }
+
+  async function fileToDownscaledBlob(file, maxEdge) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    return await new Promise(res => canvas.toBlob(res, 'image/png'));
+  }
+
+  const bgOverlay = document.getElementById('bg-overlay');
+  const showBgOverlay = () => bgOverlay.classList.add('visible');
+  const hideBgOverlay = () => bgOverlay.classList.remove('visible');
+
+  async function removeImageBackground(file) {
+    showBgOverlay();
+    try {
+      const remove = await loadBgRemoval();
+      const inputBlob = await fileToDownscaledBlob(file, BG_MAX_EDGE);
+      const resultBlob = await remove(inputBlob);
+      return URL.createObjectURL(resultBlob);
+    } catch (err) {
+      console.error('Background removal failed, falling back to original image:', err);
+      return await fileToOptimizedSrc(file);
+    } finally {
+      hideBgOverlay();
+    }
+  }
+
+  // ── Text inputs ─────────────────────────────────────────────
+  const canvas = document.getElementById('post-canvas');
+
+  function bindText(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    if (!input || !preview) return;
+    input.addEventListener('input', () => { preview.textContent = input.value; });
+  }
+  bindText('input-date', 'preview-date');
+  bindText('input-event', 'preview-event');
+  bindText('input-name', 'preview-name');
+  bindText('input-title', 'preview-title');
+
+  // ── Toggles ────────────────────────────────────────────────
+  function syncSectionOff(cb) {
+    const section = cb.closest('.control-section');
+    if (!section) return;
+    section.classList.toggle('section-off', !cb.checked);
+  }
+
+  function bindToggle(toggleId, targetEl) {
+    const cb = document.getElementById(toggleId);
+    const apply = () => {
+      targetEl.classList.toggle('hidden', !cb.checked);
+      syncSectionOff(cb);
+    };
+    cb.addEventListener('change', apply);
+    apply();
+  }
+  bindToggle('badges-toggle', document.getElementById('top-badges'));
+  bindToggle('nameplate-toggle', document.getElementById('nameplate-stack'));
+
+  // Partner logo toggles (each controls its own logo + adjacent divider)
+  function bindPartnerToggle(toggleId, logoId, dividerId) {
+    const cb = document.getElementById(toggleId);
+    const logo = document.getElementById(logoId);
+    const divider = document.getElementById(dividerId);
+    const apply = () => {
+      logo.classList.toggle('hidden', !cb.checked);
+      divider.classList.toggle('hidden', !cb.checked);
+      syncSectionOff(cb);
+    };
+    cb.addEventListener('change', apply);
+    apply();
+  }
+  bindPartnerToggle('partner1-toggle', 'logo-partner-1', 'divider-1');
+  bindPartnerToggle('partner2-toggle', 'logo-partner-2', 'divider-2');
+
+  // ── Accent color palette ───────────────────────────────────
+  document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      canvas.style.setProperty('--accent', sw.dataset.color);
+      document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+    });
+  });
+
+  // ── Photo position slider ──────────────────────────────────
+  const photoEl = document.getElementById('person-photo');
+  const slider = document.getElementById('photo-position-slider');
+  function applyPhotoPosition() {
+    photoEl.style.objectPosition = `center ${slider.value}%`;
+  }
+  slider.addEventListener('input', applyPhotoPosition);
+  applyPhotoPosition();
+
+  // ── Partner logo uploads ───────────────────────────────────
+  function setupLogoUpload({ zoneId, fileId, imgId, defaultSrc }) {
+    const zone = document.getElementById(zoneId);
+    const fileInput = document.getElementById(fileId);
+    const img = document.getElementById(imgId);
+    const placeholder = zone.querySelector('.upload-placeholder');
+    const preview = zone.querySelector('.upload-preview');
+    const thumb = preview.querySelector('img');
+    const removeBtn = preview.querySelector('.remove-photo');
+
+    async function setSrc(src) {
+      img.src = src;
+      thumb.src = src;
+      placeholder.style.display = 'none';
+      preview.style.display = 'flex';
+    }
+    function clearSrc() {
+      img.src = defaultSrc;
+      fileInput.value = '';
+      placeholder.style.display = 'flex';
+      preview.style.display = 'none';
+    }
+    zone.addEventListener('click', e => {
+      if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+      fileInput.click();
+    });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+    zone.addEventListener('drop', async e => {
+      e.preventDefault(); zone.style.borderColor = '';
+      const f = e.dataTransfer.files[0];
+      if (f) setSrc(await fileToOptimizedSrc(f));
+    });
+    fileInput.addEventListener('change', async () => {
+      const f = fileInput.files[0];
+      if (f) setSrc(await fileToOptimizedSrc(f));
+    });
+    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
+  }
+  setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
+  setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
+
+  // ── Person photo upload ────────────────────────────────────
+  (function setupPersonUpload() {
+    const zone = document.getElementById('person-zone');
+    const fileInput = document.getElementById('person-file');
+    const placeholder = zone.querySelector('.upload-placeholder');
+    const preview = zone.querySelector('.upload-preview');
+    const thumb = preview.querySelector('img');
+    const removeBtn = preview.querySelector('.remove-photo');
+    const bgBtn = document.getElementById('person-bg-remove');
+    let lastFile = null;
+
+    function setPhoto(src) {
+      photoEl.src = src;
+      thumb.src = src;
+      placeholder.style.display = 'none';
+      preview.style.display = 'flex';
+    }
+    function clearPhoto() {
+      photoEl.src = '/assets/person_placeholder.png';
+      fileInput.value = '';
+      placeholder.style.display = 'flex';
+      preview.style.display = 'none';
+      lastFile = null;
+      bgBtn.disabled = true;
+    }
+    async function ingest(file) {
+      lastFile = file;
+      setPhoto(await fileToOptimizedSrc(file));
+      bgBtn.disabled = false;
+    }
+
+    zone.addEventListener('click', e => {
+      if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+      fileInput.click();
+    });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+    zone.addEventListener('drop', async e => {
+      e.preventDefault(); zone.style.borderColor = '';
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) ingest(f);
+    });
+    fileInput.addEventListener('change', async () => {
+      const f = fileInput.files[0];
+      if (f) ingest(f);
+    });
+    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearPhoto(); });
+
+    bgBtn.addEventListener('click', async () => {
+      if (!lastFile) return;
+      const prev = bgBtn.textContent;
+      bgBtn.disabled = true;
+      bgBtn.textContent = 'Removing…';
+      try {
+        setPhoto(await removeImageBackground(lastFile));
+      } finally {
+        bgBtn.textContent = prev;
+        bgBtn.disabled = false;
+      }
+    });
+  })();
+
+  // ── Responsive preview scaling ─────────────────────────────
+  (function scalePreview() {
+    const CANVAS_W = 1080, CANVAS_H = 1440;
+    const PREVIEW_PAD = 64;
+    const HEADER_H = 60;
+    const wrapper = document.querySelector('.preview-wrapper');
+    const cvs = document.getElementById('post-canvas');
+
+    function update() {
+      const w = window.innerWidth, h = window.innerHeight;
+      let sidebarFrac;
+      if (w < 500)       sidebarFrac = 0;
+      else if (w < 800)  sidebarFrac = 0.40;
+      else if (w < 1200) sidebarFrac = 0.33;
+      else               sidebarFrac = 0.25;
+
+      let availW, availH;
+      if (w < 500) {
+        availW = w;
+        availH = Infinity;
+      } else {
+        availW = w * (1 - sidebarFrac) - PREVIEW_PAD;
+        availH = h - HEADER_H - 80;
+      }
+      const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
+      wrapper.style.width  = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
+      cvs.style.transform  = `scale(${scale})`;
+    }
+    update();
+    window.addEventListener('resize', update);
+  })();
+
+  // ── Download ───────────────────────────────────────────────
+  document.getElementById('download-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('download-btn');
+    btn.textContent = 'Exporting…'; btn.disabled = true;
+    try {
+      const result = await html2canvas(canvas, {
+        scale: 1, width: 1080, height: 1440,
+        useCORS: true, allowTaint: true, backgroundColor: null,
+        logging: false
+      });
+      const link = document.createElement('a');
+      link.download = 'paysend-event-portrait.png';
+      link.href = result.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Download failed:', err);
+    } finally {
+      btn.textContent = 'Download PNG'; btn.disabled = false;
+    }
+  });
+  </script>
+</body>
+</html>
