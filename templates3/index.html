@@ -143,10 +143,12 @@
       background: var(--accent, #08ffce);
       padding: 10px 14px;
       align-self: flex-start;
+      max-width: 998px;
     }
     .np-name p {
       font-size: 120px; font-weight: 600; color: var(--text-on-accent, #141414);
-      line-height: 0.9; letter-spacing: -1.2px; white-space: nowrap;
+      line-height: 0.9; letter-spacing: -1.2px;
+      overflow-wrap: break-word;
     }
     .np-title {
       background: #fff;
@@ -629,6 +631,28 @@
   const NAME_MIN_SIZE_3 = 40;
   const CANVAS_SIDE_PAD = 41;   // matches .top-badges / .nameplate-stack inset
   const NP_NAME_PAD_X = 14;     // .np-name padding-left/right
+  function longestWordWidth(el) {
+    const text = (el.textContent || '').trim();
+    if (!text) return 0;
+    const words = text.split(/\s+/);
+    const cs = getComputedStyle(el);
+    const probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute;left:-99999px;top:-99999px;visibility:hidden;white-space:nowrap;';
+    probe.style.fontFamily = cs.fontFamily;
+    probe.style.fontSize = cs.fontSize;
+    probe.style.fontWeight = cs.fontWeight;
+    probe.style.fontStyle = cs.fontStyle;
+    probe.style.letterSpacing = cs.letterSpacing;
+    probe.style.textTransform = cs.textTransform;
+    document.body.appendChild(probe);
+    let max = 0;
+    for (const w of words) {
+      probe.textContent = w;
+      if (probe.offsetWidth > max) max = probe.offsetWidth;
+    }
+    document.body.removeChild(probe);
+    return max;
+  }
   function fitName() {
     const el = document.getElementById('preview-name');
     if (!el) return;
@@ -638,7 +662,7 @@
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {
       if (size <= NAME_MIN_SIZE_3) break;
-      if (el.offsetWidth <= available + 0.5) break;
+      if (longestWordWidth(el) <= available + 0.5) break;
       size -= 2;
       el.style.fontSize = size + 'px';
     }

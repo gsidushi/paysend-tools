@@ -176,8 +176,8 @@
     /* Nameplate: colored strip, full width of column */
     .p-nameplate {
       background: var(--accent, #08ffce);
-      padding: 0 24px;
-      height: 60px;
+      padding: 8px 24px;
+      min-height: 60px;
       display: flex;
       align-items: center;
       flex-shrink: 0;
@@ -922,6 +922,28 @@ at GFTN Japan</textarea>
   // currently active card's names are considered.
   const NAME_BASE_SIZE = 32;
   const NAME_MIN_SIZE = 16;
+  function longestWordWidth(el) {
+    const text = (el.textContent || '').trim();
+    if (!text) return 0;
+    const words = text.split(/\s+/);
+    const cs = getComputedStyle(el);
+    const probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute;left:-99999px;top:-99999px;visibility:hidden;white-space:nowrap;';
+    probe.style.fontFamily = cs.fontFamily;
+    probe.style.fontSize = cs.fontSize;
+    probe.style.fontWeight = cs.fontWeight;
+    probe.style.fontStyle = cs.fontStyle;
+    probe.style.letterSpacing = cs.letterSpacing;
+    probe.style.textTransform = cs.textTransform;
+    document.body.appendChild(probe);
+    let max = 0;
+    for (const w of words) {
+      probe.textContent = w;
+      if (probe.offsetWidth > max) max = probe.offsetWidth;
+    }
+    document.body.removeChild(probe);
+    return max;
+  }
   function fitNames() {
     const activeCard = document.querySelector('.post-card.active');
     if (!activeCard) return;
@@ -941,14 +963,8 @@ at GFTN Japan</textarea>
         const padL = parseFloat(cs.paddingLeft) || 0;
         const padR = parseFloat(cs.paddingRight) || 0;
         const available = plate.clientWidth - padL - padR;
-        const savedWS = el.style.whiteSpace;
-        const savedW = el.style.width;
-        el.style.whiteSpace = 'nowrap';
-        el.style.width = 'max-content';
-        const textW = el.offsetWidth;
-        el.style.whiteSpace = savedWS;
-        el.style.width = savedW;
-        if (textW > available + 0.5) { overflow = true; break; }
+        const wordW = longestWordWidth(el);
+        if (wordW > available + 0.5) { overflow = true; break; }
       }
       if (!overflow) break;
       size -= 2;

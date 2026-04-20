@@ -1038,7 +1038,13 @@ at ICE Barcelona!</textarea>
       const s = personState[key], m = personCanvasMap[key]
       m.titles.forEach(id => { const el = document.getElementById(id); if (el) el.textContent = s.title })
       m.names.forEach(id  => { const el = document.getElementById(id); if (el) el.textContent = s.name  })
-      m.photos.forEach(id => { const el = document.getElementById(id); if (el) el.src = s.photo || '' })
+      m.photos.forEach(id => {
+        const el = document.getElementById(id)
+        if (!el) return
+        // Fall back to placeholder when no user photo is set — avoids
+        // wiping src to '' which would break the image.
+        el.src = s.photo || '/assets/person_placeholder.png'
+      })
     }
 
     // ── Name auto-fit ──────────────────────────────────────
@@ -1048,6 +1054,29 @@ at ICE Barcelona!</textarea>
     // re-fit when the layout switches to them.
     const NAME_BASE_SIZE = 52
     const NAME_MIN_SIZE = 28
+    // Measure the widest single word inside `el` at its current font.
+    function longestWordWidth(el) {
+      const text = (el.textContent || '').trim()
+      if (!text) return 0
+      const words = text.split(/\s+/)
+      const cs = getComputedStyle(el)
+      const probe = document.createElement('span')
+      probe.style.cssText = 'position:absolute;left:-99999px;top:-99999px;visibility:hidden;white-space:nowrap;'
+      probe.style.fontFamily = cs.fontFamily
+      probe.style.fontSize = cs.fontSize
+      probe.style.fontWeight = cs.fontWeight
+      probe.style.fontStyle = cs.fontStyle
+      probe.style.letterSpacing = cs.letterSpacing
+      probe.style.textTransform = cs.textTransform
+      document.body.appendChild(probe)
+      let max = 0
+      for (const w of words) {
+        probe.textContent = w
+        if (probe.offsetWidth > max) max = probe.offsetWidth
+      }
+      document.body.removeChild(probe)
+      return max
+    }
     function fitNames() {
       const nameEls = Array.from(document.querySelectorAll('.p-name'))
         .filter(el => {
@@ -1069,14 +1098,8 @@ at ICE Barcelona!</textarea>
           const padL = parseFloat(cs.paddingLeft) || 0
           const padR = parseFloat(cs.paddingRight) || 0
           const available = plate.clientWidth - padL - padR
-          const savedWS = el.style.whiteSpace
-          const savedW = el.style.width
-          el.style.whiteSpace = 'nowrap'
-          el.style.width = 'max-content'
-          const textW = el.offsetWidth
-          el.style.whiteSpace = savedWS
-          el.style.width = savedW
-          if (textW > available + 0.5) { overflow = true; break }
+          const wordW = longestWordWidth(el)
+          if (wordW > available + 0.5) { overflow = true; break }
         }
         if (!overflow) break
         size -= 2
