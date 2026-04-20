@@ -1041,6 +1041,49 @@ at ICE Barcelona!</textarea>
       m.photos.forEach(id => { const el = document.getElementById(id); if (el) el.src = s.photo || '' })
     }
 
+    // ── Name auto-fit ──────────────────────────────────────
+    // If any visible name would overflow its nameplate on a single line,
+    // shrink every visible name by 2px in sync until all fit. Applies
+    // only to the currently-visible card's names; hidden cards are
+    // re-fit when the layout switches to them.
+    const NAME_BASE_SIZE = 52
+    const NAME_MIN_SIZE = 28
+    function fitNames() {
+      const nameEls = Array.from(document.querySelectorAll('.p-name'))
+        .filter(el => {
+          const card = el.closest('.post-card')
+          return !card || getComputedStyle(card).display !== 'none'
+        })
+      if (!nameEls.length) return
+
+      let size = NAME_BASE_SIZE
+      nameEls.forEach(el => { el.style.fontSize = size + 'px' })
+
+      for (let i = 0; i < 20; i++) {
+        if (size <= NAME_MIN_SIZE) break
+        let overflow = false
+        for (const el of nameEls) {
+          const plate = el.closest('.p-nameplate')
+          if (!plate) continue
+          const cs = getComputedStyle(plate)
+          const padL = parseFloat(cs.paddingLeft) || 0
+          const padR = parseFloat(cs.paddingRight) || 0
+          const available = plate.clientWidth - padL - padR
+          const savedWS = el.style.whiteSpace
+          const savedW = el.style.width
+          el.style.whiteSpace = 'nowrap'
+          el.style.width = 'max-content'
+          const textW = el.offsetWidth
+          el.style.whiteSpace = savedWS
+          el.style.width = savedW
+          if (textW > available + 0.5) { overflow = true; break }
+        }
+        if (!overflow) break
+        size -= 2
+        nameEls.forEach(el => { el.style.fontSize = size + 'px' })
+      }
+    }
+
     // Person text inputs → update state + sync all slots
     const personInputMap = {
       P1: { title: 'input-title-1',  name: 'input-name-1'  },
@@ -1051,7 +1094,7 @@ at ICE Barcelona!</textarea>
       const tEl = document.getElementById(title)
       const nEl = document.getElementById(name)
       if (tEl) tEl.addEventListener('input', () => { personState[key].title = tEl.value; syncPerson(key) })
-      if (nEl) nEl.addEventListener('input', () => { personState[key].name  = nEl.value; syncPerson(key) })
+      if (nEl) nEl.addEventListener('input', () => { personState[key].name  = nEl.value; syncPerson(key); fitNames() })
     })
 
     // ── Photo position slider (1-person only) ─────────────
@@ -1268,6 +1311,9 @@ at ICE Barcelona!</textarea>
           section4.style.display = 'flex'
           alignControl.style.display = 'none'
         }
+
+        // Re-fit names to match the newly visible card's width
+        fitNames()
       })
     })
 
@@ -1481,6 +1527,13 @@ at ICE Barcelona!</textarea>
         downloadBtn.textContent = 'Download PNG'
       }
     })
+
+    // ── Initial name fit (after fonts load) ───────────────
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => fitNames())
+    } else {
+      fitNames()
+    }
   </script>
 
 </body>

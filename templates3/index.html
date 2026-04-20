@@ -621,6 +621,31 @@
   bindText('input-name', 'preview-name');
   bindText('input-title', 'preview-title');
 
+  // ── Name auto-fit ────────────────────────────────────────
+  // Shrink the name font by 2px at a time until the single-line text
+  // fits within the canvas (accounting for canvas padding + np-name
+  // padding). Only the name text is affected.
+  const NAME_BASE_SIZE_3 = 120;
+  const NAME_MIN_SIZE_3 = 40;
+  const CANVAS_SIDE_PAD = 41;   // matches .top-badges / .nameplate-stack inset
+  const NP_NAME_PAD_X = 14;     // .np-name padding-left/right
+  function fitName() {
+    const el = document.getElementById('preview-name');
+    if (!el) return;
+    const cvs = document.getElementById('post-canvas');
+    const available = cvs.clientWidth - 2 * CANVAS_SIDE_PAD - 2 * NP_NAME_PAD_X;
+    let size = NAME_BASE_SIZE_3;
+    el.style.fontSize = size + 'px';
+    for (let i = 0; i < 50; i++) {
+      if (size <= NAME_MIN_SIZE_3) break;
+      if (el.offsetWidth <= available + 0.5) break;
+      size -= 2;
+      el.style.fontSize = size + 'px';
+    }
+  }
+  // Re-fit whenever the name input changes
+  document.getElementById('input-name').addEventListener('input', fitName);
+
   // ── Toggles ────────────────────────────────────────────────
   function syncSectionOff(cb) {
     const section = cb.closest('.control-section');
@@ -848,6 +873,13 @@
       btn.textContent = 'Download PNG'; btn.disabled = false;
     }
   });
+
+  // ── Initial name fit (after fonts load) ────────────────────
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => fitName());
+  } else {
+    fitName();
+  }
   </script>
 </body>
 </html>
