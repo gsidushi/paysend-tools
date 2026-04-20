@@ -320,6 +320,22 @@
     .position-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
     .position-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
 
+    /* Photo zoom controls */
+    .zoom-control { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .zoom-label { font-size: 11px; color: #999; flex-shrink: 0; width: 36px; text-align: center; }
+    .zoom-btn {
+      width: 28px; height: 28px; border-radius: 4px;
+      border: 1px solid #e0e0e0; background: #fafafa;
+      font-size: 16px; font-weight: 600; line-height: 1; cursor: pointer;
+      font-family: inherit; color: #141414;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .zoom-btn:hover:not(:disabled) { background: #f0f0f0; border-color: #141414; }
+    .zoom-btn:active:not(:disabled) { transform: scale(0.95); }
+    .zoom-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .zoom-value { font-size: 12px; color: #555; min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+
     /* Download */
     .download-btn {
       margin-top: auto; padding: 13px 20px;
@@ -669,6 +685,12 @@ at GFTN Japan</textarea>
           </div>
         </div>
         <input type="file" accept="image/*" id="venue-file" style="display:none" />
+        <div class="zoom-control" data-zoom-target="venue">
+          <span class="zoom-label">Zoom</span>
+          <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
+          <span class="zoom-value">100%</span>
+          <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
+        </div>
       </div>
       <div class="divider"></div>
     </div>
@@ -713,6 +735,12 @@ at GFTN Japan</textarea>
           <span>Top</span>
           <input type="range" class="position-slider photo-position-slider" data-person="1" min="0" max="100" value="50" />
           <span>Bottom</span>
+        </div>
+        <div class="zoom-control" data-zoom-person="1">
+          <span class="zoom-label">Zoom</span>
+          <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
+          <span class="zoom-value">100%</span>
+          <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
         </div>
       </div>
     </div>
@@ -759,6 +787,12 @@ at GFTN Japan</textarea>
           <input type="range" class="position-slider photo-position-slider" data-person="2" min="0" max="100" value="50" />
           <span>Bottom</span>
         </div>
+        <div class="zoom-control" data-zoom-person="2">
+          <span class="zoom-label">Zoom</span>
+          <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
+          <span class="zoom-value">100%</span>
+          <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
+        </div>
       </div>
     </div>
 
@@ -803,6 +837,12 @@ at GFTN Japan</textarea>
           <span>Top</span>
           <input type="range" class="position-slider photo-position-slider" data-person="3" min="0" max="100" value="50" />
           <span>Bottom</span>
+        </div>
+        <div class="zoom-control" data-zoom-person="3">
+          <span class="zoom-label">Zoom</span>
+          <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
+          <span class="zoom-value">100%</span>
+          <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
         </div>
       </div>
     </div>
@@ -983,6 +1023,45 @@ at GFTN Japan</textarea>
     const apply = () => applyPhotoPosition(s.dataset.person, s.value);
     s.addEventListener('input', apply);
     apply(); // set initial center position on load
+  });
+
+  // ── Photo zoom (CSS transform scale) ───────────────────────
+  const ZOOM_MIN = 0.5, ZOOM_MAX = 2.5, ZOOM_STEP = 0.1;
+  function setupZoom(control, photoIds) {
+    const valueEl = control.querySelector('.zoom-value');
+    const decBtn = control.querySelector('[data-dir="-1"]');
+    const incBtn = control.querySelector('[data-dir="1"]');
+    let scale = 1;
+    const apply = () => {
+      photoIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.style.transformOrigin = 'center center';
+          el.style.transform = `scale(${scale})`;
+        }
+      });
+      valueEl.textContent = Math.round(scale * 100) + '%';
+      decBtn.disabled = scale <= ZOOM_MIN + 0.001;
+      incBtn.disabled = scale >= ZOOM_MAX - 0.001;
+    };
+    decBtn.addEventListener('click', () => {
+      scale = Math.max(ZOOM_MIN, +(scale - ZOOM_STEP).toFixed(2));
+      apply();
+    });
+    incBtn.addEventListener('click', () => {
+      scale = Math.min(ZOOM_MAX, +(scale + ZOOM_STEP).toFixed(2));
+      apply();
+    });
+    apply();
+  }
+  // Venue photo zoom
+  const venueZoomControl = document.querySelector('[data-zoom-target="venue"]');
+  if (venueZoomControl) setupZoom(venueZoomControl, ['venue-photo']);
+  // Per-person zoom (syncs across all layouts)
+  document.querySelectorAll('[data-zoom-person]').forEach(ctl => {
+    const key = ctl.dataset.zoomPerson;
+    const ids = photoIdsByPerson[key] || [];
+    setupZoom(ctl, ids);
   });
 
   // ── Image optimization ───────────────────────────────────

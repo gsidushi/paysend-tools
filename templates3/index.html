@@ -108,8 +108,10 @@
     .top-logos .logo-partner.hidden,
     .top-logos .logo-divider.hidden { display: none !important; }
 
-    /* Person photo area — cutout (transparent-bg) PNG sized to contain,
-       vertically positioned via --photo-top set by the slider. */
+    /* Person photo area — cutout (transparent-bg) PNG takes the full
+       canvas width and is anchored to the bottom by default. The slider
+       drives --photo-offset (vertical translate) and the zoom buttons
+       drive --photo-scale. */
     .person-wrap {
       position: absolute;
       inset: 0;
@@ -117,13 +119,13 @@
     }
     .person-photo {
       position: absolute;
-      left: 50%;
-      top: var(--photo-top, 12%);
-      transform: translateX(-50%);
-      height: 88%;
-      width: auto;
-      max-width: 95%;
-      object-fit: contain;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: auto;
+      transform: translateY(var(--photo-offset, 0%)) scale(var(--photo-scale, 1));
+      transform-origin: center bottom;
       display: block;
     }
 
@@ -230,6 +232,22 @@
     }
     .position-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
     .position-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
+
+    /* Photo zoom controls */
+    .zoom-control { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .zoom-label { font-size: 11px; color: #999; flex-shrink: 0; width: 36px; text-align: center; }
+    .zoom-btn {
+      width: 28px; height: 28px; border-radius: 4px;
+      border: 1px solid #e0e0e0; background: #fafafa;
+      font-size: 16px; font-weight: 600; line-height: 1; cursor: pointer;
+      font-family: inherit; color: #141414;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .zoom-btn:hover:not(:disabled) { background: #f0f0f0; border-color: #141414; }
+    .zoom-btn:active:not(:disabled) { transform: scale(0.95); }
+    .zoom-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .zoom-value { font-size: 12px; color: #555; min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
 
     /* Download */
     .download-btn {
@@ -507,6 +525,12 @@
         <input type="range" class="position-slider" id="photo-position-slider" min="0" max="100" value="50" />
         <span>Bottom</span>
       </div>
+      <div class="zoom-control" data-zoom-target="person">
+        <span class="zoom-label">Zoom</span>
+        <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
+        <span class="zoom-value">100%</span>
+        <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
+      </div>
     </div>
 
     <button class="download-btn" id="download-btn">Download PNG</button>
@@ -640,18 +664,43 @@
   });
 
   // ── Photo position slider ──────────────────────────────────
-  // Slider value 0–100 maps to the image's CSS `top` between 0% and 24% of
-  // the canvas. Lower value = photo shifted up (shows more top / head);
-  // higher value = photo shifted down. Default 50 → 12% (roughly matches
-  // the Figma composition).
+  // Photo is anchored to the bottom of the canvas (bottom:0). Slider at 50
+  // (center) leaves it exactly at the bottom (default). Moving the slider
+  // toward "Top" translates the photo upward; moving toward "Bottom"
+  // translates it further down (letting the user push it past the frame).
   const photoEl = document.getElementById('person-photo');
   const slider = document.getElementById('photo-position-slider');
   function applyPhotoPosition() {
-    const pct = parseFloat(slider.value) * 0.24; // 0..24
-    canvas.style.setProperty('--photo-top', pct + '%');
+    // (value - 50) * 0.3 maps 0→-15%, 50→0%, 100→+15% of the photo's
+    // own height (translateY with % refers to the element itself).
+    const offset = (parseFloat(slider.value) - 50) * 0.3;
+    canvas.style.setProperty('--photo-offset', offset + '%');
   }
   slider.addEventListener('input', applyPhotoPosition);
   applyPhotoPosition();
+
+  // ── Photo zoom ─────────────────────────────────────────────
+  const ZOOM_MIN = 0.5, ZOOM_MAX = 2.5, ZOOM_STEP = 0.1;
+  const personZoom = { value: 1 };
+  const zoomControl = document.querySelector('[data-zoom-target="person"]');
+  const zoomValueEl = zoomControl.querySelector('.zoom-value');
+  const zoomDecBtn = zoomControl.querySelector('[data-dir="-1"]');
+  const zoomIncBtn = zoomControl.querySelector('[data-dir="1"]');
+  function applyZoom() {
+    canvas.style.setProperty('--photo-scale', personZoom.value);
+    zoomValueEl.textContent = Math.round(personZoom.value * 100) + '%';
+    zoomDecBtn.disabled = personZoom.value <= ZOOM_MIN + 0.001;
+    zoomIncBtn.disabled = personZoom.value >= ZOOM_MAX - 0.001;
+  }
+  zoomDecBtn.addEventListener('click', () => {
+    personZoom.value = Math.max(ZOOM_MIN, +(personZoom.value - ZOOM_STEP).toFixed(2));
+    applyZoom();
+  });
+  zoomIncBtn.addEventListener('click', () => {
+    personZoom.value = Math.min(ZOOM_MAX, +(personZoom.value + ZOOM_STEP).toFixed(2));
+    applyZoom();
+  });
+  applyZoom();
 
   // ── Partner logo uploads ───────────────────────────────────
   function setupLogoUpload({ zoneId, fileId, imgId, defaultSrc }) {

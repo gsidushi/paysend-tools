@@ -401,6 +401,22 @@
       border: none;
     }
 
+    /* Photo zoom controls */
+    .zoom-control { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+    .zoom-label { font-size: 11px; color: #999; flex-shrink: 0; width: 36px; text-align: center; }
+    .zoom-btn {
+      width: 28px; height: 28px; border-radius: 4px;
+      border: 1px solid #e0e0e0; background: #fafafa;
+      font-size: 16px; font-weight: 600; line-height: 1; cursor: pointer;
+      font-family: inherit; color: #141414;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .zoom-btn:hover:not(:disabled) { background: #f0f0f0; border-color: #141414; }
+    .zoom-btn:active:not(:disabled) { transform: scale(0.95); }
+    .zoom-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .zoom-value { font-size: 12px; color: #555; min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+
     .upload-zone {
       border: 2px dashed #ddd;
       border-radius: 8px;
@@ -844,6 +860,12 @@ at ICE Barcelona!</textarea>
           </div>
           <input type="file" accept="image/*" class="file-input" data-person="1" style="display:none" />
           <button type="button" class="bg-remove-btn" data-person="1" disabled>Remove background</button>
+          <div class="zoom-control" data-zoom-person="P1">
+            <span class="zoom-label">Zoom</span>
+            <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
+            <span class="zoom-value">100%</span>
+            <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
+          </div>
         </div>
         <div class="control-section" id="photo-align-control">
           <label class="control-label">Image Position</label>
@@ -892,6 +914,12 @@ at ICE Barcelona!</textarea>
           </div>
           <input type="file" accept="image/*" class="file-input" data-person="2a" style="display:none" />
           <button type="button" class="bg-remove-btn" data-person="2a" disabled>Remove background</button>
+          <div class="zoom-control" data-zoom-person="P2">
+            <span class="zoom-label">Zoom</span>
+            <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
+            <span class="zoom-value">100%</span>
+            <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
+          </div>
         </div>
       </div>
 
@@ -961,6 +989,12 @@ at ICE Barcelona!</textarea>
           </div>
           <input type="file" accept="image/*" class="file-input" data-person="3c" style="display:none" />
           <button type="button" class="bg-remove-btn" data-person="3c" disabled>Remove background</button>
+          <div class="zoom-control" data-zoom-person="P3">
+            <span class="zoom-label">Zoom</span>
+            <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
+            <span class="zoom-value">100%</span>
+            <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
+          </div>
         </div>
       </div>
 
@@ -1030,6 +1064,38 @@ at ICE Barcelona!</textarea>
     }
     posSlider.addEventListener('input', applyPhotoPos)
     applyPhotoPos() // set initial center position on load
+
+    // ── Photo zoom (per person, syncs across all layouts) ──
+    const ZOOM_MIN = 0.5, ZOOM_MAX = 2.5, ZOOM_STEP = 0.1
+    document.querySelectorAll('[data-zoom-person]').forEach(ctl => {
+      const key = ctl.dataset.zoomPerson
+      const ids = (personCanvasMap[key] && personCanvasMap[key].photos) || []
+      const valueEl = ctl.querySelector('.zoom-value')
+      const decBtn  = ctl.querySelector('[data-dir="-1"]')
+      const incBtn  = ctl.querySelector('[data-dir="1"]')
+      let scale = 1
+      const apply = () => {
+        ids.forEach(id => {
+          const el = document.getElementById(id)
+          if (el) {
+            el.style.transformOrigin = 'center center'
+            el.style.transform = `scale(${scale})`
+          }
+        })
+        valueEl.textContent = Math.round(scale * 100) + '%'
+        decBtn.disabled = scale <= ZOOM_MIN + 0.001
+        incBtn.disabled = scale >= ZOOM_MAX - 0.001
+      }
+      decBtn.addEventListener('click', () => {
+        scale = Math.max(ZOOM_MIN, +(scale - ZOOM_STEP).toFixed(2))
+        apply()
+      })
+      incBtn.addEventListener('click', () => {
+        scale = Math.min(ZOOM_MAX, +(scale + ZOOM_STEP).toFixed(2))
+        apply()
+      })
+      apply()
+    })
 
     // ── Partner logo vertical position slider ─────────────
     const partnerLogo = document.querySelector('.logo-pa360')
