@@ -186,8 +186,10 @@
       font-size: 32px; font-weight: 600; color: var(--text-on-accent, #141414);
       letter-spacing: -0.32px; line-height: 1;
     }
-    /* Date badge + venue-location overlay are always on accent bg */
-    .badge-date span { color: var(--text-on-accent, #141414); }
+    /* Top-right date badge is always on accent bg → follows text-on-accent.
+       Venue overlay date badge has a white inline bg, so it stays black via
+       the base .badge span rule. Venue overlay location badge is on accent. */
+    .post-badges .badge-date span { color: var(--text-on-accent, #141414); }
     #venue-loc-overlay { color: var(--text-on-accent, #141414); }
 
     /* Nameplate at top: nameplate first, then photo */
