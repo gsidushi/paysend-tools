@@ -332,13 +332,24 @@
     .download-btn:active:not(:disabled) { transform: scale(0.98); }
     .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* ── Remove background checkbox ── */
-    .bg-remove-check {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 12px; color: #555; margin-top: 6px;
-      cursor: pointer; user-select: none;
+    /* ── Remove background button ── */
+    .bg-remove-btn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      background: #fff;
+      color: #141414;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s;
     }
-    .bg-remove-check input { cursor: pointer; }
+    .bg-remove-btn:hover:not(:disabled) { background: #f4f4f4; border-color: #141414; }
+    .bg-remove-btn:active:not(:disabled) { transform: scale(0.99); }
+    .bg-remove-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* ── Background-removal overlay ── */
     .bg-overlay {
@@ -694,10 +705,7 @@ at GFTN Japan</textarea>
           </div>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="1" style="display:none" />
-        <label class="bg-remove-check">
-          <input type="checkbox" class="remove-bg-check" data-person="1" />
-          <span>Remove background</span>
-        </label>
+        <button type="button" class="bg-remove-btn" data-person="1" disabled>Remove background</button>
       </div>
       <div class="control-section">
         <label class="control-label">Image Position</label>
@@ -742,10 +750,7 @@ at GFTN Japan</textarea>
           </div>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="2" style="display:none" />
-        <label class="bg-remove-check">
-          <input type="checkbox" class="remove-bg-check" data-person="2" />
-          <span>Remove background</span>
-        </label>
+        <button type="button" class="bg-remove-btn" data-person="2" disabled>Remove background</button>
       </div>
       <div class="control-section">
         <label class="control-label">Image Position</label>
@@ -790,10 +795,7 @@ at GFTN Japan</textarea>
           </div>
         </div>
         <input type="file" accept="image/*" class="file-input" data-person="3" style="display:none" />
-        <label class="bg-remove-check">
-          <input type="checkbox" class="remove-bg-check" data-person="3" />
-          <span>Remove background</span>
-        </label>
+        <button type="button" class="bg-remove-btn" data-person="3" disabled>Remove background</button>
       </div>
       <div class="control-section">
         <label class="control-label">Image Position</label>
@@ -1053,14 +1055,11 @@ at GFTN Japan</textarea>
   }
 
   // ── Photo uploads ────────────────────────────────────────
-  async function resolveSrc(file, zone) {
-    const removeBg = zone?.querySelector('.remove-bg-check')?.checked;
-    if (removeBg) return await removeImageBackground(file);
-    return await fileToOptimizedSrc(file);
-  }
+  // Track the last-uploaded file per person so the Remove background button
+  // can re-process it after upload.
+  const lastPersonFile = {}; // key: data-person (e.g. "1") → File
 
-  async function handleFile(file, zone, photoIds) {
-    const src = await resolveSrc(file, zone);
+  function setPhotoSrc(photoIds, src, zone) {
     photoIds.forEach(id => { const el = document.getElementById(id); if (el) el.src = src; });
     const preview = zone.querySelector('.upload-preview');
     preview.querySelector('img').src = src;
@@ -1068,13 +1067,21 @@ at GFTN Japan</textarea>
     zone.querySelector('.upload-placeholder').style.display = 'none';
   }
 
+  async function handleFile(file, zone, photoIds) {
+    const personKey = zone?.dataset?.person;
+    if (personKey) lastPersonFile[personKey] = file;
+    const src = await fileToOptimizedSrc(file);
+    setPhotoSrc(photoIds, src, zone);
+    // Enable the per-person Remove background button
+    if (personKey) {
+      const btn = document.querySelector(`.bg-remove-btn[data-person="${personKey}"]`);
+      if (btn) btn.disabled = false;
+    }
+  }
+
   function setupUpload(zone, fileInput, photoIds) {
     if (!zone || !fileInput) return;
-    zone.addEventListener('click', e => {
-      // Don't open file picker when clicking the Remove background checkbox/label
-      if (e.target.closest('.bg-remove-check')) return;
-      fileInput.click();
-    });
+    zone.addEventListener('click', () => fileInput.click());
     zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
     zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
     zone.addEventListener('drop', e => {
@@ -1089,8 +1096,37 @@ at GFTN Japan</textarea>
       photoIds.forEach(id => { const el = document.getElementById(id); if (el) el.src = ''; });
       zone.querySelector('.upload-placeholder').style.display = '';
       zone.querySelector('.upload-preview').style.display = 'none';
+      const personKey = zone?.dataset?.person;
+      if (personKey) {
+        delete lastPersonFile[personKey];
+        const btn = document.querySelector(`.bg-remove-btn[data-person="${personKey}"]`);
+        if (btn) btn.disabled = true;
+      }
     });
   }
+
+  // Wire the Remove background buttons
+  document.querySelectorAll('.bg-remove-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const personKey = btn.dataset.person;
+      const file = lastPersonFile[personKey];
+      if (!file) return;
+      const idx = parseInt(personKey) - 1;
+      const photoIds = personMap[idx]?.photoIds;
+      const zone = document.querySelector(`.upload-zone[data-person="${personKey}"]`);
+      if (!photoIds || !zone) return;
+      btn.disabled = true;
+      const prevText = btn.textContent;
+      btn.textContent = 'Removing…';
+      try {
+        const src = await removeImageBackground(file);
+        setPhotoSrc(photoIds, src, zone);
+      } finally {
+        btn.textContent = prevText;
+        btn.disabled = false;
+      }
+    });
+  });
 
   // Venue photo
   const venueZone = document.getElementById('venue-zone');
