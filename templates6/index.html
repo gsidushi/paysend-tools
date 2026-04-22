@@ -45,17 +45,6 @@
     }
 
     /* Layered backgrounds — visibility driven by .variant-X on the canvas */
-    .bg-solid {
-      position: absolute; inset: 0;
-      background: var(--accent, #ff574a);
-      display: none;
-    }
-    .bg-photo {
-      position: absolute; top: 0; right: 0; bottom: 0;
-      width: 34%;
-      background: #333 center/cover no-repeat;
-      display: none;
-    }
     .bg-dark-full {
       position: absolute; inset: 0;
       background: #0a0a0a;
@@ -85,9 +74,6 @@
       display: none;
     }
 
-    /* Variant A — Solid accent bg + photo strip on right */
-    #post-canvas.variant-solid .bg-solid,
-    #post-canvas.variant-solid .bg-photo { display: block; }
     /* Variant B — Full dark + pattern strip at bottom */
     #post-canvas.variant-dark .bg-dark-full,
     #post-canvas.variant-dark .bg-pattern-strip-bottom { display: block; }
@@ -106,22 +92,18 @@
       height: 44px; width: auto;
       filter: brightness(0) invert(1);
     }
-    /* In the solid variant the brand sits at the bottom-left instead. */
-    #post-canvas.variant-solid .top-brand { display: none; }
 
     /* News tag top-right */
     .news-tag {
       position: absolute; top: 41px; right: 41px;
-      background: #fff; padding: 8px 14px;
+      background: #fff; padding: 10px 18px;
       z-index: 3;
     }
     .news-tag.hidden { display: none !important; }
     .news-tag span {
-      font-size: 20px; font-weight: 600; color: #141414;
-      line-height: 1; letter-spacing: -0.1px; white-space: nowrap;
+      font-size: 28px; font-weight: 600; color: #141414;
+      line-height: 1; letter-spacing: -0.14px; white-space: nowrap;
     }
-    /* In solid variant, no news tag (design shows none) */
-    #post-canvas.variant-solid .news-tag { display: none; }
 
     /* Headline */
     .headline {
@@ -132,31 +114,14 @@
     }
     .headline.hidden { display: none !important; }
     .headline p {
-      font-size: 108px; font-weight: 600;
+      font-size: 128px; font-weight: 600;
       color: #fff;
-      line-height: 0.95; letter-spacing: -1.08px;
+      line-height: 0.92; letter-spacing: -1.28px;
       white-space: pre-line; overflow-wrap: break-word;
     }
-    /* Variant-specific headline placement & color */
-    #post-canvas.variant-solid .headline {
-      top: 137px;
-      right: calc(34% + 41px); /* keep clear of photo strip */
-      color: var(--text-on-accent, #141414);
-    }
-    #post-canvas.variant-solid .headline p {
-      color: var(--text-on-accent, #141414);
-    }
-    /* Highlighted inline effect on first 2 lines — applied via .hl span */
-    #post-canvas.variant-solid .headline p .hl {
-      background: #fff;
-      padding: 0 8px;
-      color: var(--accent, #ff574a);
-      box-decoration-break: clone;
-      -webkit-box-decoration-break: clone;
-    }
-    #post-canvas.variant-dark .headline { top: 206px; right: 41px; }
-    #post-canvas.variant-split .headline { top: 760px; right: 41px; }
-    #post-canvas.variant-pattern .headline { top: 63px; right: 41px; }
+    #post-canvas.variant-dark .headline { top: 180px; right: 41px; }
+    #post-canvas.variant-split .headline { top: 720px; right: 41px; }
+    #post-canvas.variant-pattern .headline { top: 150px; right: 41px; }
 
     /* Body copy */
     .body-block {
@@ -167,22 +132,14 @@
     }
     .body-block.hidden { display: none !important; }
     .body-block p {
-      font-size: 22px; font-weight: 400;
+      font-size: 34px; font-weight: 400;
       color: #fff;
-      line-height: 1.3; letter-spacing: -0.1px;
+      line-height: 1.3; letter-spacing: -0.17px;
       white-space: pre-line;
     }
-    #post-canvas.variant-solid .body-block {
-      top: 700px;
-      right: calc(34% + 41px);
-      max-width: none;
-    }
-    #post-canvas.variant-solid .body-block p {
-      color: var(--text-on-accent, #141414);
-    }
-    #post-canvas.variant-dark .body-block { top: 600px; right: 41px; max-width: 740px; }
-    #post-canvas.variant-split .body-block { top: 1190px; right: 41px; max-width: 740px; }
-    #post-canvas.variant-pattern .body-block { top: 540px; right: 41px; max-width: 998px; }
+    #post-canvas.variant-dark .body-block { top: 640px; right: 41px; max-width: 880px; }
+    #post-canvas.variant-split .body-block { top: 1140px; right: 41px; max-width: 880px; }
+    #post-canvas.variant-pattern .body-block { top: 600px; right: 41px; max-width: 998px; }
 
     /* Paysend wordmark at bottom (used by solid + pattern variants) */
     .bottom-brand {
@@ -192,19 +149,13 @@
       z-index: 3;
     }
     .bottom-brand .logo-paysend {
-      height: 48px; width: auto;
+      height: 44px; width: auto;
       filter: brightness(0) invert(1);
-    }
-    #post-canvas.variant-solid .bottom-brand .logo-paysend {
-      filter: var(--brand-filter-on-accent, brightness(0) invert(1));
-    }
-    #post-canvas.variant-solid .bottom-brand {
-      /* show the wordmark in text-on-accent color */
     }
     /* Hide bottom-brand where design doesn't show one */
     #post-canvas.variant-dark .bottom-brand,
     #post-canvas.variant-split .bottom-brand { display: none; }
-    #post-canvas.variant-pattern .bottom-brand .logo-paysend { height: 96px; }
+    #post-canvas.variant-pattern .bottom-brand .logo-paysend { height: 52px; }
 
     /* ── Toggle + controls styles ── */
     .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
@@ -271,10 +222,7 @@
     .remove-photo:hover { text-decoration: underline; }
 
     /* Controls visibility per variant */
-    .only-solid, .only-dark-split, .only-pattern { display: none; }
-    .controls.variant-solid .only-solid { display: flex; }
-    .controls.variant-dark  .only-dark-split { display: flex; }
-    .controls.variant-split .only-dark-split { display: flex; }
+    .only-pattern { display: none; }
     .controls.variant-pattern .only-pattern { display: flex; }
 
     .download-btn {
@@ -314,11 +262,9 @@
 
   <div class="preview-area">
     <div class="preview-wrapper">
-      <div id="post-canvas" class="variant-dark" style="--accent:#ff574a">
+      <div id="post-canvas" class="variant-dark">
 
         <!-- Background layers (each only visible in its variant) -->
-        <div class="bg-solid"></div>
-        <div class="bg-photo" id="bg-photo"></div>
         <div class="bg-dark-full"></div>
         <div class="bg-pattern-strip-bottom"></div>
         <div class="bg-pattern-strip-top"></div>
@@ -356,49 +302,14 @@
     <div class="control-section">
       <label class="control-label">Variant</label>
       <div class="seg-control" id="variant-switch">
-        <button class="seg-btn" data-variant="solid" type="button">Solid + Photo</button>
         <button class="seg-btn active" data-variant="dark" type="button">Dark</button>
         <button class="seg-btn" data-variant="split" type="button">Split</button>
         <button class="seg-btn" data-variant="pattern" type="button">Pattern</button>
       </div>
     </div>
 
-    <!-- Accent color (solid variant) -->
-    <div class="control-section only-solid">
-      <label class="control-label">Accent Color</label>
-      <div class="color-palette" id="color-palette">
-        <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
-        <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
-        <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
-        <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
-        <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
-        <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
-        <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
-        <button class="color-swatch active" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
-        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
-        <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
-      </div>
-    </div>
-
-    <!-- Right-side photo (solid variant) -->
-    <div class="control-section only-solid">
-      <label class="control-label">Side Photo</label>
-      <div class="upload-zone" id="photo-zone">
-        <div class="upload-placeholder">
-          <span class="upload-icon">↑</span>
-          <span>Click or drag</span>
-          <span class="upload-hint">PNG, JPG, WEBP</span>
-        </div>
-        <div class="upload-preview" style="display:none">
-          <img src="" alt="thumb" />
-          <button class="remove-photo">Remove</button>
-        </div>
-      </div>
-      <input type="file" accept="image/*" id="photo-file" style="display:none" />
-    </div>
-
-    <!-- News tag (dark / split only) -->
-    <div class="control-section only-dark-split">
+    <!-- News tag — available across all variants -->
+    <div class="control-section">
       <div class="section-row">
         <label class="control-label">News Tag</label>
         <label class="toggle-switch">
@@ -478,40 +389,17 @@
   bindText('input-tag', 'preview-tag');
   bindText('input-body', 'preview-body');
 
-  // Headline binding: for the "solid" variant, wrap the first two lines
-  // in <span class="hl">…</span> so they render as highlighted inline
-  // text. For other variants, plain textContent is used.
   const headlineInput = document.getElementById('input-headline');
   const headlineEl = document.getElementById('preview-headline');
   function applyHeadline() {
-    const text = headlineInput.value;
-    if (canvas.classList.contains('variant-solid')) {
-      const lines = text.split('\n');
-      // Highlight every line except the last (so the "Canada!" line
-      // lands on accent without a white chip behind it).
-      if (lines.length === 1) {
-        const words = text.split(/\s+/);
-        const last = words.pop();
-        const head = words.join(' ');
-        headlineEl.innerHTML = (head ? `<span class="hl">${escapeHtml(head)}</span> ` : '') + escapeHtml(last);
-      } else {
-        const last = lines.pop();
-        const head = lines.map(l => `<span class="hl">${escapeHtml(l)}</span>`).join('<br>');
-        headlineEl.innerHTML = head + '<br>' + escapeHtml(last);
-      }
-    } else {
-      headlineEl.textContent = text;
-    }
+    headlineEl.textContent = headlineInput.value;
     fitHeadline();
-  }
-  function escapeHtml(s) {
-    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
   }
   headlineInput.addEventListener('input', applyHeadline);
 
   // Headline auto-fit
-  const HL_BASE = 108;
-  const HL_MIN = 48;
+  const HL_BASE = 128;
+  const HL_MIN = 56;
   const CANVAS_PAD_X = 41;
   function longestWordWidth(el) {
     const text = (el.textContent || '').trim();
@@ -566,7 +454,7 @@
   // Variant switch
   const variantSwitch = document.getElementById('variant-switch');
   function applyVariant(v) {
-    ['solid','dark','split','pattern'].forEach(x => {
+    ['dark','split','pattern'].forEach(x => {
       canvas.classList.toggle('variant-' + x, x === v);
       controlsEl.classList.toggle('variant-' + x, x === v);
     });
@@ -579,45 +467,6 @@
     b.addEventListener('click', () => applyVariant(b.dataset.variant));
   });
 
-  // Color palette (only meaningful in solid variant)
-  const DARK_ACCENT = new Set(['#4a57c5', '#ff574a']);
-  document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      canvas.style.setProperty('--accent', sw.dataset.color);
-      canvas.style.setProperty('--text-on-accent', DARK_ACCENT.has(sw.dataset.color) ? '#fff' : '#141414');
-      document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
-      sw.classList.add('active');
-    });
-  });
-
-  // Side photo upload → sets .bg-photo background-image
-  (function setupPhotoUpload() {
-    const zone = document.getElementById('photo-zone');
-    const fileInput = document.getElementById('photo-file');
-    const bgPhotoEl = document.getElementById('bg-photo');
-    const placeholder = zone.querySelector('.upload-placeholder');
-    const preview = zone.querySelector('.upload-preview');
-    const thumb = preview.querySelector('img');
-    const removeBtn = preview.querySelector('.remove-photo');
-    function setSrc(src) {
-      bgPhotoEl.style.backgroundImage = `url('${src}')`;
-      thumb.src = src;
-      placeholder.style.display = 'none';
-      preview.style.display = 'flex';
-    }
-    function clearSrc() {
-      bgPhotoEl.style.backgroundImage = '';
-      fileInput.value = '';
-      placeholder.style.display = 'flex';
-      preview.style.display = 'none';
-    }
-    zone.addEventListener('click', e => { if (e.target === removeBtn || removeBtn.contains(e.target)) return; fileInput.click(); });
-    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
-    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
-    zone.addEventListener('drop', async e => { e.preventDefault(); zone.style.borderColor = ''; const f = e.dataTransfer.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
-    fileInput.addEventListener('change', async () => { const f = fileInput.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
-    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
-  })();
 
   // Preview scaling
   (function scalePreview() {

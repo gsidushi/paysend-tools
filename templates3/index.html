@@ -172,15 +172,21 @@
     #post-canvas.mode-newhire .top-badges,
     #post-canvas.mode-newhire .top-logos .logo-partner,
     #post-canvas.mode-newhire .top-logos .logo-divider { display: none !important; }
-    #post-canvas.mode-newhire .top-logos .logo-paysend {
-      height: 56px; filter: none; /* keep original black */
+    #post-canvas.mode-newhire .top-logos {
+      flex-direction: row-reverse; /* planet first, wordmark second */
+      justify-content: flex-end;
+      right: auto; left: 41px;  /* move to top-left like new-hire design */
     }
-    /* small planet icon beside the wordmark */
+    #post-canvas.mode-newhire .top-logos .logo-paysend {
+      height: 40px; filter: none; /* keep original black */
+    }
+    /* Planet icon paired with wordmark — appears before the wordmark */
     #post-canvas.mode-newhire .top-logos::after {
       content: '';
-      width: 44px; height: 44px;
+      width: 48px; height: 48px;
       background: url('/assets/logo-planet.svg') center / contain no-repeat;
       flex-shrink: 0;
+      order: -1;
     }
     /* Photo is not bg-removed in new-hire mode — keep object-fit
        cover so the raw portrait fills the frame without distortion. */
@@ -779,6 +785,8 @@
   // ── Mode switch: Event vs New Hire ─────────────────────────
   const controlsEl = document.querySelector('.controls');
   const modeSwitch = document.getElementById('mode-switch');
+  const EVENT_DEFAULT_PHOTO = '/assets/person_placeholder_alpha.png';
+  const NEWHIRE_DEFAULT_PHOTO = '/assets/placeholder-person1.png';
   function applyMode(mode) {
     canvas.classList.remove('mode-newhire');
     controlsEl.classList.remove('mode-newhire');
@@ -789,6 +797,16 @@
     modeSwitch.querySelectorAll('.seg-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.mode === mode);
     });
+    // Swap default placeholder when the user hasn't uploaded a custom photo.
+    const photoEl = document.getElementById('person-photo');
+    if (photoEl) {
+      const src = photoEl.getAttribute('src') || '';
+      const isDefault = src.endsWith('person_placeholder_alpha.png')
+                     || src.endsWith('placeholder-person1.png');
+      if (isDefault) {
+        photoEl.src = (mode === 'newhire') ? NEWHIRE_DEFAULT_PHOTO : EVENT_DEFAULT_PHOTO;
+      }
+    }
     // Re-fit the name font after layout change (sizing rules differ)
     if (typeof fitName === 'function') fitName();
   }
@@ -906,15 +924,20 @@
       preview.style.display = 'flex';
     }
     function clearPhoto() {
-      photoEl.src = '/assets/person_placeholder_alpha.png';
+      const isNewHire = canvas.classList.contains('mode-newhire');
+      photoEl.src = isNewHire ? '/assets/placeholder-person1.png' : '/assets/person_placeholder_alpha.png';
       fileInput.value = '';
       placeholder.style.display = 'flex';
       preview.style.display = 'none';
     }
     async function ingest(file) {
-      // Always try to strip the background. removeImageBackground handles
-      // its own overlay and falls back to the optimized original on error.
-      const src = await removeImageBackground(file);
+      // In new-hire mode we keep the original photo with its background.
+      // In event mode we strip the background so the planet silhouette
+      // can show through behind the subject.
+      const isNewHire = canvas.classList.contains('mode-newhire');
+      const src = isNewHire
+        ? await fileToOptimizedSrc(file)
+        : await removeImageBackground(file);
       setPhoto(src);
     }
 

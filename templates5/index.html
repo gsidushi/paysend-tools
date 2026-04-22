@@ -47,15 +47,6 @@
       position: absolute; inset: 0;
       background: #0a0a0a url('/assets/pattern-1.png') center center / cover no-repeat;
     }
-    #post-canvas.mode-split .bg-pattern { bottom: var(--split-bottom, 220px); }
-
-    .bg-accent {
-      position: absolute; left: 0; right: 0; bottom: 0;
-      height: var(--split-bottom, 220px);
-      background: var(--accent, #08ffce);
-      display: none;
-    }
-    #post-canvas.mode-split .bg-accent { display: block; }
 
     /* Top-left logos */
     .top-logos {
@@ -83,7 +74,7 @@
     }
     .top-badges.hidden { display: none !important; }
     .badge-pill {
-      background: #fff; padding: 6px 12px;
+      background: #fff; padding: 8px 14px;
       display: inline-flex; align-items: center; gap: 8px;
       border-radius: 4px;
     }
@@ -92,34 +83,41 @@
     }
     .badge-pill.accent span { color: var(--text-on-accent, #141414); }
     .badge-pill span {
-      font-size: 18px; font-weight: 400; color: #141414;
-      line-height: 1; letter-spacing: -0.1px; white-space: nowrap;
+      font-size: 22px; font-weight: 400; color: #141414;
+      line-height: 1; letter-spacing: -0.11px; white-space: nowrap;
     }
 
     /* Bottom block */
     .bottom-block {
       position: absolute;
-      left: 30px; right: 30px; bottom: 30px;
-      display: flex; flex-direction: column; gap: 8px;
+      left: 30px; bottom: 30px;
+      max-width: calc(100% - 60px);
+      display: flex; flex-direction: column; gap: 10px;
       align-items: flex-start;
       z-index: 3;
     }
+    /* In split mode the accent box hugs the subheadline + headline stack. */
+    #post-canvas.mode-split .bottom-block {
+      background: var(--accent, #08ffce);
+      padding: 18px 22px;
+      gap: 12px;
+    }
     .subheadline {
-      background: #fff; padding: 6px 10px;
+      background: #fff; padding: 8px 14px;
       align-self: flex-start;
-      max-width: 1140px;
+      max-width: 100%;
     }
     .subheadline.hidden { display: none !important; }
     .subheadline p {
-      font-size: 18px; font-weight: 600; color: #141414;
-      line-height: 1; letter-spacing: -0.18px; white-space: nowrap;
+      font-size: 24px; font-weight: 600; color: #141414;
+      line-height: 1; letter-spacing: -0.24px; white-space: nowrap;
     }
-    .headline { max-width: 1140px; }
+    .headline { max-width: 100%; }
     .headline.hidden { display: none !important; }
     .headline p {
-      font-size: 58px; font-weight: 600;
+      font-size: 76px; font-weight: 600;
       color: #fff;
-      line-height: 0.95; letter-spacing: -0.58px;
+      line-height: 0.95; letter-spacing: -0.76px;
       white-space: pre-line; overflow-wrap: break-word;
     }
     #post-canvas.mode-split .headline p { color: var(--text-on-accent, #141414); }
@@ -226,7 +224,6 @@
       <div id="post-canvas" class="mode-pattern" style="--accent:#08ffce">
 
         <div class="bg-pattern"></div>
-        <div class="bg-accent"></div>
 
         <div class="top-logos">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
@@ -395,8 +392,8 @@
   bindText('input-subheadline', 'preview-subheadline');
   bindText('input-headline', 'preview-headline');
 
-  const HL_BASE = 58;
-  const HL_MIN = 28;
+  const HL_BASE = 76;
+  const HL_MIN = 34;
   const CANVAS_PAD_X = 30;
   function longestWordWidth(el) {
     const text = (el.textContent || '').trim();
@@ -421,7 +418,9 @@
     const el = document.getElementById('preview-headline');
     if (!el) return;
     const cvs = document.getElementById('post-canvas');
-    const available = cvs.clientWidth - 2 * CANVAS_PAD_X;
+    // In split mode, subtract the accent-box horizontal padding too.
+    const extra = cvs.classList.contains('mode-split') ? 44 : 0;
+    const available = cvs.clientWidth - 2 * CANVAS_PAD_X - extra;
     let size = HL_BASE;
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {
@@ -480,6 +479,7 @@
     canvas.classList.remove('mode-pattern', 'mode-split');
     canvas.classList.add('mode-' + mode);
     modeSwitch.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    fitHeadline();
   }
   modeSwitch.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => applyMode(b.dataset.mode)));
   applyMode('pattern');
