@@ -50,18 +50,6 @@
       bottom: 0;
       background: #0a0a0a url('/assets/pattern-1.png') center center / cover no-repeat;
     }
-    /* In "split" mode the pattern only covers the top part; accent fills the rest. */
-    #post-canvas.mode-split .bg-pattern { bottom: var(--split-bottom, 560px); }
-
-    /* Accent strip — only visible in split mode */
-    .bg-accent {
-      position: absolute;
-      left: 0; right: 0; bottom: 0;
-      height: var(--split-bottom, 560px);
-      background: var(--accent, #08ffce);
-      display: none;
-    }
-    #post-canvas.mode-split .bg-accent { display: block; }
 
     /* Top-left: Paysend wordmark + divider + partner logo */
     .top-logos {
@@ -106,10 +94,15 @@
     /* Bottom block: subheadline + headline */
     .bottom-block {
       position: absolute;
-      left: 41px; right: 41px; bottom: 41px;
-      display: flex; flex-direction: column; gap: 10px;
+      left: 41px; bottom: 41px;
+      max-width: calc(100% - 82px);
+      display: flex; flex-direction: column; gap: 12px;
       align-items: flex-start;
       z-index: 3;
+    }
+    /* In split mode accent wraps tightly around tag + headline. */
+    #post-canvas.mode-split .bottom-block {
+      background: var(--accent, #08ffce);
     }
     .subheadline {
       background: #fff;
@@ -238,7 +231,6 @@
       <div id="post-canvas" class="mode-pattern" style="--accent:#08ffce">
 
         <div class="bg-pattern"></div>
-        <div class="bg-accent"></div>
 
         <div class="top-logos">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />

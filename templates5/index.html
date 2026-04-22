@@ -99,8 +99,6 @@
     /* In split mode the accent box hugs the subheadline + headline stack. */
     #post-canvas.mode-split .bottom-block {
       background: var(--accent, #08ffce);
-      padding: 18px 22px;
-      gap: 12px;
     }
     .subheadline {
       background: #fff; padding: 8px 14px;
@@ -418,9 +416,7 @@
     const el = document.getElementById('preview-headline');
     if (!el) return;
     const cvs = document.getElementById('post-canvas');
-    // In split mode, subtract the accent-box horizontal padding too.
-    const extra = cvs.classList.contains('mode-split') ? 44 : 0;
-    const available = cvs.clientWidth - 2 * CANVAS_PAD_X - extra;
+    const available = cvs.clientWidth - 2 * CANVAS_PAD_X;
     let size = HL_BASE;
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {

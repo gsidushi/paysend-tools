@@ -52,24 +52,32 @@
     }
     .bg-pattern-strip-bottom {
       position: absolute; left: 0; right: 0; bottom: 0;
-      height: 45%;
+      height: 220px;
       background: #0a0a0a url('/assets/pattern-1.png') center / cover no-repeat;
       display: none;
     }
     .bg-pattern-strip-top {
       position: absolute; left: 0; right: 0; top: 0;
-      height: 50%;
+      height: 55%;
       background: #0a0a0a url('/assets/pattern-1.png') center / cover no-repeat;
       display: none;
     }
     .bg-dark-bottom {
       position: absolute; left: 0; right: 0; bottom: 0;
+      height: 45%;
+      background: #0a0a0a;
+      display: none;
+    }
+    /* Pattern variant: dark top, pattern bottom */
+    .bg-dark-top {
+      position: absolute; left: 0; right: 0; top: 0;
       height: 50%;
       background: #0a0a0a;
       display: none;
     }
-    .bg-pattern-full {
-      position: absolute; inset: 0;
+    .bg-pattern-strip-pattern {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: 50%;
       background: #0a0a0a url('/assets/pattern-1.png') center / cover no-repeat;
       display: none;
     }
@@ -80,16 +88,21 @@
     /* Variant C — Pattern top, dark bottom */
     #post-canvas.variant-split .bg-pattern-strip-top,
     #post-canvas.variant-split .bg-dark-bottom { display: block; }
-    /* Variant D — Full pattern */
-    #post-canvas.variant-pattern .bg-pattern-full { display: block; }
+    /* Variant D — Dark top (with text), pattern bottom (with big wordmark) */
+    #post-canvas.variant-pattern .bg-dark-top,
+    #post-canvas.variant-pattern .bg-pattern-strip-pattern { display: block; }
 
-    /* Top-left Paysend wordmark (white) */
+    /* Top-left Paysend wordmark + planet (white) */
     .top-brand {
       position: absolute; top: 41px; left: 41px;
-      z-index: 3; display: flex; align-items: center;
+      z-index: 3; display: flex; align-items: center; gap: 10px;
     }
     .top-brand .logo-paysend {
-      height: 44px; width: auto;
+      height: 34px; width: auto;
+      filter: brightness(0) invert(1);
+    }
+    .top-brand .logo-planet {
+      width: 34px; height: 34px;
       filter: brightness(0) invert(1);
     }
 
@@ -114,14 +127,14 @@
     }
     .headline.hidden { display: none !important; }
     .headline p {
-      font-size: 128px; font-weight: 600;
+      font-size: 104px; font-weight: 600;
       color: #fff;
-      line-height: 0.92; letter-spacing: -1.28px;
+      line-height: 0.95; letter-spacing: -1.04px;
       white-space: pre-line; overflow-wrap: break-word;
     }
-    #post-canvas.variant-dark .headline { top: 180px; right: 41px; }
-    #post-canvas.variant-split .headline { top: 720px; right: 41px; }
-    #post-canvas.variant-pattern .headline { top: 150px; right: 41px; }
+    #post-canvas.variant-dark    .headline { top: 140px; right: 41px; }
+    #post-canvas.variant-split   .headline { top: 780px; right: 41px; }
+    #post-canvas.variant-pattern .headline { top: 140px; right: 41px; }
 
     /* Body copy */
     .body-block {
@@ -132,14 +145,16 @@
     }
     .body-block.hidden { display: none !important; }
     .body-block p {
-      font-size: 34px; font-weight: 400;
+      font-size: 26px; font-weight: 400;
       color: #fff;
-      line-height: 1.3; letter-spacing: -0.17px;
+      line-height: 1.35; letter-spacing: -0.13px;
       white-space: pre-line;
     }
-    #post-canvas.variant-dark .body-block { top: 640px; right: 41px; max-width: 880px; }
-    #post-canvas.variant-split .body-block { top: 1140px; right: 41px; max-width: 880px; }
-    #post-canvas.variant-pattern .body-block { top: 600px; right: 41px; max-width: 998px; }
+    /* Body copy must never overlap the pattern strip. Constrain so bottom
+       edge stays inside each variant's dark zone. */
+    #post-canvas.variant-dark    .body-block { top: 540px; right: 41px; max-width: 880px; max-height: calc(1350px - 540px - 220px - 40px); overflow: hidden; }
+    #post-canvas.variant-split   .body-block { top: 1100px; right: 41px; max-width: 880px; max-height: calc(1350px - 1100px - 41px); overflow: hidden; }
+    #post-canvas.variant-pattern .body-block { top: 520px; right: 41px; max-width: 880px; max-height: calc(50% - 520px - 10px); overflow: hidden; }
 
     /* Paysend wordmark at bottom (used by solid + pattern variants) */
     .bottom-brand {
@@ -155,7 +170,18 @@
     /* Hide bottom-brand where design doesn't show one */
     #post-canvas.variant-dark .bottom-brand,
     #post-canvas.variant-split .bottom-brand { display: none; }
-    #post-canvas.variant-pattern .bottom-brand .logo-paysend { height: 52px; }
+    /* Pattern variant: huge wordmark overlays the pattern strip */
+    #post-canvas.variant-pattern .bottom-brand {
+      left: 41px; bottom: 60px; gap: 16px;
+    }
+    #post-canvas.variant-pattern .bottom-brand .logo-paysend { height: 140px; }
+    #post-canvas.variant-pattern .bottom-brand::after {
+      content: '';
+      width: 120px; height: 120px;
+      background: url('/assets/logo-planet.svg') center / contain no-repeat;
+      filter: brightness(0) invert(1);
+      flex-shrink: 0;
+    }
 
     /* ── Toggle + controls styles ── */
     .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
@@ -269,10 +295,12 @@
         <div class="bg-pattern-strip-bottom"></div>
         <div class="bg-pattern-strip-top"></div>
         <div class="bg-dark-bottom"></div>
-        <div class="bg-pattern-full"></div>
+        <div class="bg-dark-top"></div>
+        <div class="bg-pattern-strip-pattern"></div>
 
         <div class="top-brand">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+          <img class="logo-planet" src="/assets/logo-planet.svg" alt="" />
         </div>
 
         <div class="news-tag" id="news-tag">
@@ -311,7 +339,7 @@
     <!-- News tag — available across all variants -->
     <div class="control-section">
       <div class="section-row">
-        <label class="control-label">News Tag</label>
+        <label class="control-label">Tag</label>
         <label class="toggle-switch">
           <input type="checkbox" id="tag-toggle" checked />
           <span class="toggle-slider"></span>
@@ -398,8 +426,8 @@
   headlineInput.addEventListener('input', applyHeadline);
 
   // Headline auto-fit
-  const HL_BASE = 128;
-  const HL_MIN = 56;
+  const HL_BASE = 104;
+  const HL_MIN = 48;
   const CANVAS_PAD_X = 41;
   function longestWordWidth(el) {
     const text = (el.textContent || '').trim();
