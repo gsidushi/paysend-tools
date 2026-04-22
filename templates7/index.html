@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Builder — Milestone (Light)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
+      font-weight: 600; font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
+
+    /* ── App header ── */
+    .header {
+      padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8;
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .header-logo { width: 28px; height: 28px; flex-shrink: 0; display: block; }
+    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p  { font-size: 13px; color: #999; }
+
+    /* ── Workspace ── */
+    .workspace {
+      flex: 1; display: grid; grid-template-columns: 1fr 25vw;
+      min-height: 0; overflow: hidden;
+    }
+
+    .preview-area {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 40px 32px; gap: 12px; overflow: hidden;
+    }
+    .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
+    .preview-hint { font-size: 12px; color: #aaa; }
+
+    /* ── Canvas (1080 × 1350) ── */
+    #post-canvas {
+      width: 1080px; height: 1350px;
+      transform-origin: top left;
+      font-family: 'GT Standard', sans-serif;
+      background: #fff;
+      color: #141414;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top-left small tag badge */
+    .top-tag {
+      position: absolute; top: 41px; left: 41px;
+      background: var(--accent, #ff574a); padding: 10px 14px;
+      align-self: flex-start; z-index: 3;
+    }
+    .top-tag.hidden { display: none !important; }
+    .top-tag p {
+      font-size: 28px; font-weight: 600; color: var(--text-on-accent, #fff);
+      line-height: 1; letter-spacing: -0.28px; white-space: nowrap;
+    }
+
+    /* Top-right Paysend logo */
+    .top-logos {
+      position: absolute; top: 41px; right: 41px;
+      display: flex; align-items: center; gap: 20px; z-index: 3;
+    }
+    .top-logos .logo-paysend {
+      height: 40px; width: auto; display: block;
+      flex-shrink: 0; object-fit: contain;
+    }
+
+    /* Main headline — large, bold, aligned to top-left under tag */
+    .headline-block {
+      position: absolute;
+      top: 160px; left: 41px; right: 41px;
+      z-index: 2;
+    }
+    .headline-block.hidden { display: none !important; }
+    .headline-block p {
+      font-size: 110px; font-weight: 600;
+      color: #141414;
+      line-height: 0.92; letter-spacing: -1.1px;
+      white-space: pre-line; overflow-wrap: break-word;
+    }
+
+    /* Body copy near bottom-left */
+    .body-block {
+      position: absolute;
+      left: 41px; right: 41px; bottom: 180px;
+      z-index: 2; max-width: 720px;
+    }
+    .body-block.hidden { display: none !important; }
+    .body-block p {
+      font-size: 24px; font-weight: 400;
+      color: #141414;
+      line-height: 1.35; letter-spacing: -0.1px;
+      white-space: pre-line;
+    }
+
+    /* Bottom-left Paysend wordmark + planet */
+    .bottom-brand {
+      position: absolute;
+      left: 41px; bottom: 41px;
+      display: flex; align-items: center; gap: 12px;
+      z-index: 3;
+    }
+    .bottom-brand .bm-wordmark {
+      height: 48px; width: auto;
+    }
+    .bottom-brand .bm-planet {
+      width: 48px; height: 48px;
+      color: #141414;
+    }
+    .bottom-brand .bm-planet svg { width: 100%; height: 100%; display: block; fill: currentColor; }
+
+    /* ── Toggle switch ── */
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #141414; }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
+    .section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .section-row .control-label { margin-bottom: 0; }
+    .section-body { display: flex; flex-direction: column; gap: 10px; }
+    .control-section.section-off .section-body { display: none; }
+    .sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 4px; display: block; }
+
+    /* ── Controls ── */
+    .controls {
+      background: #fff; border-left: 1px solid #e8e8e8;
+      padding: 24px 20px; display: flex; flex-direction: column; gap: 16px;
+      overflow-y: auto;
+    }
+    .control-section { display: flex; flex-direction: column; gap: 6px; }
+    .control-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: #888; }
+    .control-input, .control-textarea {
+      width: 100%; padding: 9px 11px;
+      border: 1px solid #e0e0e0; border-radius: 6px;
+      font-size: 14px; font-family: inherit; color: #1a1a1a;
+      background: #fafafa; transition: border-color 0.15s; resize: none;
+    }
+    .control-input:focus, .control-textarea:focus { outline: none; border-color: #17bff2; background: #fff; }
+    .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
+
+    /* Color palette */
+    .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .color-swatch {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s; flex-shrink: 0;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: #141414; transform: scale(1.1); box-shadow: 0 0 0 1px #fff inset; }
+
+    /* Download */
+    .download-btn {
+      margin-top: auto; padding: 13px 20px;
+      background: #141414; color: #fff; border: none;
+      border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .download-btn:hover:not(:disabled) { background: #333; }
+    .download-btn:active:not(:disabled) { transform: scale(0.98); }
+    .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    @media (max-width: 1199px) { .workspace { grid-template-columns: 1fr 33vw; } }
+    @media (max-width: 799px)  { .workspace { grid-template-columns: 1fr 40vw; } }
+    @media (max-width: 499px) {
+      html, body { height: auto; overflow: auto; }
+      .workspace { display: flex; flex-direction: column; overflow: visible; height: auto; }
+      .preview-area { padding: 0; overflow: visible; justify-content: flex-start; align-items: stretch; flex-shrink: 0; height: auto; }
+      .preview-wrapper { width: 100vw !important; border-radius: 0; box-shadow: none; flex-shrink: 0; }
+      .preview-hint { display: none; }
+      .controls { border-left: none; border-top: 1px solid #e8e8e8; height: auto; overflow-y: visible; flex: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="/" title="Back to layouts">
+      <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </a>
+    <h1>Post Builder</h1>
+    <p>1080 × 1350 Milestone — Light</p>
+  </header>
+
+  <main class="workspace">
+
+  <div class="preview-area">
+    <div class="preview-wrapper">
+      <div id="post-canvas" style="--accent:#ff574a;--text-on-accent:#fff">
+
+        <div class="top-tag" id="top-tag">
+          <p id="preview-tag">Newsroom</p>
+        </div>
+
+        <div class="top-logos">
+          <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+        </div>
+
+        <div class="headline-block" id="headline-block">
+          <p id="preview-headline">Big Milestone for Paysend Canada!</p>
+        </div>
+
+        <div class="body-block" id="body-block">
+          <p id="preview-body">Now officially registered as a Paysend Service Provider (PSP) under Canada's new regulations. Proud to be one of the first in the country of 11.</p>
+        </div>
+
+        <div class="bottom-brand">
+          <img class="bm-wordmark" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+          <div class="bm-planet">
+            <svg viewBox="0 0 361 329" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M179.955 0C252.312 0 313.868 45.6934 336.681 109.47H350.607C356.731 126.59 360.064 145.013 360.064 164.205C360.064 183.397 356.731 201.82 350.607 218.94H336.681C313.868 282.717 252.312 328.41 179.955 328.41C107.598 328.41 46.0424 282.717 23.2288 218.94H9.45723C3.33319 201.82 0 183.397 0 164.205C0 145.013 3.33319 126.59 9.45723 109.47H23.2288C46.0424 45.6934 107.598 0 179.955 0ZM245.775 48.4731C255.357 65.5403 262.833 86.3133 267.458 109.47H281.384C284.804 126.59 286.667 145.013 286.667 164.205C286.667 183.398 284.804 201.82 281.384 218.94H267.458C262.833 242.096 255.357 262.869 245.775 279.936C270.602 266.12 290.535 244.731 302.366 218.94H316.292C323.948 202.252 328.212 183.721 328.212 164.205C328.212 144.69 323.948 126.159 316.292 109.47H302.366C290.535 83.6787 270.603 62.2887 245.775 48.4731ZM43.7716 109.47C36.1162 126.159 31.8517 144.69 31.8517 164.205C31.8517 183.721 36.1161 202.252 43.7716 218.94H57.5432C69.3742 244.731 89.3069 266.12 114.134 279.936C104.552 262.869 97.0757 242.097 92.4504 218.94H78.6785C75.2589 201.82 73.3975 183.397 73.3975 164.205C73.3975 145.013 75.2591 126.59 78.6785 109.47H92.4504C97.0756 86.3132 104.552 65.5403 114.134 48.4731C89.3066 62.2887 69.3741 83.6788 57.5432 109.47H43.7716ZM111.234 109.47C107.44 126.018 105.25 144.482 105.25 164.205C105.25 183.928 107.44 202.393 111.234 218.94H125.005C129.099 236.792 135.059 252.413 142.156 264.973C156.417 290.21 171.072 296.938 179.955 296.938C188.838 296.938 203.493 290.21 217.753 264.973C224.851 252.413 230.811 236.792 234.905 218.94H248.831C252.625 202.393 254.815 183.928 254.815 164.205C254.815 144.482 252.625 126.018 248.831 109.47H234.905C230.811 91.6183 224.851 75.9977 217.753 63.4371C203.493 38.2001 188.838 31.4727 179.955 31.4727C171.072 31.4727 156.417 38.2001 142.156 63.4371C135.059 75.9977 129.099 91.6183 125.005 109.47H111.234Z"/>
+            </svg>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <p class="preview-hint">Preview scaled — exports 1080 × 1350</p>
+  </div>
+
+  <div class="controls">
+
+    <!-- Tag accent color -->
+    <div class="control-section">
+      <label class="control-label">Tag Color</label>
+      <div class="color-palette" id="color-palette">
+        <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+        <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
+        <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
+        <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
+        <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
+        <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
+        <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
+        <button class="color-swatch active" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+        <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Top tag -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Top Tag</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="tag-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <input class="control-input" id="input-tag" type="text" value="Newsroom" />
+      </div>
+    </div>
+
+    <!-- Headline -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Headline</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="headline-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <textarea class="control-textarea" id="input-headline" rows="3">Big Milestone for Paysend Canada!</textarea>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Body Copy</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="body-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <textarea class="control-textarea" id="input-body" rows="5">Now officially registered as a Paysend Service Provider (PSP) under Canada's new regulations. Proud to be one of the first in the country of 11.</textarea>
+      </div>
+    </div>
+
+    <button class="download-btn" id="download-btn">Download PNG</button>
+
+  </div>
+  </main>
+
+  <script>
+  const canvas = document.getElementById('post-canvas');
+
+  function bindText(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    if (!input || !preview) return;
+    input.addEventListener('input', () => { preview.textContent = input.value; });
+  }
+  bindText('input-tag', 'preview-tag');
+  bindText('input-headline', 'preview-headline');
+  bindText('input-body', 'preview-body');
+
+  // Headline auto-fit (longest word must fit)
+  const HL_BASE = 110;
+  const HL_MIN = 48;
+  const CANVAS_PAD_X = 41;
+  function longestWordWidth(el) {
+    const text = (el.textContent || '').trim();
+    if (!text) return 0;
+    const words = text.split(/\s+/);
+    const cs = getComputedStyle(el);
+    const probe = document.createElement('span');
+    probe.style.cssText = 'position:absolute;left:-99999px;top:-99999px;visibility:hidden;white-space:nowrap;';
+    probe.style.fontFamily = cs.fontFamily;
+    probe.style.fontSize = cs.fontSize;
+    probe.style.fontWeight = cs.fontWeight;
+    probe.style.fontStyle = cs.fontStyle;
+    probe.style.letterSpacing = cs.letterSpacing;
+    probe.style.textTransform = cs.textTransform;
+    document.body.appendChild(probe);
+    let max = 0;
+    for (const w of words) {
+      probe.textContent = w;
+      if (probe.offsetWidth > max) max = probe.offsetWidth;
+    }
+    document.body.removeChild(probe);
+    return max;
+  }
+  function fitHeadline() {
+    const el = document.getElementById('preview-headline');
+    if (!el) return;
+    const cvs = document.getElementById('post-canvas');
+    const available = cvs.clientWidth - 2 * CANVAS_PAD_X;
+    let size = HL_BASE;
+    el.style.fontSize = size + 'px';
+    for (let i = 0; i < 50; i++) {
+      if (size <= HL_MIN) break;
+      if (longestWordWidth(el) <= available + 0.5) break;
+      size -= 2;
+      el.style.fontSize = size + 'px';
+    }
+  }
+  document.getElementById('input-headline').addEventListener('input', fitHeadline);
+
+  // Toggles
+  function syncSectionOff(cb) {
+    const section = cb.closest('.control-section');
+    if (!section) return;
+    section.classList.toggle('section-off', !cb.checked);
+  }
+  function bindToggle(toggleId, targetEl) {
+    const cb = document.getElementById(toggleId);
+    const apply = () => {
+      targetEl.classList.toggle('hidden', !cb.checked);
+      syncSectionOff(cb);
+    };
+    cb.addEventListener('change', apply);
+    apply();
+  }
+  bindToggle('tag-toggle', document.getElementById('top-tag'));
+  bindToggle('headline-toggle', document.getElementById('headline-block'));
+  bindToggle('body-toggle', document.getElementById('body-block'));
+
+  // Tag color palette
+  const DARK_ACCENT = new Set(['#4a57c5', '#ff574a']);
+  document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      canvas.style.setProperty('--accent', sw.dataset.color);
+      canvas.style.setProperty('--text-on-accent', DARK_ACCENT.has(sw.dataset.color) ? '#fff' : '#141414');
+      document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+    });
+  });
+
+  // Preview scaling
+  (function scalePreview() {
+    const CANVAS_W = 1080, CANVAS_H = 1350;
+    const PREVIEW_PAD = 64;
+    const HEADER_H = 60;
+    const wrapper = document.querySelector('.preview-wrapper');
+    const cvs = document.getElementById('post-canvas');
+
+    function update() {
+      const w = window.innerWidth, h = window.innerHeight;
+      let sidebarFrac;
+      if (w < 500)       sidebarFrac = 0;
+      else if (w < 800)  sidebarFrac = 0.40;
+      else if (w < 1200) sidebarFrac = 0.33;
+      else               sidebarFrac = 0.25;
+
+      let availW, availH;
+      if (w < 500) { availW = w; availH = Infinity; }
+      else {
+        availW = w * (1 - sidebarFrac) - PREVIEW_PAD;
+        availH = h - HEADER_H - 80;
+      }
+      const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
+      wrapper.style.width  = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
+      cvs.style.transform  = `scale(${scale})`;
+    }
+    update();
+    window.addEventListener('resize', update);
+  })();
+
+  // Download
+  document.getElementById('download-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('download-btn');
+    btn.textContent = 'Exporting…'; btn.disabled = true;
+    try {
+      const result = await html2canvas(canvas, {
+        scale: 1, width: 1080, height: 1350,
+        useCORS: true, allowTaint: true, backgroundColor: null,
+        logging: false
+      });
+      const link = document.createElement('a');
+      link.download = 'paysend-milestone-light.png';
+      link.href = result.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error('Download failed:', err);
+    } finally {
+      btn.textContent = 'Download PNG'; btn.disabled = false;
+    }
+  });
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => fitHeadline());
+  } else {
+    fitHeadline();
+  }
+  </script>
+</body>
+</html>

@@ -14,6 +14,7 @@
       justify-content: center;
       gap: 16px;
       min-height: 100vh;
+      padding: 40px 24px;
       background: #fff;
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
@@ -28,12 +29,15 @@
     }
 
     .btn-group {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 12px;
+      max-width: 960px;
+      width: 100%;
     }
 
     a.layout-btn {
-      padding: 16px 32px;
+      padding: 16px 28px;
       background: #141414;
       color: #fff;
       text-decoration: none;
@@ -71,15 +75,31 @@
   <div class="btn-group">
     <a class="layout-btn" href="/templates">
       Layout Option 1
-      <span class="sub">1080 × 1350 Portrait</span>
+      <span class="sub">1080 × 1350 Event Portrait</span>
     </a>
     <a class="layout-btn" href="/templates2">
       Layout Option 2
-      <span class="sub">1200 × 627 Landscape</span>
+      <span class="sub">1200 × 627 Event Landscape</span>
     </a>
     <a class="layout-btn" href="/templates3">
       Layout Option 3
       <span class="sub">1080 × 1440 Event Portrait</span>
+    </a>
+    <a class="layout-btn" href="/templates4">
+      Layout Option 4
+      <span class="sub">1080 × 1350 New Hire</span>
+    </a>
+    <a class="layout-btn" href="/templates5">
+      Layout Option 5
+      <span class="sub">1080 × 1350 Milestone — Solid</span>
+    </a>
+    <a class="layout-btn" href="/templates6">
+      Layout Option 6
+      <span class="sub">1080 × 1350 Milestone — Pattern</span>
+    </a>
+    <a class="layout-btn" href="/templates7">
+      Layout Option 7
+      <span class="sub">1080 × 1350 Milestone — Light</span>
     </a>
   </div>
 </body>
