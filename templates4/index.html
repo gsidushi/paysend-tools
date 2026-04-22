@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Post Builder — New Hire</title>
+  <title>Post Builder — Event Portrait (Pattern)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @font-face {
@@ -20,7 +20,6 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
 
-    /* ── App header ── */
     .header {
       padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8;
       display: flex; align-items: center; gap: 12px; flex-shrink: 0;
@@ -29,96 +28,110 @@
     .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
     .header p  { font-size: 13px; color: #999; }
 
-    /* ── Workspace ── */
-    .workspace {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 25vw;
-      min-height: 0;
-      overflow: hidden;
-    }
-
-    /* ── Preview area ── */
-    .preview-area {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 40px 32px; gap: 12px; overflow: hidden;
-    }
-    .preview-wrapper {
-      overflow: hidden;
-      box-shadow: 0 8px 48px rgba(0,0,0,0.22);
-      border-radius: 3px;
-      flex-shrink: 0;
-    }
+    .workspace { flex: 1; display: grid; grid-template-columns: 1fr 25vw; min-height: 0; overflow: hidden; }
+    .preview-area { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 32px; gap: 12px; overflow: hidden; }
+    .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
     .preview-hint { font-size: 12px; color: #aaa; }
 
-    /* ── Canvas (1080 × 1350 portrait) ── */
+    /* ── Canvas (1080 × 1350) ── */
     #post-canvas {
       width: 1080px; height: 1350px;
       transform-origin: top left;
       font-family: 'GT Standard', sans-serif;
-      background: var(--accent, #b75eff);
       position: relative;
       overflow: hidden;
+      background: #0a0a0a;
     }
 
-    /* Top-right logos */
+    /* Pattern background */
+    .bg-pattern {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      bottom: 0;
+      background: #0a0a0a url('/assets/pattern-1.png') center center / cover no-repeat;
+    }
+    /* In "split" mode the pattern only covers the top part; accent fills the rest. */
+    #post-canvas.mode-split .bg-pattern { bottom: var(--split-bottom, 560px); }
+
+    /* Accent strip — only visible in split mode */
+    .bg-accent {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: var(--split-bottom, 560px);
+      background: var(--accent, #08ffce);
+      display: none;
+    }
+    #post-canvas.mode-split .bg-accent { display: block; }
+
+    /* Top-left: Paysend wordmark + divider + partner logo */
     .top-logos {
       position: absolute;
-      top: 41px; right: 41px;
+      top: 41px; left: 41px;
       display: flex; align-items: center; gap: 20px;
       z-index: 3;
     }
-    .top-logos .logo-paysend { height: 40px; width: auto; display: block; flex-shrink: 0; object-fit: contain; }
+    .top-logos .logo-paysend,
+    .top-logos .logo-partner {
+      height: 44px; width: auto; max-width: 220px;
+      display: block; flex-shrink: 0; object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+    .top-logos .logo-partner { filter: none; }
+    .top-logos .logo-divider { width: 2px; height: 44px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .top-logos .logo-partner.hidden,
+    .top-logos .logo-divider.hidden { display: none !important; }
 
-    /* Person photo area — anchored full-canvas-bottom, cutout */
-    .person-wrap {
+    /* Top-right: stacked date / location badges */
+    .top-badges {
       position: absolute;
-      inset: 0;
-      overflow: hidden;
-      z-index: 1;
+      top: 41px; right: 41px;
+      display: flex; flex-direction: column; gap: 8px;
+      align-items: flex-end;
+      z-index: 3;
     }
-    .person-photo {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: auto;
-      transform: translateY(var(--photo-offset, 0%)) scale(var(--photo-scale, 1));
-      transform-origin: center bottom;
-      display: block;
+    .top-badges.hidden { display: none !important; }
+    .badge-pill {
+      background: #fff;
+      padding: 10px 16px;
+      display: inline-flex; align-items: center; gap: 10px;
+      border-radius: 4px;
+    }
+    .badge-pill .icon { width: 22px; height: 22px; color: #141414; flex-shrink: 0; }
+    .badge-pill .icon svg { width: 100%; height: 100%; display: block; }
+    .badge-pill span {
+      font-size: 24px; font-weight: 400; color: #141414;
+      line-height: 1; letter-spacing: -0.1px; white-space: nowrap;
     }
 
-    /* Bottom-left nameplate stack */
-    .nameplate-stack {
+    /* Bottom block: subheadline + headline */
+    .bottom-block {
       position: absolute;
-      left: 41px; bottom: 41px;
-      right: 41px;
-      display: flex; flex-direction: column; gap: 2px;
-      z-index: 2;
+      left: 41px; right: 41px; bottom: 41px;
+      display: flex; flex-direction: column; gap: 10px;
+      align-items: flex-start;
+      z-index: 3;
     }
-    .nameplate-stack.hidden { display: none !important; }
-    .np-welcome {
+    .subheadline {
       background: #fff;
       padding: 10px 14px;
       align-self: flex-start;
       max-width: 998px;
     }
-    .np-welcome p {
-      font-size: 36px; font-weight: 600; color: #141414;
-      line-height: 0.95; letter-spacing: -0.36px; white-space: pre-line;
+    .subheadline.hidden { display: none !important; }
+    .subheadline p {
+      font-size: 24px; font-weight: 600; color: #141414;
+      line-height: 1; letter-spacing: -0.24px; white-space: nowrap;
     }
-    .np-name {
-      background: #fff;
-      padding: 10px 14px;
-      align-self: flex-start;
-      max-width: 998px;
+    .headline { max-width: 998px; }
+    .headline.hidden { display: none !important; }
+    .headline p {
+      font-size: 92px; font-weight: 600;
+      color: #fff;
+      line-height: 0.92; letter-spacing: -0.92px;
+      white-space: pre-line; overflow-wrap: break-word;
     }
-    .np-name p {
-      font-size: 120px; font-weight: 600; color: #141414;
-      line-height: 0.9; letter-spacing: -1.2px;
-      overflow-wrap: break-word;
-    }
+    /* In split mode the headline sits on accent → use text-on-accent */
+    #post-canvas.mode-split .headline p { color: var(--text-on-accent, #141414); }
 
     /* ── Toggle switch + collapsible section ── */
     .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
@@ -133,31 +146,35 @@
     .control-section.section-off .section-body { display: none; }
     .sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 4px; display: block; }
 
-    /* ── Controls ── */
     .controls {
-      background: #fff;
-      border-left: 1px solid #e8e8e8;
-      padding: 24px 20px;
-      display: flex; flex-direction: column; gap: 16px;
+      background: #fff; border-left: 1px solid #e8e8e8;
+      padding: 24px 20px; display: flex; flex-direction: column; gap: 16px;
       overflow-y: auto;
     }
     .control-section { display: flex; flex-direction: column; gap: 6px; }
-    .control-label {
-      font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.6px; color: #888;
-    }
+    .control-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: #888; }
     .control-input, .control-textarea {
       width: 100%; padding: 9px 11px;
       border: 1px solid #e0e0e0; border-radius: 6px;
       font-size: 14px; font-family: inherit; color: #1a1a1a;
       background: #fafafa; transition: border-color 0.15s; resize: none;
     }
-    .control-input:focus, .control-textarea:focus {
-      outline: none; border-color: #17bff2; background: #fff;
-    }
+    .control-input:focus, .control-textarea:focus { outline: none; border-color: #17bff2; background: #fff; }
     .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
 
-    /* Color palette */
+    /* State segmented control */
+    .seg-control {
+      display: flex; gap: 6px; background: #f5f5f5; padding: 4px; border-radius: 8px;
+    }
+    .seg-btn {
+      flex: 1; padding: 8px 10px; font-size: 13px; font-weight: 600;
+      font-family: inherit; color: #555; background: transparent;
+      border: none; border-radius: 6px; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .seg-btn.active { background: #141414; color: #fff; }
+    .seg-btn:not(.active):hover { color: #141414; }
+
     .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
     .color-swatch {
       width: 32px; height: 32px; border-radius: 50%;
@@ -167,7 +184,6 @@
     .color-swatch:hover { transform: scale(1.15); }
     .color-swatch.active { border-color: #141414; transform: scale(1.1); box-shadow: 0 0 0 1px #fff inset; }
 
-    /* Upload zone */
     .upload-zone {
       border: 2px dashed #ddd; border-radius: 8px; padding: 12px;
       cursor: pointer; transition: border-color 0.15s, background 0.15s;
@@ -178,37 +194,10 @@
     .upload-icon { font-size: 18px; line-height: 1; }
     .upload-hint { font-size: 11px; color: #ccc; }
     .upload-preview { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
-    .upload-preview img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px; }
+    .upload-preview img { width: 100%; height: 60px; object-fit: contain; background: #1a1a1a; border-radius: 4px; }
     .remove-photo { font-size: 11px; color: #e94560; background: none; border: none; cursor: pointer; padding: 2px 4px; font-family: inherit; }
     .remove-photo:hover { text-decoration: underline; }
 
-    /* Photo position slider */
-    .position-slider-wrap { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
-    .position-slider-wrap span { font-size: 11px; color: #999; flex-shrink: 0; width: 36px; text-align: center; }
-    .position-slider {
-      flex: 1; -webkit-appearance: none; appearance: none;
-      height: 4px; background: #e0e0e0; border-radius: 2px; outline: none; cursor: pointer;
-    }
-    .position-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
-    .position-slider::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: #141414; cursor: pointer; border: none; }
-
-    /* Photo zoom controls */
-    .zoom-control { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-    .zoom-label { font-size: 11px; color: #999; flex-shrink: 0; width: 36px; text-align: center; }
-    .zoom-btn {
-      width: 28px; height: 28px; border-radius: 4px;
-      border: 1px solid #e0e0e0; background: #fafafa;
-      font-size: 16px; font-weight: 600; line-height: 1; cursor: pointer;
-      font-family: inherit; color: #141414;
-      display: inline-flex; align-items: center; justify-content: center;
-      transition: background 0.12s, border-color 0.12s;
-    }
-    .zoom-btn:hover:not(:disabled) { background: #f0f0f0; border-color: #141414; }
-    .zoom-btn:active:not(:disabled) { transform: scale(0.95); }
-    .zoom-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .zoom-value { font-size: 12px; color: #555; min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
-
-    /* Download */
     .download-btn {
       margin-top: auto; padding: 13px 20px;
       background: #141414; color: #fff; border: none;
@@ -220,35 +209,6 @@
     .download-btn:active:not(:disabled) { transform: scale(0.98); }
     .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    /* ── Auto bg-removal note ── */
-    .bg-auto-note {
-      margin-top: 8px; font-size: 11px; color: #888;
-      line-height: 1.4; font-style: italic;
-    }
-
-    /* ── Background-removal overlay ── */
-    .bg-overlay {
-      position: fixed; inset: 0;
-      background: rgba(20,20,20,0.68);
-      display: none; align-items: center; justify-content: center;
-      z-index: 9999; color: #fff;
-    }
-    .bg-overlay.visible { display: flex; }
-    .bg-overlay-inner {
-      background: #1f1f1f; padding: 24px 32px; border-radius: 8px;
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
-      max-width: 360px; text-align: center;
-    }
-    .bg-overlay-spinner {
-      width: 32px; height: 32px; border-radius: 50%;
-      border: 3px solid rgba(255,255,255,0.2); border-top-color: #08ffce;
-      animation: bg-spin 0.9s linear infinite;
-    }
-    @keyframes bg-spin { to { transform: rotate(360deg); } }
-    .bg-overlay-title { font-size: 16px; font-weight: 600; }
-    .bg-overlay-hint { font-size: 12px; color: #aaa; line-height: 1.4; }
-
-    /* ── Responsive sidebar widths ── */
     @media (max-width: 1199px) { .workspace { grid-template-columns: 1fr 33vw; } }
     @media (max-width: 799px)  { .workspace { grid-template-columns: 1fr 40vw; } }
     @media (max-width: 499px) {
@@ -263,43 +223,51 @@
 </head>
 <body>
 
-  <div class="bg-overlay" id="bg-overlay" role="dialog" aria-live="polite">
-    <div class="bg-overlay-inner">
-      <div class="bg-overlay-spinner"></div>
-      <div class="bg-overlay-title">Removing background…</div>
-      <div class="bg-overlay-hint">First run may take 10–30 seconds while the model loads.</div>
-    </div>
-  </div>
-
   <header class="header">
     <a href="/" title="Back to layouts">
       <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </a>
     <h1>Post Builder</h1>
-    <p>1080 × 1350 New Hire</p>
+    <p>1080 × 1350 Event Portrait</p>
   </header>
 
   <main class="workspace">
 
-  <!-- ── Preview ── -->
   <div class="preview-area">
     <div class="preview-wrapper">
-      <div id="post-canvas" style="--accent:#b75eff">
+      <div id="post-canvas" class="mode-pattern" style="--accent:#08ffce">
 
-        <!-- Top-right Paysend wordmark -->
+        <div class="bg-pattern"></div>
+        <div class="bg-accent"></div>
+
         <div class="top-logos">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+          <div class="logo-divider" id="divider-1"></div>
+          <img class="logo-partner" id="logo-partner-1" src="/assets/partner-logo.png" alt="Partner" />
         </div>
 
-        <!-- Person photo -->
-        <div class="person-wrap">
-          <img class="person-photo" id="person-photo" src="/assets/person_placeholder_alpha.png" alt="" />
+        <div class="top-badges" id="top-badges">
+          <div class="badge-pill">
+            <span class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </span>
+            <span id="preview-date">January 19–21, 2026</span>
+          </div>
+          <div class="badge-pill">
+            <span class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </span>
+            <span id="preview-location">Barcelona, Spain</span>
+          </div>
         </div>
 
-        <!-- Bottom-left: Welcome line + Name -->
-        <div class="nameplate-stack" id="nameplate-stack">
-          <div class="np-welcome"><p id="preview-welcome">Welcome our new&#10;Editorial Lead</p></div>
-          <div class="np-name"><p id="preview-name">Full Name</p></div>
+        <div class="bottom-block">
+          <div class="subheadline" id="subheadline">
+            <p id="preview-subheadline">Discover how Paysend can power your business!</p>
+          </div>
+          <div class="headline" id="headline">
+            <p id="preview-headline">Level up your payments game with Paysend at ICE Barcelona!</p>
+          </div>
         </div>
 
       </div>
@@ -307,14 +275,22 @@
     <p class="preview-hint">Preview scaled — exports 1080 × 1350</p>
   </div>
 
-  <!-- ── Controls ── -->
   <div class="controls">
 
-    <!-- Accent color -->
+    <!-- Mode switch -->
     <div class="control-section">
-      <label class="control-label">Background Color</label>
+      <label class="control-label">Style</label>
+      <div class="seg-control" id="mode-switch">
+        <button class="seg-btn active" data-mode="pattern" type="button">Pattern</button>
+        <button class="seg-btn" data-mode="split" type="button">Pattern + Color</button>
+      </div>
+    </div>
+
+    <!-- Accent color (only active in split mode) -->
+    <div class="control-section" id="accent-section">
+      <label class="control-label">Accent Color</label>
       <div class="color-palette" id="color-palette">
-        <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+        <button class="color-swatch active" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
         <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
         <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
         <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
@@ -322,64 +298,86 @@
         <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
         <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
         <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
-        <button class="color-swatch active" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
         <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
       </div>
     </div>
 
     <div class="divider"></div>
 
-    <!-- Nameplate -->
+    <!-- Top badges -->
     <div class="control-section">
       <div class="section-row">
-        <label class="control-label">Nameplate</label>
+        <label class="control-label">Date / Location</label>
         <label class="toggle-switch">
-          <input type="checkbox" id="nameplate-toggle" checked />
+          <input type="checkbox" id="badges-toggle" checked />
           <span class="toggle-slider"></span>
         </label>
       </div>
       <div class="section-body">
         <div>
-          <label class="sub-label">Welcome Message</label>
-          <textarea class="control-textarea" id="input-welcome" rows="2">Welcome our new
-Editorial Lead</textarea>
+          <label class="sub-label">Date</label>
+          <input class="control-input" id="input-date" type="text" value="January 19–21, 2026" />
         </div>
         <div>
-          <label class="sub-label">Name</label>
-          <input class="control-input" id="input-name" type="text" value="Full Name" />
+          <label class="sub-label">Location</label>
+          <input class="control-input" id="input-location" type="text" value="Barcelona, Spain" />
         </div>
       </div>
     </div>
 
+    <!-- Partner logo -->
     <div class="control-section">
-      <label class="control-label">Photo</label>
-      <div class="upload-zone" id="person-zone">
-        <div class="upload-placeholder">
-          <span class="upload-icon">↑</span>
-          <span>Click or drag</span>
-          <span class="upload-hint">PNG, JPG, WEBP</span>
-        </div>
-        <div class="upload-preview" style="display:none">
-          <img src="" alt="thumb" />
-          <button class="remove-photo">Remove</button>
-        </div>
+      <div class="section-row">
+        <label class="control-label">Partner Logo</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
       </div>
-      <input type="file" accept="image/*" id="person-file" style="display:none" />
-      <p class="bg-auto-note">Background is removed automatically on upload.</p>
+      <div class="section-body">
+        <div class="upload-zone" id="partner-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Upload logo</span>
+            <span class="upload-hint">PNG, SVG, JPG</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*,.svg" id="partner-file" style="display:none" />
+      </div>
     </div>
 
+    <div class="divider"></div>
+
+    <!-- Subheadline -->
     <div class="control-section">
-      <label class="control-label">Image Position</label>
-      <div class="position-slider-wrap">
-        <span>Top</span>
-        <input type="range" class="position-slider" id="photo-position-slider" min="0" max="100" value="50" />
-        <span>Bottom</span>
+      <div class="section-row">
+        <label class="control-label">Subheadline</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="subheadline-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
       </div>
-      <div class="zoom-control" data-zoom-target="person">
-        <span class="zoom-label">Zoom</span>
-        <button type="button" class="zoom-btn" data-dir="-1" aria-label="Zoom out">−</button>
-        <span class="zoom-value">100%</span>
-        <button type="button" class="zoom-btn" data-dir="1" aria-label="Zoom in">+</button>
+      <div class="section-body">
+        <input class="control-input" id="input-subheadline" type="text" value="Discover how Paysend can power your business!" />
+      </div>
+    </div>
+
+    <!-- Headline -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Headline</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="headline-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <textarea class="control-textarea" id="input-headline" rows="4">Level up your payments game with Paysend at ICE Barcelona!</textarea>
       </div>
     </div>
 
@@ -391,7 +389,6 @@ Editorial Lead</textarea>
   <script>
   const MAX_EDGE = 2400;
   const SMALL_FILE_BYTES = 400 * 1024;
-
   async function fileToOptimizedSrc(file) {
     if (file.type === 'image/svg+xml' || file.size <= SMALL_FILE_BYTES) {
       return URL.createObjectURL(file);
@@ -408,48 +405,7 @@ Editorial Lead</textarea>
       bitmap.close();
       const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.88));
       return URL.createObjectURL(blob);
-    } catch {
-      return URL.createObjectURL(file);
-    }
-  }
-
-  const BG_MAX_EDGE = 2000;
-  let bgRemoveFn = null;
-  async function loadBgRemoval() {
-    if (bgRemoveFn) return bgRemoveFn;
-    const mod = await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal/+esm');
-    bgRemoveFn = mod.removeBackground || mod.default?.removeBackground || mod.default;
-    return bgRemoveFn;
-  }
-  async function fileToDownscaledBlob(file, maxEdge) {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
-    const w = Math.max(1, Math.round(bitmap.width * scale));
-    const h = Math.max(1, Math.round(bitmap.height * scale));
-    const canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h;
-    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
-    bitmap.close();
-    return await new Promise(res => canvas.toBlob(res, 'image/png'));
-  }
-
-  const bgOverlay = document.getElementById('bg-overlay');
-  const showBgOverlay = () => bgOverlay.classList.add('visible');
-  const hideBgOverlay = () => bgOverlay.classList.remove('visible');
-
-  async function removeImageBackground(file) {
-    showBgOverlay();
-    try {
-      const remove = await loadBgRemoval();
-      const inputBlob = await fileToDownscaledBlob(file, BG_MAX_EDGE);
-      const resultBlob = await remove(inputBlob);
-      return URL.createObjectURL(resultBlob);
-    } catch (err) {
-      console.error('Background removal failed, falling back to original image:', err);
-      return await fileToOptimizedSrc(file);
-    } finally {
-      hideBgOverlay();
-    }
+    } catch { return URL.createObjectURL(file); }
   }
 
   const canvas = document.getElementById('post-canvas');
@@ -460,14 +416,15 @@ Editorial Lead</textarea>
     if (!input || !preview) return;
     input.addEventListener('input', () => { preview.textContent = input.value; });
   }
-  bindText('input-name', 'preview-name');
-  bindText('input-welcome', 'preview-welcome');
+  bindText('input-date', 'preview-date');
+  bindText('input-location', 'preview-location');
+  bindText('input-subheadline', 'preview-subheadline');
+  bindText('input-headline', 'preview-headline');
 
-  // ── Name auto-fit ────────────────────────────────────────
-  const NAME_BASE_SIZE = 120;
-  const NAME_MIN_SIZE = 40;
-  const CANVAS_SIDE_PAD = 41;
-  const NP_NAME_PAD_X = 14;
+  // Headline auto-fit (longest word must fit)
+  const HL_BASE = 92;
+  const HL_MIN = 48;
+  const CANVAS_PAD_X = 41;
   function longestWordWidth(el) {
     const text = (el.textContent || '').trim();
     if (!text) return 0;
@@ -483,28 +440,25 @@ Editorial Lead</textarea>
     probe.style.textTransform = cs.textTransform;
     document.body.appendChild(probe);
     let max = 0;
-    for (const w of words) {
-      probe.textContent = w;
-      if (probe.offsetWidth > max) max = probe.offsetWidth;
-    }
+    for (const w of words) { probe.textContent = w; if (probe.offsetWidth > max) max = probe.offsetWidth; }
     document.body.removeChild(probe);
     return max;
   }
-  function fitName() {
-    const el = document.getElementById('preview-name');
+  function fitHeadline() {
+    const el = document.getElementById('preview-headline');
     if (!el) return;
     const cvs = document.getElementById('post-canvas');
-    const available = cvs.clientWidth - 2 * CANVAS_SIDE_PAD - 2 * NP_NAME_PAD_X;
-    let size = NAME_BASE_SIZE;
+    const available = cvs.clientWidth - 2 * CANVAS_PAD_X;
+    let size = HL_BASE;
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {
-      if (size <= NAME_MIN_SIZE) break;
+      if (size <= HL_MIN) break;
       if (longestWordWidth(el) <= available + 0.5) break;
       size -= 2;
       el.style.fontSize = size + 'px';
     }
   }
-  document.getElementById('input-name').addEventListener('input', fitName);
+  document.getElementById('input-headline').addEventListener('input', fitHeadline);
 
   // Toggles
   function syncSectionOff(cb) {
@@ -521,74 +475,44 @@ Editorial Lead</textarea>
     cb.addEventListener('change', apply);
     apply();
   }
-  bindToggle('nameplate-toggle', document.getElementById('nameplate-stack'));
+  bindToggle('badges-toggle', document.getElementById('top-badges'));
+  bindToggle('subheadline-toggle', document.getElementById('subheadline'));
+  bindToggle('headline-toggle', document.getElementById('headline'));
 
-  // Accent color palette
-  document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      canvas.style.setProperty('--accent', sw.dataset.color);
-      document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
-      sw.classList.add('active');
-    });
-  });
+  // Partner toggle (logo + divider)
+  (function bindPartnerToggle() {
+    const cb = document.getElementById('partner-toggle');
+    const logo = document.getElementById('logo-partner-1');
+    const divider = document.getElementById('divider-1');
+    const apply = () => {
+      logo.classList.toggle('hidden', !cb.checked);
+      divider.classList.toggle('hidden', !cb.checked);
+      syncSectionOff(cb);
+    };
+    cb.addEventListener('change', apply);
+    apply();
+  })();
 
-  // Photo position slider
-  const photoEl = document.getElementById('person-photo');
-  const slider = document.getElementById('photo-position-slider');
-  function applyPhotoPosition() {
-    const offset = (parseFloat(slider.value) - 50) * 0.3;
-    canvas.style.setProperty('--photo-offset', offset + '%');
-  }
-  slider.addEventListener('input', applyPhotoPosition);
-  applyPhotoPosition();
-
-  // Photo zoom
-  const ZOOM_MIN = 0.5, ZOOM_MAX = 2.5, ZOOM_STEP = 0.1;
-  const personZoom = { value: 1 };
-  const zoomControl = document.querySelector('[data-zoom-target="person"]');
-  const zoomValueEl = zoomControl.querySelector('.zoom-value');
-  const zoomDecBtn = zoomControl.querySelector('[data-dir="-1"]');
-  const zoomIncBtn = zoomControl.querySelector('[data-dir="1"]');
-  function applyZoom() {
-    canvas.style.setProperty('--photo-scale', personZoom.value);
-    zoomValueEl.textContent = Math.round(personZoom.value * 100) + '%';
-    zoomDecBtn.disabled = personZoom.value <= ZOOM_MIN + 0.001;
-    zoomIncBtn.disabled = personZoom.value >= ZOOM_MAX - 0.001;
-  }
-  zoomDecBtn.addEventListener('click', () => {
-    personZoom.value = Math.max(ZOOM_MIN, +(personZoom.value - ZOOM_STEP).toFixed(2));
-    applyZoom();
-  });
-  zoomIncBtn.addEventListener('click', () => {
-    personZoom.value = Math.min(ZOOM_MAX, +(personZoom.value + ZOOM_STEP).toFixed(2));
-    applyZoom();
-  });
-  applyZoom();
-
-  // Person photo upload
-  (function setupPersonUpload() {
-    const zone = document.getElementById('person-zone');
-    const fileInput = document.getElementById('person-file');
+  // Partner logo upload
+  (function setupLogoUpload() {
+    const zone = document.getElementById('partner-zone');
+    const fileInput = document.getElementById('partner-file');
+    const img = document.getElementById('logo-partner-1');
     const placeholder = zone.querySelector('.upload-placeholder');
     const preview = zone.querySelector('.upload-preview');
     const thumb = preview.querySelector('img');
     const removeBtn = preview.querySelector('.remove-photo');
 
-    function setPhoto(src) {
-      photoEl.src = src;
-      thumb.src = src;
+    async function setSrc(src) {
+      img.src = src; thumb.src = src;
       placeholder.style.display = 'none';
       preview.style.display = 'flex';
     }
-    function clearPhoto() {
-      photoEl.src = '/assets/person_placeholder_alpha.png';
+    function clearSrc() {
+      img.src = '/assets/partner-logo.png';
       fileInput.value = '';
       placeholder.style.display = 'flex';
       preview.style.display = 'none';
-    }
-    async function ingest(file) {
-      const src = await removeImageBackground(file);
-      setPhoto(src);
     }
     zone.addEventListener('click', e => {
       if (e.target === removeBtn || removeBtn.contains(e.target)) return;
@@ -599,43 +523,62 @@ Editorial Lead</textarea>
     zone.addEventListener('drop', async e => {
       e.preventDefault(); zone.style.borderColor = '';
       const f = e.dataTransfer.files[0];
-      if (f && f.type.startsWith('image/')) ingest(f);
+      if (f) setSrc(await fileToOptimizedSrc(f));
     });
     fileInput.addEventListener('change', async () => {
       const f = fileInput.files[0];
-      if (f) ingest(f);
+      if (f) setSrc(await fileToOptimizedSrc(f));
     });
-    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearPhoto(); });
+    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
   })();
 
-  // Responsive preview scaling
+  // Mode switch
+  const modeSwitch = document.getElementById('mode-switch');
+  const accentSection = document.getElementById('accent-section');
+  function applyMode(mode) {
+    canvas.classList.remove('mode-pattern', 'mode-split');
+    canvas.classList.add('mode-' + mode);
+    modeSwitch.querySelectorAll('.seg-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
+    accentSection.style.display = mode === 'split' ? '' : 'none';
+  }
+  modeSwitch.querySelectorAll('.seg-btn').forEach(b => {
+    b.addEventListener('click', () => applyMode(b.dataset.mode));
+  });
+  applyMode('pattern');
+
+  // Color palette
+  const DARK_ACCENT = new Set(['#4a57c5']);
+  document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      canvas.style.setProperty('--accent', sw.dataset.color);
+      canvas.style.setProperty('--text-on-accent', DARK_ACCENT.has(sw.dataset.color) ? '#fff' : '#141414');
+      document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+    });
+  });
+
+  // Preview scaling
   (function scalePreview() {
     const CANVAS_W = 1080, CANVAS_H = 1350;
-    const PREVIEW_PAD = 64;
-    const HEADER_H = 60;
+    const PREVIEW_PAD = 64; const HEADER_H = 60;
     const wrapper = document.querySelector('.preview-wrapper');
     const cvs = document.getElementById('post-canvas');
-
     function update() {
       const w = window.innerWidth, h = window.innerHeight;
       let sidebarFrac;
-      if (w < 500)       sidebarFrac = 0;
-      else if (w < 800)  sidebarFrac = 0.40;
+      if (w < 500) sidebarFrac = 0;
+      else if (w < 800) sidebarFrac = 0.40;
       else if (w < 1200) sidebarFrac = 0.33;
-      else               sidebarFrac = 0.25;
-
+      else sidebarFrac = 0.25;
       let availW, availH;
-      if (w < 500) {
-        availW = w;
-        availH = Infinity;
-      } else {
-        availW = w * (1 - sidebarFrac) - PREVIEW_PAD;
-        availH = h - HEADER_H - 80;
-      }
+      if (w < 500) { availW = w; availH = Infinity; }
+      else { availW = w * (1 - sidebarFrac) - PREVIEW_PAD; availH = h - HEADER_H - 80; }
       const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
-      wrapper.style.width  = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.width = Math.round(CANVAS_W * scale) + 'px';
       wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
-      cvs.style.transform  = `scale(${scale})`;
+      cvs.style.transform = `scale(${scale})`;
     }
     update();
     window.addEventListener('resize', update);
@@ -648,25 +591,19 @@ Editorial Lead</textarea>
     try {
       const result = await html2canvas(canvas, {
         scale: 1, width: 1080, height: 1350,
-        useCORS: true, allowTaint: true, backgroundColor: null,
-        logging: false
+        useCORS: true, allowTaint: true, backgroundColor: null, logging: false
       });
       const link = document.createElement('a');
-      link.download = 'paysend-new-hire.png';
+      link.download = 'paysend-event-portrait.png';
       link.href = result.toDataURL('image/png');
       link.click();
-    } catch (err) {
-      console.error('Download failed:', err);
-    } finally {
-      btn.textContent = 'Download PNG'; btn.disabled = false;
-    }
+    } catch (err) { console.error('Download failed:', err); }
+    finally { btn.textContent = 'Download PNG'; btn.disabled = false; }
   });
 
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => fitName());
-  } else {
-    fitName();
-  }
+    document.fonts.ready.then(() => fitHeadline());
+  } else { fitHeadline(); }
   </script>
 </body>
 </html>

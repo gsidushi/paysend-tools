@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Post Builder — Milestone (Solid)</title>
+  <title>Post Builder — Event Landscape (Pattern)</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @font-face {
@@ -20,7 +20,6 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
 
-    /* ── App header ── */
     .header {
       padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8;
       display: flex; align-items: center; gap: 12px; flex-shrink: 0;
@@ -29,99 +28,103 @@
     .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
     .header p  { font-size: 13px; color: #999; }
 
-    /* ── Workspace ── */
-    .workspace {
-      flex: 1; display: grid; grid-template-columns: 1fr 25vw;
-      min-height: 0; overflow: hidden;
-    }
-
-    .preview-area {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 40px 32px; gap: 12px; overflow: hidden;
-    }
+    .workspace { flex: 1; display: grid; grid-template-columns: 1fr 25vw; min-height: 0; overflow: hidden; }
+    .preview-area { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 32px; gap: 12px; overflow: hidden; }
     .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
     .preview-hint { font-size: 12px; color: #aaa; }
 
-    /* ── Canvas (1080 × 1350) ── */
+    /* ── Canvas (1200 × 627) ── */
     #post-canvas {
-      width: 1080px; height: 1350px;
+      width: 1200px; height: 627px;
       transform-origin: top left;
       font-family: 'GT Standard', sans-serif;
-      background: var(--accent, #ff574a);
-      color: var(--text-on-bg, #fff);
       position: relative;
       overflow: hidden;
+      background: #0a0a0a;
     }
 
-    /* Top-left small tag badge */
-    .top-tag {
-      position: absolute; top: 41px; left: 41px;
-      background: #fff; padding: 10px 14px;
-      align-self: flex-start; z-index: 3;
+    .bg-pattern {
+      position: absolute; inset: 0;
+      background: #0a0a0a url('/assets/pattern-1.png') center center / cover no-repeat;
     }
-    .top-tag.hidden { display: none !important; }
-    .top-tag p {
-      font-size: 28px; font-weight: 600; color: #141414;
-      line-height: 1; letter-spacing: -0.28px; white-space: nowrap;
-    }
+    #post-canvas.mode-split .bg-pattern { bottom: var(--split-bottom, 220px); }
 
-    /* Top-right Paysend logo */
+    .bg-accent {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: var(--split-bottom, 220px);
+      background: var(--accent, #08ffce);
+      display: none;
+    }
+    #post-canvas.mode-split .bg-accent { display: block; }
+
+    /* Top-left logos */
     .top-logos {
-      position: absolute; top: 41px; right: 41px;
-      display: flex; align-items: center; gap: 20px; z-index: 3;
-    }
-    .top-logos .logo-paysend {
-      height: 40px; width: auto; display: block;
-      flex-shrink: 0; object-fit: contain;
-      filter: var(--logo-filter, brightness(0) invert(1));
-    }
-
-    /* Main headline — large, bold, aligned to top-left under tag */
-    .headline-block {
-      position: absolute;
-      top: 160px; left: 41px; right: 41px;
-      z-index: 2;
-    }
-    .headline-block.hidden { display: none !important; }
-    .headline-block p {
-      font-size: 110px; font-weight: 600;
-      color: var(--text-on-bg, #fff);
-      line-height: 0.92; letter-spacing: -1.1px;
-      white-space: pre-line; overflow-wrap: break-word;
-    }
-
-    /* Body copy near bottom-left */
-    .body-block {
-      position: absolute;
-      left: 41px; right: 41px; bottom: 180px;
-      z-index: 2; max-width: 720px;
-    }
-    .body-block.hidden { display: none !important; }
-    .body-block p {
-      font-size: 24px; font-weight: 400;
-      color: var(--text-on-bg, #fff);
-      line-height: 1.35; letter-spacing: -0.1px;
-      white-space: pre-line;
-    }
-
-    /* Bottom-left Paysend wordmark + planet */
-    .bottom-brand {
-      position: absolute;
-      left: 41px; bottom: 41px;
-      display: flex; align-items: center; gap: 12px;
+      position: absolute; top: 30px; left: 30px;
+      display: flex; align-items: center; gap: 16px;
       z-index: 3;
     }
-    .bottom-brand .bm-wordmark {
-      height: 48px; width: auto;
-      filter: var(--logo-filter, brightness(0) invert(1));
+    .top-logos .logo-paysend,
+    .top-logos .logo-partner {
+      height: 36px; width: auto; max-width: 180px;
+      display: block; flex-shrink: 0; object-fit: contain;
+      filter: brightness(0) invert(1);
     }
-    .bottom-brand .bm-planet {
-      width: 48px; height: 48px;
-      color: var(--text-on-bg, #fff);
-    }
-    .bottom-brand .bm-planet svg { width: 100%; height: 100%; display: block; fill: currentColor; }
+    .top-logos .logo-partner { filter: none; }
+    .top-logos .logo-divider { width: 2px; height: 36px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .top-logos .logo-partner.hidden,
+    .top-logos .logo-divider.hidden { display: none !important; }
 
-    /* ── Toggle switch ── */
+    /* Top-right badges */
+    .top-badges {
+      position: absolute; top: 30px; right: 30px;
+      display: flex; flex-direction: column; gap: 6px;
+      align-items: flex-end;
+      z-index: 3;
+    }
+    .top-badges.hidden { display: none !important; }
+    .badge-pill {
+      background: #fff; padding: 6px 12px;
+      display: inline-flex; align-items: center; gap: 8px;
+      border-radius: 4px;
+    }
+    .badge-pill.accent {
+      background: var(--accent, #08ffce);
+    }
+    .badge-pill.accent span { color: var(--text-on-accent, #141414); }
+    .badge-pill span {
+      font-size: 18px; font-weight: 400; color: #141414;
+      line-height: 1; letter-spacing: -0.1px; white-space: nowrap;
+    }
+
+    /* Bottom block */
+    .bottom-block {
+      position: absolute;
+      left: 30px; right: 30px; bottom: 30px;
+      display: flex; flex-direction: column; gap: 8px;
+      align-items: flex-start;
+      z-index: 3;
+    }
+    .subheadline {
+      background: #fff; padding: 6px 10px;
+      align-self: flex-start;
+      max-width: 1140px;
+    }
+    .subheadline.hidden { display: none !important; }
+    .subheadline p {
+      font-size: 18px; font-weight: 600; color: #141414;
+      line-height: 1; letter-spacing: -0.18px; white-space: nowrap;
+    }
+    .headline { max-width: 1140px; }
+    .headline.hidden { display: none !important; }
+    .headline p {
+      font-size: 58px; font-weight: 600;
+      color: #fff;
+      line-height: 0.95; letter-spacing: -0.58px;
+      white-space: pre-line; overflow-wrap: break-word;
+    }
+    #post-canvas.mode-split .headline p { color: var(--text-on-accent, #141414); }
+
+    /* Controls shared styles */
     .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
     .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
@@ -134,7 +137,6 @@
     .control-section.section-off .section-body { display: none; }
     .sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 4px; display: block; }
 
-    /* ── Controls ── */
     .controls {
       background: #fff; border-left: 1px solid #e8e8e8;
       padding: 24px 20px; display: flex; flex-direction: column; gap: 16px;
@@ -151,7 +153,16 @@
     .control-input:focus, .control-textarea:focus { outline: none; border-color: #17bff2; background: #fff; }
     .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
 
-    /* Color palette */
+    .seg-control { display: flex; gap: 6px; background: #f5f5f5; padding: 4px; border-radius: 8px; }
+    .seg-btn {
+      flex: 1; padding: 8px 10px; font-size: 13px; font-weight: 600;
+      font-family: inherit; color: #555; background: transparent;
+      border: none; border-radius: 6px; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .seg-btn.active { background: #141414; color: #fff; }
+    .seg-btn:not(.active):hover { color: #141414; }
+
     .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
     .color-swatch {
       width: 32px; height: 32px; border-radius: 50%;
@@ -161,7 +172,20 @@
     .color-swatch:hover { transform: scale(1.15); }
     .color-swatch.active { border-color: #141414; transform: scale(1.1); box-shadow: 0 0 0 1px #fff inset; }
 
-    /* Download */
+    .upload-zone {
+      border: 2px dashed #ddd; border-radius: 8px; padding: 12px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      min-height: 70px; display: flex; align-items: center; justify-content: center;
+    }
+    .upload-zone:hover { border-color: #17bff2; background: #f0fbff; }
+    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #aaa; font-size: 12px; }
+    .upload-icon { font-size: 18px; line-height: 1; }
+    .upload-hint { font-size: 11px; color: #ccc; }
+    .upload-preview { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+    .upload-preview img { width: 100%; height: 60px; object-fit: contain; background: #1a1a1a; border-radius: 4px; }
+    .remove-photo { font-size: 11px; color: #e94560; background: none; border: none; cursor: pointer; padding: 2px 4px; font-family: inherit; }
+    .remove-photo:hover { text-decoration: underline; }
+
     .download-btn {
       margin-top: auto; padding: 13px 20px;
       background: #141414; color: #fff; border: none;
@@ -192,59 +216,68 @@
       <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </a>
     <h1>Post Builder</h1>
-    <p>1080 × 1350 Milestone — Solid</p>
+    <p>1200 × 627 Event Landscape</p>
   </header>
 
   <main class="workspace">
 
   <div class="preview-area">
     <div class="preview-wrapper">
-      <div id="post-canvas" style="--accent:#ff574a">
+      <div id="post-canvas" class="mode-pattern" style="--accent:#08ffce">
 
-        <div class="top-tag" id="top-tag">
-          <p id="preview-tag">Newsroom</p>
-        </div>
+        <div class="bg-pattern"></div>
+        <div class="bg-accent"></div>
 
         <div class="top-logos">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+          <div class="logo-divider" id="divider-1"></div>
+          <img class="logo-partner" id="logo-partner-1" src="/assets/partner-logo.png" alt="Partner" />
         </div>
 
-        <div class="headline-block" id="headline-block">
-          <p id="preview-headline">Big Milestone for Paysend Canada!</p>
+        <div class="top-badges" id="top-badges">
+          <div class="badge-pill">
+            <span id="preview-location">San Francisco, USA</span>
+          </div>
+          <div class="badge-pill accent">
+            <span id="preview-date">January 19–21, 2026</span>
+          </div>
         </div>
 
-        <div class="body-block" id="body-block">
-          <p id="preview-body">Now officially registered as a Paysend Service Provider (PSP) under Canada's new regulations. Proud to be one of the first in the country of 11.</p>
-        </div>
-
-        <div class="bottom-brand">
-          <img class="bm-wordmark" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
-          <div class="bm-planet">
-            <svg viewBox="0 0 361 329" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M179.955 0C252.312 0 313.868 45.6934 336.681 109.47H350.607C356.731 126.59 360.064 145.013 360.064 164.205C360.064 183.397 356.731 201.82 350.607 218.94H336.681C313.868 282.717 252.312 328.41 179.955 328.41C107.598 328.41 46.0424 282.717 23.2288 218.94H9.45723C3.33319 201.82 0 183.397 0 164.205C0 145.013 3.33319 126.59 9.45723 109.47H23.2288C46.0424 45.6934 107.598 0 179.955 0ZM245.775 48.4731C255.357 65.5403 262.833 86.3133 267.458 109.47H281.384C284.804 126.59 286.667 145.013 286.667 164.205C286.667 183.398 284.804 201.82 281.384 218.94H267.458C262.833 242.096 255.357 262.869 245.775 279.936C270.602 266.12 290.535 244.731 302.366 218.94H316.292C323.948 202.252 328.212 183.721 328.212 164.205C328.212 144.69 323.948 126.159 316.292 109.47H302.366C290.535 83.6787 270.603 62.2887 245.775 48.4731ZM43.7716 109.47C36.1162 126.159 31.8517 144.69 31.8517 164.205C31.8517 183.721 36.1161 202.252 43.7716 218.94H57.5432C69.3742 244.731 89.3069 266.12 114.134 279.936C104.552 262.869 97.0757 242.097 92.4504 218.94H78.6785C75.2589 201.82 73.3975 183.397 73.3975 164.205C73.3975 145.013 75.2591 126.59 78.6785 109.47H92.4504C97.0756 86.3132 104.552 65.5403 114.134 48.4731C89.3066 62.2887 69.3741 83.6788 57.5432 109.47H43.7716ZM111.234 109.47C107.44 126.018 105.25 144.482 105.25 164.205C105.25 183.928 107.44 202.393 111.234 218.94H125.005C129.099 236.792 135.059 252.413 142.156 264.973C156.417 290.21 171.072 296.938 179.955 296.938C188.838 296.938 203.493 290.21 217.753 264.973C224.851 252.413 230.811 236.792 234.905 218.94H248.831C252.625 202.393 254.815 183.928 254.815 164.205C254.815 144.482 252.625 126.018 248.831 109.47H234.905C230.811 91.6183 224.851 75.9977 217.753 63.4371C203.493 38.2001 188.838 31.4727 179.955 31.4727C171.072 31.4727 156.417 38.2001 142.156 63.4371C135.059 75.9977 129.099 91.6183 125.005 109.47H111.234Z"/>
-            </svg>
+        <div class="bottom-block">
+          <div class="subheadline" id="subheadline">
+            <p id="preview-subheadline">Discover how Paysend can power your business!</p>
+          </div>
+          <div class="headline" id="headline">
+            <p id="preview-headline">Level up your payments game with Paysend at ICE Barcelona!</p>
           </div>
         </div>
 
       </div>
     </div>
-    <p class="preview-hint">Preview scaled — exports 1080 × 1350</p>
+    <p class="preview-hint">Preview scaled — exports 1200 × 627</p>
   </div>
 
   <div class="controls">
 
-    <!-- Background color -->
     <div class="control-section">
-      <label class="control-label">Background Color</label>
+      <label class="control-label">Style</label>
+      <div class="seg-control" id="mode-switch">
+        <button class="seg-btn active" data-mode="pattern" type="button">Pattern</button>
+        <button class="seg-btn" data-mode="split" type="button">Pattern + Color</button>
+      </div>
+    </div>
+
+    <div class="control-section">
+      <label class="control-label">Accent Color</label>
       <div class="color-palette" id="color-palette">
-        <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+        <button class="color-swatch active" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
         <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
         <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
         <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
         <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
         <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
         <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
-        <button class="color-swatch active" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+        <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
         <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
         <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
       </div>
@@ -252,21 +285,65 @@
 
     <div class="divider"></div>
 
-    <!-- Top tag -->
     <div class="control-section">
       <div class="section-row">
-        <label class="control-label">Top Tag</label>
+        <label class="control-label">Location / Date</label>
         <label class="toggle-switch">
-          <input type="checkbox" id="tag-toggle" checked />
+          <input type="checkbox" id="badges-toggle" checked />
           <span class="toggle-slider"></span>
         </label>
       </div>
       <div class="section-body">
-        <input class="control-input" id="input-tag" type="text" value="Newsroom" />
+        <div>
+          <label class="sub-label">Location</label>
+          <input class="control-input" id="input-location" type="text" value="San Francisco, USA" />
+        </div>
+        <div>
+          <label class="sub-label">Date</label>
+          <input class="control-input" id="input-date" type="text" value="January 19–21, 2026" />
+        </div>
       </div>
     </div>
 
-    <!-- Headline -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Partner Logo</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <div class="upload-zone" id="partner-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Upload logo</span>
+            <span class="upload-hint">PNG, SVG, JPG</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*,.svg" id="partner-file" style="display:none" />
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Subheadline</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="subheadline-toggle" checked />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <input class="control-input" id="input-subheadline" type="text" value="Discover how Paysend can power your business!" />
+      </div>
+    </div>
+
     <div class="control-section">
       <div class="section-row">
         <label class="control-label">Headline</label>
@@ -276,21 +353,7 @@
         </label>
       </div>
       <div class="section-body">
-        <textarea class="control-textarea" id="input-headline" rows="3">Big Milestone for Paysend Canada!</textarea>
-      </div>
-    </div>
-
-    <!-- Body -->
-    <div class="control-section">
-      <div class="section-row">
-        <label class="control-label">Body Copy</label>
-        <label class="toggle-switch">
-          <input type="checkbox" id="body-toggle" checked />
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <div class="section-body">
-        <textarea class="control-textarea" id="input-body" rows="5">Now officially registered as a Paysend Service Provider (PSP) under Canada's new regulations. Proud to be one of the first in the country of 11.</textarea>
+        <textarea class="control-textarea" id="input-headline" rows="3">Level up your payments game with Paysend at ICE Barcelona!</textarea>
       </div>
     </div>
 
@@ -300,6 +363,25 @@
   </main>
 
   <script>
+  const MAX_EDGE = 2400;
+  const SMALL_FILE_BYTES = 400 * 1024;
+  async function fileToOptimizedSrc(file) {
+    if (file.type === 'image/svg+xml' || file.size <= SMALL_FILE_BYTES) { return URL.createObjectURL(file); }
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+      if (scale === 1) { bitmap.close(); return URL.createObjectURL(file); }
+      const w = Math.round(bitmap.width * scale);
+      const h = Math.round(bitmap.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+      bitmap.close();
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.88));
+      return URL.createObjectURL(blob);
+    } catch { return URL.createObjectURL(file); }
+  }
+
   const canvas = document.getElementById('post-canvas');
 
   function bindText(inputId, previewId) {
@@ -308,14 +390,14 @@
     if (!input || !preview) return;
     input.addEventListener('input', () => { preview.textContent = input.value; });
   }
-  bindText('input-tag', 'preview-tag');
+  bindText('input-date', 'preview-date');
+  bindText('input-location', 'preview-location');
+  bindText('input-subheadline', 'preview-subheadline');
   bindText('input-headline', 'preview-headline');
-  bindText('input-body', 'preview-body');
 
-  // Headline auto-fit (longest word must fit)
-  const HL_BASE = 110;
-  const HL_MIN = 48;
-  const CANVAS_PAD_X = 41;
+  const HL_BASE = 58;
+  const HL_MIN = 28;
+  const CANVAS_PAD_X = 30;
   function longestWordWidth(el) {
     const text = (el.textContent || '').trim();
     if (!text) return 0;
@@ -331,10 +413,7 @@
     probe.style.textTransform = cs.textTransform;
     document.body.appendChild(probe);
     let max = 0;
-    for (const w of words) {
-      probe.textContent = w;
-      if (probe.offsetWidth > max) max = probe.offsetWidth;
-    }
+    for (const w of words) { probe.textContent = w; if (probe.offsetWidth > max) max = probe.offsetWidth; }
     document.body.removeChild(probe);
     return max;
   }
@@ -354,7 +433,6 @@
   }
   document.getElementById('input-headline').addEventListener('input', fitHeadline);
 
-  // Toggles
   function syncSectionOff(cb) {
     const section = cb.closest('.control-section');
     if (!section) return;
@@ -362,83 +440,102 @@
   }
   function bindToggle(toggleId, targetEl) {
     const cb = document.getElementById(toggleId);
-    const apply = () => {
-      targetEl.classList.toggle('hidden', !cb.checked);
-      syncSectionOff(cb);
-    };
+    const apply = () => { targetEl.classList.toggle('hidden', !cb.checked); syncSectionOff(cb); };
     cb.addEventListener('change', apply);
     apply();
   }
-  bindToggle('tag-toggle', document.getElementById('top-tag'));
-  bindToggle('headline-toggle', document.getElementById('headline-block'));
-  bindToggle('body-toggle', document.getElementById('body-block'));
+  bindToggle('badges-toggle', document.getElementById('top-badges'));
+  bindToggle('subheadline-toggle', document.getElementById('subheadline'));
+  bindToggle('headline-toggle', document.getElementById('headline'));
 
-  // Color palette
+  (function bindPartnerToggle() {
+    const cb = document.getElementById('partner-toggle');
+    const logo = document.getElementById('logo-partner-1');
+    const divider = document.getElementById('divider-1');
+    const apply = () => { logo.classList.toggle('hidden', !cb.checked); divider.classList.toggle('hidden', !cb.checked); syncSectionOff(cb); };
+    cb.addEventListener('change', apply);
+    apply();
+  })();
+
+  (function setupLogoUpload() {
+    const zone = document.getElementById('partner-zone');
+    const fileInput = document.getElementById('partner-file');
+    const img = document.getElementById('logo-partner-1');
+    const placeholder = zone.querySelector('.upload-placeholder');
+    const preview = zone.querySelector('.upload-preview');
+    const thumb = preview.querySelector('img');
+    const removeBtn = preview.querySelector('.remove-photo');
+    async function setSrc(src) { img.src = src; thumb.src = src; placeholder.style.display = 'none'; preview.style.display = 'flex'; }
+    function clearSrc() { img.src = '/assets/partner-logo.png'; fileInput.value = ''; placeholder.style.display = 'flex'; preview.style.display = 'none'; }
+    zone.addEventListener('click', e => { if (e.target === removeBtn || removeBtn.contains(e.target)) return; fileInput.click(); });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+    zone.addEventListener('drop', async e => { e.preventDefault(); zone.style.borderColor = ''; const f = e.dataTransfer.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
+    fileInput.addEventListener('change', async () => { const f = fileInput.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
+    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
+  })();
+
+  const modeSwitch = document.getElementById('mode-switch');
+  function applyMode(mode) {
+    canvas.classList.remove('mode-pattern', 'mode-split');
+    canvas.classList.add('mode-' + mode);
+    modeSwitch.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  }
+  modeSwitch.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => applyMode(b.dataset.mode)));
+  applyMode('pattern');
+
+  const DARK_ACCENT = new Set(['#4a57c5']);
   document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
     sw.addEventListener('click', () => {
       canvas.style.setProperty('--accent', sw.dataset.color);
+      canvas.style.setProperty('--text-on-accent', DARK_ACCENT.has(sw.dataset.color) ? '#fff' : '#141414');
       document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
       sw.classList.add('active');
     });
   });
 
-  // Preview scaling
   (function scalePreview() {
-    const CANVAS_W = 1080, CANVAS_H = 1350;
-    const PREVIEW_PAD = 64;
-    const HEADER_H = 60;
+    const CANVAS_W = 1200, CANVAS_H = 627;
+    const PREVIEW_PAD = 64; const HEADER_H = 60;
     const wrapper = document.querySelector('.preview-wrapper');
     const cvs = document.getElementById('post-canvas');
-
     function update() {
       const w = window.innerWidth, h = window.innerHeight;
       let sidebarFrac;
-      if (w < 500)       sidebarFrac = 0;
-      else if (w < 800)  sidebarFrac = 0.40;
+      if (w < 500) sidebarFrac = 0;
+      else if (w < 800) sidebarFrac = 0.40;
       else if (w < 1200) sidebarFrac = 0.33;
-      else               sidebarFrac = 0.25;
-
+      else sidebarFrac = 0.25;
       let availW, availH;
       if (w < 500) { availW = w; availH = Infinity; }
-      else {
-        availW = w * (1 - sidebarFrac) - PREVIEW_PAD;
-        availH = h - HEADER_H - 80;
-      }
+      else { availW = w * (1 - sidebarFrac) - PREVIEW_PAD; availH = h - HEADER_H - 80; }
       const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
-      wrapper.style.width  = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.width = Math.round(CANVAS_W * scale) + 'px';
       wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
-      cvs.style.transform  = `scale(${scale})`;
+      cvs.style.transform = `scale(${scale})`;
     }
     update();
     window.addEventListener('resize', update);
   })();
 
-  // Download
   document.getElementById('download-btn').addEventListener('click', async () => {
     const btn = document.getElementById('download-btn');
     btn.textContent = 'Exporting…'; btn.disabled = true;
     try {
       const result = await html2canvas(canvas, {
-        scale: 1, width: 1080, height: 1350,
-        useCORS: true, allowTaint: true, backgroundColor: null,
-        logging: false
+        scale: 1, width: 1200, height: 627,
+        useCORS: true, allowTaint: true, backgroundColor: null, logging: false
       });
       const link = document.createElement('a');
-      link.download = 'paysend-milestone-solid.png';
+      link.download = 'paysend-event-landscape.png';
       link.href = result.toDataURL('image/png');
       link.click();
-    } catch (err) {
-      console.error('Download failed:', err);
-    } finally {
-      btn.textContent = 'Download PNG'; btn.disabled = false;
-    }
+    } catch (err) { console.error('Download failed:', err); }
+    finally { btn.textContent = 'Download PNG'; btn.disabled = false; }
   });
 
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => fitHeadline());
-  } else {
-    fitHeadline();
-  }
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(() => fitHeadline()); }
+  else { fitHeadline(); }
   </script>
 </body>
 </html>

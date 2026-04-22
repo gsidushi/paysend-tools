@@ -160,6 +160,46 @@
       line-height: 0.95; letter-spacing: -0.36px; white-space: pre-line;
     }
 
+    /* ── New-Hire mode ──
+       Canvas becomes a neutral gray, the planet silhouette + event
+       badges + partner logos hide, and the top-right Paysend wordmark
+       flips to black. The photo is shown with its natural background
+       (no cutout). The nameplate swaps roles: small white "Name
+       Surname" badge sits above a large accent "Welcome our new …"
+       badge. */
+    #post-canvas.mode-newhire { background: #e8e8e8; }
+    #post-canvas.mode-newhire .canvas-planet,
+    #post-canvas.mode-newhire .top-badges,
+    #post-canvas.mode-newhire .top-logos .logo-partner,
+    #post-canvas.mode-newhire .top-logos .logo-divider { display: none !important; }
+    #post-canvas.mode-newhire .top-logos .logo-paysend {
+      height: 56px; filter: none; /* keep original black */
+    }
+    /* small planet icon beside the wordmark */
+    #post-canvas.mode-newhire .top-logos::after {
+      content: '';
+      width: 44px; height: 44px;
+      background: url('/assets/logo-planet.svg') center / contain no-repeat;
+      flex-shrink: 0;
+    }
+    /* Photo is not bg-removed in new-hire mode — keep object-fit
+       cover so the raw portrait fills the frame without distortion. */
+    #post-canvas.mode-newhire .person-photo {
+      height: 100%; object-fit: cover; width: 100%;
+    }
+    /* Swap roles in nameplate: np-title (white) = "Name Surname", and
+       np-name (accent) = "Welcome our new …" (big, multi-line). */
+    #post-canvas.mode-newhire .nameplate-stack {
+      right: 41px;  /* let the accent badge span the full width */
+    }
+    #post-canvas.mode-newhire .np-title { order: 0; }
+    #post-canvas.mode-newhire .np-name  { order: 1; align-self: stretch; max-width: none; }
+    #post-canvas.mode-newhire .np-title p { font-size: 28px; letter-spacing: -0.28px; }
+    #post-canvas.mode-newhire .np-name p  {
+      font-size: 88px; letter-spacing: -0.88px;
+      line-height: 1; white-space: pre-line;
+    }
+
     /* ── Toggle switch + collapsible section ── */
     .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
@@ -196,6 +236,24 @@
       outline: none; border-color: #17bff2; background: #fff;
     }
     .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
+
+    /* Mode segmented control */
+    .seg-control { display: flex; gap: 6px; background: #f5f5f5; padding: 4px; border-radius: 8px; }
+    .seg-btn {
+      flex: 1; padding: 8px 10px; font-size: 13px; font-weight: 600;
+      font-family: inherit; color: #555; background: transparent;
+      border: none; border-radius: 6px; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .seg-btn.active { background: #141414; color: #fff; }
+    .seg-btn:not(.active):hover { color: #141414; }
+
+    /* Mode-scoped visibility in the controls panel */
+    .newhire-only, .newhire-only-inline { display: none; }
+    .controls.mode-newhire .event-only { display: none !important; }
+    .controls.mode-newhire .event-only-inline { display: none; }
+    .controls.mode-newhire .newhire-only { display: flex; }
+    .controls.mode-newhire .newhire-only-inline { display: inline; }
 
     /* Color palette */
     .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
@@ -390,8 +448,19 @@
   <!-- ── Controls ── -->
   <div class="controls">
 
-    <!-- Event date + name (top-left badges) -->
+    <!-- Mode switch -->
     <div class="control-section">
+      <label class="control-label">Style</label>
+      <div class="seg-control" id="mode-switch">
+        <button class="seg-btn active" data-mode="event" type="button">Event</button>
+        <button class="seg-btn" data-mode="newhire" type="button">New Hire</button>
+      </div>
+    </div>
+
+    <div class="divider event-only"></div>
+
+    <!-- Event date + name (top-left badges) -->
+    <div class="control-section event-only">
       <div class="section-row">
         <label class="control-label">Event Badges</label>
         <label class="toggle-switch">
@@ -431,7 +500,7 @@
     <div class="divider"></div>
 
     <!-- Partner logo 1 -->
-    <div class="control-section">
+    <div class="control-section event-only">
       <div class="section-row">
         <label class="control-label">Partner Logo 1</label>
         <label class="toggle-switch">
@@ -456,7 +525,7 @@
     </div>
 
     <!-- Partner logo 2 -->
-    <div class="control-section">
+    <div class="control-section event-only">
       <div class="section-row">
         <label class="control-label">Partner Logo 2</label>
         <label class="toggle-switch">
@@ -495,11 +564,11 @@
       </div>
       <div class="section-body">
         <div>
-          <label class="sub-label">Name</label>
-          <input class="control-input" id="input-name" type="text" value="Full Name" />
+          <label class="sub-label"><span class="event-only-inline">Name</span><span class="newhire-only-inline">Welcome Message</span></label>
+          <textarea class="control-textarea" id="input-name" rows="2">Full Name</textarea>
         </div>
         <div>
-          <label class="sub-label">Title</label>
+          <label class="sub-label"><span class="event-only-inline">Title</span><span class="newhire-only-inline">Name</span></label>
           <textarea class="control-textarea" id="input-title" rows="2">Job Title</textarea>
         </div>
       </div>
@@ -627,7 +696,8 @@
   // Shrink the name font by 2px at a time until the single-line text
   // fits within the canvas (accounting for canvas padding + np-name
   // padding). Only the name text is affected.
-  const NAME_BASE_SIZE_3 = 120;
+  const NAME_BASE_SIZE_3 = 120;         // Event mode base
+  const NAME_BASE_SIZE_3_NEWHIRE = 88;  // New Hire mode base
   const NAME_MIN_SIZE_3 = 40;
   const CANVAS_SIDE_PAD = 41;   // matches .top-badges / .nameplate-stack inset
   const NP_NAME_PAD_X = 14;     // .np-name padding-left/right
@@ -658,7 +728,8 @@
     if (!el) return;
     const cvs = document.getElementById('post-canvas');
     const available = cvs.clientWidth - 2 * CANVAS_SIDE_PAD - 2 * NP_NAME_PAD_X;
-    let size = NAME_BASE_SIZE_3;
+    const isNewHire = cvs.classList.contains('mode-newhire');
+    let size = isNewHire ? NAME_BASE_SIZE_3_NEWHIRE : NAME_BASE_SIZE_3;
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {
       if (size <= NAME_MIN_SIZE_3) break;
@@ -704,6 +775,27 @@
   }
   bindPartnerToggle('partner1-toggle', 'logo-partner-1', 'divider-1');
   bindPartnerToggle('partner2-toggle', 'logo-partner-2', 'divider-2');
+
+  // ── Mode switch: Event vs New Hire ─────────────────────────
+  const controlsEl = document.querySelector('.controls');
+  const modeSwitch = document.getElementById('mode-switch');
+  function applyMode(mode) {
+    canvas.classList.remove('mode-newhire');
+    controlsEl.classList.remove('mode-newhire');
+    if (mode === 'newhire') {
+      canvas.classList.add('mode-newhire');
+      controlsEl.classList.add('mode-newhire');
+    }
+    modeSwitch.querySelectorAll('.seg-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
+    // Re-fit the name font after layout change (sizing rules differ)
+    if (typeof fitName === 'function') fitName();
+  }
+  modeSwitch.querySelectorAll('.seg-btn').forEach(b => {
+    b.addEventListener('click', () => applyMode(b.dataset.mode));
+  });
+  applyMode('event');
 
   // ── Accent color palette ───────────────────────────────────
   // Colors dark enough to need white text on top

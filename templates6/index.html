@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Post Builder — Milestone (Pattern)</title>
+  <title>Post Builder — Milestone</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @font-face {
@@ -20,7 +20,6 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
 
-    /* ── App header ── */
     .header {
       padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8;
       display: flex; align-items: center; gap: 12px; flex-shrink: 0;
@@ -29,16 +28,8 @@
     .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
     .header p  { font-size: 13px; color: #999; }
 
-    /* ── Workspace ── */
-    .workspace {
-      flex: 1; display: grid; grid-template-columns: 1fr 25vw;
-      min-height: 0; overflow: hidden;
-    }
-
-    .preview-area {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 40px 32px; gap: 12px; overflow: hidden;
-    }
+    .workspace { flex: 1; display: grid; grid-template-columns: 1fr 25vw; min-height: 0; overflow: hidden; }
+    .preview-area { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 32px; gap: 12px; overflow: hidden; }
     .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
     .preview-hint { font-size: 12px; color: #aaa; }
 
@@ -47,81 +38,175 @@
       width: 1080px; height: 1350px;
       transform-origin: top left;
       font-family: 'GT Standard', sans-serif;
-      background: #0a0a0a url('/assets/pattern-1.png') center center / cover no-repeat;
-      color: var(--text-on-bg, #fff);
       position: relative;
       overflow: hidden;
+      background: #0a0a0a;
+      --split-top: 675px;
     }
 
-    /* Top-left small tag badge */
-    .top-tag {
+    /* Layered backgrounds — visibility driven by .variant-X on the canvas */
+    .bg-solid {
+      position: absolute; inset: 0;
+      background: var(--accent, #ff574a);
+      display: none;
+    }
+    .bg-photo {
+      position: absolute; top: 0; right: 0; bottom: 0;
+      width: 34%;
+      background: #333 center/cover no-repeat;
+      display: none;
+    }
+    .bg-dark-full {
+      position: absolute; inset: 0;
+      background: #0a0a0a;
+      display: none;
+    }
+    .bg-pattern-strip-bottom {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: 45%;
+      background: #0a0a0a url('/assets/pattern-1.png') center / cover no-repeat;
+      display: none;
+    }
+    .bg-pattern-strip-top {
+      position: absolute; left: 0; right: 0; top: 0;
+      height: 50%;
+      background: #0a0a0a url('/assets/pattern-1.png') center / cover no-repeat;
+      display: none;
+    }
+    .bg-dark-bottom {
+      position: absolute; left: 0; right: 0; bottom: 0;
+      height: 50%;
+      background: #0a0a0a;
+      display: none;
+    }
+    .bg-pattern-full {
+      position: absolute; inset: 0;
+      background: #0a0a0a url('/assets/pattern-1.png') center / cover no-repeat;
+      display: none;
+    }
+
+    /* Variant A — Solid accent bg + photo strip on right */
+    #post-canvas.variant-solid .bg-solid,
+    #post-canvas.variant-solid .bg-photo { display: block; }
+    /* Variant B — Full dark + pattern strip at bottom */
+    #post-canvas.variant-dark .bg-dark-full,
+    #post-canvas.variant-dark .bg-pattern-strip-bottom { display: block; }
+    /* Variant C — Pattern top, dark bottom */
+    #post-canvas.variant-split .bg-pattern-strip-top,
+    #post-canvas.variant-split .bg-dark-bottom { display: block; }
+    /* Variant D — Full pattern */
+    #post-canvas.variant-pattern .bg-pattern-full { display: block; }
+
+    /* Top-left Paysend wordmark (white) */
+    .top-brand {
       position: absolute; top: 41px; left: 41px;
-      background: #fff; padding: 10px 14px;
-      align-self: flex-start; z-index: 3;
+      z-index: 3; display: flex; align-items: center;
     }
-    .top-tag.hidden { display: none !important; }
-    .top-tag p {
-      font-size: 28px; font-weight: 600; color: #141414;
-      line-height: 1; letter-spacing: -0.28px; white-space: nowrap;
+    .top-brand .logo-paysend {
+      height: 44px; width: auto;
+      filter: brightness(0) invert(1);
     }
+    /* In the solid variant the brand sits at the bottom-left instead. */
+    #post-canvas.variant-solid .top-brand { display: none; }
 
-    /* Top-right Paysend logo */
-    .top-logos {
+    /* News tag top-right */
+    .news-tag {
       position: absolute; top: 41px; right: 41px;
-      display: flex; align-items: center; gap: 20px; z-index: 3;
+      background: #fff; padding: 8px 14px;
+      z-index: 3;
     }
-    .top-logos .logo-paysend {
-      height: 40px; width: auto; display: block;
-      flex-shrink: 0; object-fit: contain;
-      filter: var(--logo-filter, brightness(0) invert(1));
+    .news-tag.hidden { display: none !important; }
+    .news-tag span {
+      font-size: 20px; font-weight: 600; color: #141414;
+      line-height: 1; letter-spacing: -0.1px; white-space: nowrap;
     }
+    /* In solid variant, no news tag (design shows none) */
+    #post-canvas.variant-solid .news-tag { display: none; }
 
-    /* Main headline — large, bold, aligned to top-left under tag */
-    .headline-block {
+    /* Headline */
+    .headline {
       position: absolute;
-      top: 160px; left: 41px; right: 41px;
+      left: 41px;
       z-index: 2;
+      max-width: 998px;
     }
-    .headline-block.hidden { display: none !important; }
-    .headline-block p {
-      font-size: 110px; font-weight: 600;
-      color: var(--text-on-bg, #fff);
-      line-height: 0.92; letter-spacing: -1.1px;
+    .headline.hidden { display: none !important; }
+    .headline p {
+      font-size: 108px; font-weight: 600;
+      color: #fff;
+      line-height: 0.95; letter-spacing: -1.08px;
       white-space: pre-line; overflow-wrap: break-word;
     }
+    /* Variant-specific headline placement & color */
+    #post-canvas.variant-solid .headline {
+      top: 137px;
+      right: calc(34% + 41px); /* keep clear of photo strip */
+      color: var(--text-on-accent, #141414);
+    }
+    #post-canvas.variant-solid .headline p {
+      color: var(--text-on-accent, #141414);
+    }
+    /* Highlighted inline effect on first 2 lines — applied via .hl span */
+    #post-canvas.variant-solid .headline p .hl {
+      background: #fff;
+      padding: 0 8px;
+      color: var(--accent, #ff574a);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+    #post-canvas.variant-dark .headline { top: 206px; right: 41px; }
+    #post-canvas.variant-split .headline { top: 760px; right: 41px; }
+    #post-canvas.variant-pattern .headline { top: 63px; right: 41px; }
 
-    /* Body copy near bottom-left */
+    /* Body copy */
     .body-block {
       position: absolute;
-      left: 41px; right: 41px; bottom: 180px;
-      z-index: 2; max-width: 720px;
+      left: 41px;
+      z-index: 2;
+      max-width: 740px;
     }
     .body-block.hidden { display: none !important; }
     .body-block p {
-      font-size: 24px; font-weight: 400;
-      color: var(--text-on-bg, #fff);
-      line-height: 1.35; letter-spacing: -0.1px;
+      font-size: 22px; font-weight: 400;
+      color: #fff;
+      line-height: 1.3; letter-spacing: -0.1px;
       white-space: pre-line;
     }
+    #post-canvas.variant-solid .body-block {
+      top: 700px;
+      right: calc(34% + 41px);
+      max-width: none;
+    }
+    #post-canvas.variant-solid .body-block p {
+      color: var(--text-on-accent, #141414);
+    }
+    #post-canvas.variant-dark .body-block { top: 600px; right: 41px; max-width: 740px; }
+    #post-canvas.variant-split .body-block { top: 1190px; right: 41px; max-width: 740px; }
+    #post-canvas.variant-pattern .body-block { top: 540px; right: 41px; max-width: 998px; }
 
-    /* Bottom-left Paysend wordmark + planet */
+    /* Paysend wordmark at bottom (used by solid + pattern variants) */
     .bottom-brand {
       position: absolute;
       left: 41px; bottom: 41px;
       display: flex; align-items: center; gap: 12px;
       z-index: 3;
     }
-    .bottom-brand .bm-wordmark {
+    .bottom-brand .logo-paysend {
       height: 48px; width: auto;
-      filter: var(--logo-filter, brightness(0) invert(1));
+      filter: brightness(0) invert(1);
     }
-    .bottom-brand .bm-planet {
-      width: 48px; height: 48px;
-      color: var(--text-on-bg, #fff);
+    #post-canvas.variant-solid .bottom-brand .logo-paysend {
+      filter: var(--brand-filter-on-accent, brightness(0) invert(1));
     }
-    .bottom-brand .bm-planet svg { width: 100%; height: 100%; display: block; fill: currentColor; }
+    #post-canvas.variant-solid .bottom-brand {
+      /* show the wordmark in text-on-accent color */
+    }
+    /* Hide bottom-brand where design doesn't show one */
+    #post-canvas.variant-dark .bottom-brand,
+    #post-canvas.variant-split .bottom-brand { display: none; }
+    #post-canvas.variant-pattern .bottom-brand .logo-paysend { height: 96px; }
 
-    /* ── Toggle switch ── */
+    /* ── Toggle + controls styles ── */
     .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
     .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
     .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
@@ -134,7 +219,6 @@
     .control-section.section-off .section-body { display: none; }
     .sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 4px; display: block; }
 
-    /* ── Controls ── */
     .controls {
       background: #fff; border-left: 1px solid #e8e8e8;
       padding: 24px 20px; display: flex; flex-direction: column; gap: 16px;
@@ -151,7 +235,18 @@
     .control-input:focus, .control-textarea:focus { outline: none; border-color: #17bff2; background: #fff; }
     .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
 
-    /* Color palette */
+    .seg-control { display: flex; gap: 4px; background: #f5f5f5; padding: 4px; border-radius: 8px; flex-wrap: wrap; }
+    .seg-btn {
+      flex: 1 1 45%;
+      padding: 8px 10px; font-size: 12px; font-weight: 600;
+      font-family: inherit; color: #555; background: transparent;
+      border: none; border-radius: 6px; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      min-width: 0;
+    }
+    .seg-btn.active { background: #141414; color: #fff; }
+    .seg-btn:not(.active):hover { color: #141414; }
+
     .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
     .color-swatch {
       width: 32px; height: 32px; border-radius: 50%;
@@ -161,7 +256,27 @@
     .color-swatch:hover { transform: scale(1.15); }
     .color-swatch.active { border-color: #141414; transform: scale(1.1); box-shadow: 0 0 0 1px #fff inset; }
 
-    /* Download */
+    .upload-zone {
+      border: 2px dashed #ddd; border-radius: 8px; padding: 12px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      min-height: 70px; display: flex; align-items: center; justify-content: center;
+    }
+    .upload-zone:hover { border-color: #17bff2; background: #f0fbff; }
+    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #aaa; font-size: 12px; }
+    .upload-icon { font-size: 18px; line-height: 1; }
+    .upload-hint { font-size: 11px; color: #ccc; }
+    .upload-preview { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+    .upload-preview img { width: 100%; height: 60px; object-fit: cover; border-radius: 4px; }
+    .remove-photo { font-size: 11px; color: #e94560; background: none; border: none; cursor: pointer; padding: 2px 4px; font-family: inherit; }
+    .remove-photo:hover { text-decoration: underline; }
+
+    /* Controls visibility per variant */
+    .only-solid, .only-dark-split, .only-pattern { display: none; }
+    .controls.variant-solid .only-solid { display: flex; }
+    .controls.variant-dark  .only-dark-split { display: flex; }
+    .controls.variant-split .only-dark-split { display: flex; }
+    .controls.variant-pattern .only-pattern { display: flex; }
+
     .download-btn {
       margin-top: auto; padding: 13px 20px;
       background: #141414; color: #fff; border: none;
@@ -192,38 +307,42 @@
       <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </a>
     <h1>Post Builder</h1>
-    <p>1080 × 1350 Milestone — Pattern</p>
+    <p>1080 × 1350 Milestone</p>
   </header>
 
   <main class="workspace">
 
   <div class="preview-area">
     <div class="preview-wrapper">
-      <div id="post-canvas">
+      <div id="post-canvas" class="variant-dark" style="--accent:#ff574a">
 
-        <div class="top-tag" id="top-tag">
-          <p id="preview-tag">Newsroom</p>
-        </div>
+        <!-- Background layers (each only visible in its variant) -->
+        <div class="bg-solid"></div>
+        <div class="bg-photo" id="bg-photo"></div>
+        <div class="bg-dark-full"></div>
+        <div class="bg-pattern-strip-bottom"></div>
+        <div class="bg-pattern-strip-top"></div>
+        <div class="bg-dark-bottom"></div>
+        <div class="bg-pattern-full"></div>
 
-        <div class="top-logos">
+        <div class="top-brand">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
         </div>
 
-        <div class="headline-block" id="headline-block">
+        <div class="news-tag" id="news-tag">
+          <span id="preview-tag">news</span>
+        </div>
+
+        <div class="headline" id="headline">
           <p id="preview-headline">Big Milestone for Paysend Canada!</p>
         </div>
 
         <div class="body-block" id="body-block">
-          <p id="preview-body">Now officially registered as a Paysend Service Provider (PSP) under Canada's new regulations. Proud to be one of the first in the country of 11.</p>
+          <p id="preview-body">Now officially registered as a Payment Service Provider (PSP) under Canada's new regulatory framework. Proud to be one of the first in the country!</p>
         </div>
 
         <div class="bottom-brand">
-          <img class="bm-wordmark" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
-          <div class="bm-planet">
-            <svg viewBox="0 0 361 329" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M179.955 0C252.312 0 313.868 45.6934 336.681 109.47H350.607C356.731 126.59 360.064 145.013 360.064 164.205C360.064 183.397 356.731 201.82 350.607 218.94H336.681C313.868 282.717 252.312 328.41 179.955 328.41C107.598 328.41 46.0424 282.717 23.2288 218.94H9.45723C3.33319 201.82 0 183.397 0 164.205C0 145.013 3.33319 126.59 9.45723 109.47H23.2288C46.0424 45.6934 107.598 0 179.955 0ZM245.775 48.4731C255.357 65.5403 262.833 86.3133 267.458 109.47H281.384C284.804 126.59 286.667 145.013 286.667 164.205C286.667 183.398 284.804 201.82 281.384 218.94H267.458C262.833 242.096 255.357 262.869 245.775 279.936C270.602 266.12 290.535 244.731 302.366 218.94H316.292C323.948 202.252 328.212 183.721 328.212 164.205C328.212 144.69 323.948 126.159 316.292 109.47H302.366C290.535 83.6787 270.603 62.2887 245.775 48.4731ZM43.7716 109.47C36.1162 126.159 31.8517 144.69 31.8517 164.205C31.8517 183.721 36.1161 202.252 43.7716 218.94H57.5432C69.3742 244.731 89.3069 266.12 114.134 279.936C104.552 262.869 97.0757 242.097 92.4504 218.94H78.6785C75.2589 201.82 73.3975 183.397 73.3975 164.205C73.3975 145.013 75.2591 126.59 78.6785 109.47H92.4504C97.0756 86.3132 104.552 65.5403 114.134 48.4731C89.3066 62.2887 69.3741 83.6788 57.5432 109.47H43.7716ZM111.234 109.47C107.44 126.018 105.25 144.482 105.25 164.205C105.25 183.928 107.44 202.393 111.234 218.94H125.005C129.099 236.792 135.059 252.413 142.156 264.973C156.417 290.21 171.072 296.938 179.955 296.938C188.838 296.938 203.493 290.21 217.753 264.973C224.851 252.413 230.811 236.792 234.905 218.94H248.831C252.625 202.393 254.815 183.928 254.815 164.205C254.815 144.482 252.625 126.018 248.831 109.47H234.905C230.811 91.6183 224.851 75.9977 217.753 63.4371C203.493 38.2001 188.838 31.4727 179.955 31.4727C171.072 31.4727 156.417 38.2001 142.156 63.4371C135.059 75.9977 129.099 91.6183 125.005 109.47H111.234Z"/>
-            </svg>
-          </div>
+          <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
         </div>
 
       </div>
@@ -231,21 +350,68 @@
     <p class="preview-hint">Preview scaled — exports 1080 × 1350</p>
   </div>
 
-  <div class="controls">
+  <div class="controls variant-dark">
 
-    <!-- Top tag -->
+    <!-- Variant switch -->
     <div class="control-section">
+      <label class="control-label">Variant</label>
+      <div class="seg-control" id="variant-switch">
+        <button class="seg-btn" data-variant="solid" type="button">Solid + Photo</button>
+        <button class="seg-btn active" data-variant="dark" type="button">Dark</button>
+        <button class="seg-btn" data-variant="split" type="button">Split</button>
+        <button class="seg-btn" data-variant="pattern" type="button">Pattern</button>
+      </div>
+    </div>
+
+    <!-- Accent color (solid variant) -->
+    <div class="control-section only-solid">
+      <label class="control-label">Accent Color</label>
+      <div class="color-palette" id="color-palette">
+        <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+        <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
+        <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
+        <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
+        <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
+        <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
+        <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
+        <button class="color-swatch active" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+        <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+      </div>
+    </div>
+
+    <!-- Right-side photo (solid variant) -->
+    <div class="control-section only-solid">
+      <label class="control-label">Side Photo</label>
+      <div class="upload-zone" id="photo-zone">
+        <div class="upload-placeholder">
+          <span class="upload-icon">↑</span>
+          <span>Click or drag</span>
+          <span class="upload-hint">PNG, JPG, WEBP</span>
+        </div>
+        <div class="upload-preview" style="display:none">
+          <img src="" alt="thumb" />
+          <button class="remove-photo">Remove</button>
+        </div>
+      </div>
+      <input type="file" accept="image/*" id="photo-file" style="display:none" />
+    </div>
+
+    <!-- News tag (dark / split only) -->
+    <div class="control-section only-dark-split">
       <div class="section-row">
-        <label class="control-label">Top Tag</label>
+        <label class="control-label">News Tag</label>
         <label class="toggle-switch">
           <input type="checkbox" id="tag-toggle" checked />
           <span class="toggle-slider"></span>
         </label>
       </div>
       <div class="section-body">
-        <input class="control-input" id="input-tag" type="text" value="Newsroom" />
+        <input class="control-input" id="input-tag" type="text" value="news" />
       </div>
     </div>
+
+    <div class="divider"></div>
 
     <!-- Headline -->
     <div class="control-section">
@@ -271,7 +437,7 @@
         </label>
       </div>
       <div class="section-body">
-        <textarea class="control-textarea" id="input-body" rows="5">Now officially registered as a Paysend Service Provider (PSP) under Canada's new regulations. Proud to be one of the first in the country of 11.</textarea>
+        <textarea class="control-textarea" id="input-body" rows="5">Now officially registered as a Payment Service Provider (PSP) under Canada's new regulatory framework. Proud to be one of the first in the country!</textarea>
       </div>
     </div>
 
@@ -281,7 +447,27 @@
   </main>
 
   <script>
+  const MAX_EDGE = 2400;
+  const SMALL_FILE_BYTES = 400 * 1024;
+  async function fileToOptimizedSrc(file) {
+    if (file.type === 'image/svg+xml' || file.size <= SMALL_FILE_BYTES) { return URL.createObjectURL(file); }
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+      if (scale === 1) { bitmap.close(); return URL.createObjectURL(file); }
+      const w = Math.round(bitmap.width * scale);
+      const h = Math.round(bitmap.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+      bitmap.close();
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.88));
+      return URL.createObjectURL(blob);
+    } catch { return URL.createObjectURL(file); }
+  }
+
   const canvas = document.getElementById('post-canvas');
+  const controlsEl = document.querySelector('.controls');
 
   function bindText(inputId, previewId) {
     const input = document.getElementById(inputId);
@@ -290,11 +476,41 @@
     input.addEventListener('input', () => { preview.textContent = input.value; });
   }
   bindText('input-tag', 'preview-tag');
-  bindText('input-headline', 'preview-headline');
   bindText('input-body', 'preview-body');
 
-  // Headline auto-fit (longest word must fit)
-  const HL_BASE = 110;
+  // Headline binding: for the "solid" variant, wrap the first two lines
+  // in <span class="hl">…</span> so they render as highlighted inline
+  // text. For other variants, plain textContent is used.
+  const headlineInput = document.getElementById('input-headline');
+  const headlineEl = document.getElementById('preview-headline');
+  function applyHeadline() {
+    const text = headlineInput.value;
+    if (canvas.classList.contains('variant-solid')) {
+      const lines = text.split('\n');
+      // Highlight every line except the last (so the "Canada!" line
+      // lands on accent without a white chip behind it).
+      if (lines.length === 1) {
+        const words = text.split(/\s+/);
+        const last = words.pop();
+        const head = words.join(' ');
+        headlineEl.innerHTML = (head ? `<span class="hl">${escapeHtml(head)}</span> ` : '') + escapeHtml(last);
+      } else {
+        const last = lines.pop();
+        const head = lines.map(l => `<span class="hl">${escapeHtml(l)}</span>`).join('<br>');
+        headlineEl.innerHTML = head + '<br>' + escapeHtml(last);
+      }
+    } else {
+      headlineEl.textContent = text;
+    }
+    fitHeadline();
+  }
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  }
+  headlineInput.addEventListener('input', applyHeadline);
+
+  // Headline auto-fit
+  const HL_BASE = 108;
   const HL_MIN = 48;
   const CANVAS_PAD_X = 41;
   function longestWordWidth(el) {
@@ -312,18 +528,15 @@
     probe.style.textTransform = cs.textTransform;
     document.body.appendChild(probe);
     let max = 0;
-    for (const w of words) {
-      probe.textContent = w;
-      if (probe.offsetWidth > max) max = probe.offsetWidth;
-    }
+    for (const w of words) { probe.textContent = w; if (probe.offsetWidth > max) max = probe.offsetWidth; }
     document.body.removeChild(probe);
     return max;
   }
   function fitHeadline() {
     const el = document.getElementById('preview-headline');
     if (!el) return;
-    const cvs = document.getElementById('post-canvas');
-    const available = cvs.clientWidth - 2 * CANVAS_PAD_X;
+    const headlineWrap = document.getElementById('headline');
+    const available = headlineWrap.clientWidth;
     let size = HL_BASE;
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {
@@ -333,7 +546,6 @@
       el.style.fontSize = size + 'px';
     }
   }
-  document.getElementById('input-headline').addEventListener('input', fitHeadline);
 
   // Toggles
   function syncSectionOff(cb) {
@@ -343,74 +555,113 @@
   }
   function bindToggle(toggleId, targetEl) {
     const cb = document.getElementById(toggleId);
-    const apply = () => {
-      targetEl.classList.toggle('hidden', !cb.checked);
-      syncSectionOff(cb);
-    };
+    const apply = () => { targetEl.classList.toggle('hidden', !cb.checked); syncSectionOff(cb); };
     cb.addEventListener('change', apply);
     apply();
   }
-  bindToggle('tag-toggle', document.getElementById('top-tag'));
-  bindToggle('headline-toggle', document.getElementById('headline-block'));
+  bindToggle('tag-toggle', document.getElementById('news-tag'));
+  bindToggle('headline-toggle', document.getElementById('headline'));
   bindToggle('body-toggle', document.getElementById('body-block'));
+
+  // Variant switch
+  const variantSwitch = document.getElementById('variant-switch');
+  function applyVariant(v) {
+    ['solid','dark','split','pattern'].forEach(x => {
+      canvas.classList.toggle('variant-' + x, x === v);
+      controlsEl.classList.toggle('variant-' + x, x === v);
+    });
+    variantSwitch.querySelectorAll('.seg-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.variant === v);
+    });
+    applyHeadline();
+  }
+  variantSwitch.querySelectorAll('.seg-btn').forEach(b => {
+    b.addEventListener('click', () => applyVariant(b.dataset.variant));
+  });
+
+  // Color palette (only meaningful in solid variant)
+  const DARK_ACCENT = new Set(['#4a57c5', '#ff574a']);
+  document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      canvas.style.setProperty('--accent', sw.dataset.color);
+      canvas.style.setProperty('--text-on-accent', DARK_ACCENT.has(sw.dataset.color) ? '#fff' : '#141414');
+      document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+    });
+  });
+
+  // Side photo upload → sets .bg-photo background-image
+  (function setupPhotoUpload() {
+    const zone = document.getElementById('photo-zone');
+    const fileInput = document.getElementById('photo-file');
+    const bgPhotoEl = document.getElementById('bg-photo');
+    const placeholder = zone.querySelector('.upload-placeholder');
+    const preview = zone.querySelector('.upload-preview');
+    const thumb = preview.querySelector('img');
+    const removeBtn = preview.querySelector('.remove-photo');
+    function setSrc(src) {
+      bgPhotoEl.style.backgroundImage = `url('${src}')`;
+      thumb.src = src;
+      placeholder.style.display = 'none';
+      preview.style.display = 'flex';
+    }
+    function clearSrc() {
+      bgPhotoEl.style.backgroundImage = '';
+      fileInput.value = '';
+      placeholder.style.display = 'flex';
+      preview.style.display = 'none';
+    }
+    zone.addEventListener('click', e => { if (e.target === removeBtn || removeBtn.contains(e.target)) return; fileInput.click(); });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+    zone.addEventListener('drop', async e => { e.preventDefault(); zone.style.borderColor = ''; const f = e.dataTransfer.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
+    fileInput.addEventListener('change', async () => { const f = fileInput.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
+    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
+  })();
 
   // Preview scaling
   (function scalePreview() {
     const CANVAS_W = 1080, CANVAS_H = 1350;
-    const PREVIEW_PAD = 64;
-    const HEADER_H = 60;
+    const PREVIEW_PAD = 64; const HEADER_H = 60;
     const wrapper = document.querySelector('.preview-wrapper');
     const cvs = document.getElementById('post-canvas');
-
     function update() {
       const w = window.innerWidth, h = window.innerHeight;
       let sidebarFrac;
-      if (w < 500)       sidebarFrac = 0;
-      else if (w < 800)  sidebarFrac = 0.40;
+      if (w < 500) sidebarFrac = 0;
+      else if (w < 800) sidebarFrac = 0.40;
       else if (w < 1200) sidebarFrac = 0.33;
-      else               sidebarFrac = 0.25;
-
+      else sidebarFrac = 0.25;
       let availW, availH;
       if (w < 500) { availW = w; availH = Infinity; }
-      else {
-        availW = w * (1 - sidebarFrac) - PREVIEW_PAD;
-        availH = h - HEADER_H - 80;
-      }
+      else { availW = w * (1 - sidebarFrac) - PREVIEW_PAD; availH = h - HEADER_H - 80; }
       const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
-      wrapper.style.width  = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.width = Math.round(CANVAS_W * scale) + 'px';
       wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
-      cvs.style.transform  = `scale(${scale})`;
+      cvs.style.transform = `scale(${scale})`;
     }
     update();
     window.addEventListener('resize', update);
   })();
 
-  // Download
   document.getElementById('download-btn').addEventListener('click', async () => {
     const btn = document.getElementById('download-btn');
     btn.textContent = 'Exporting…'; btn.disabled = true;
     try {
       const result = await html2canvas(canvas, {
         scale: 1, width: 1080, height: 1350,
-        useCORS: true, allowTaint: true, backgroundColor: null,
-        logging: false
+        useCORS: true, allowTaint: true, backgroundColor: null, logging: false
       });
       const link = document.createElement('a');
-      link.download = 'paysend-milestone-pattern.png';
+      link.download = 'paysend-milestone.png';
       link.href = result.toDataURL('image/png');
       link.click();
-    } catch (err) {
-      console.error('Download failed:', err);
-    } finally {
-      btn.textContent = 'Download PNG'; btn.disabled = false;
-    }
+    } catch (err) { console.error('Download failed:', err); }
+    finally { btn.textContent = 'Download PNG'; btn.disabled = false; }
   });
 
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => fitHeadline());
-  } else {
-    fitHeadline();
-  }
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(() => applyHeadline()); }
+  else { applyHeadline(); }
   </script>
 </body>
 </html>
