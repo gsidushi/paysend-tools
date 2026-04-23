@@ -52,19 +52,19 @@
     }
     .bg-pattern-strip-bottom {
       position: absolute; left: 0; right: 0; bottom: 0;
-      height: 220px;
+      height: 50%;
       background: #0a0a0a url('/assets/pattern-1.png') center / cover no-repeat;
       display: none;
     }
     .bg-pattern-strip-top {
       position: absolute; left: 0; right: 0; top: 0;
-      height: 55%;
+      height: 50%;
       background: #0a0a0a url('/assets/pattern-1.png') center / cover no-repeat;
       display: none;
     }
     .bg-dark-bottom {
       position: absolute; left: 0; right: 0; bottom: 0;
-      height: 45%;
+      height: 50%;
       background: #0a0a0a;
       display: none;
     }
@@ -92,19 +92,18 @@
     #post-canvas.variant-pattern .bg-dark-top,
     #post-canvas.variant-pattern .bg-pattern-strip-pattern { display: block; }
 
-    /* Top-left Paysend wordmark + planet (white) */
+    /* Top-left Paysend wordmark (white). Height matches the tag's height. */
     .top-brand {
       position: absolute; top: 41px; left: 41px;
-      z-index: 3; display: flex; align-items: center; gap: 10px;
+      z-index: 3; display: flex; align-items: center;
+      height: 48px; /* = news-tag height (10+28+10) */
     }
     .top-brand .logo-paysend {
-      height: 34px; width: auto;
+      height: 100%; width: auto;
       filter: brightness(0) invert(1);
     }
-    .top-brand .logo-planet {
-      width: 34px; height: 34px;
-      filter: brightness(0) invert(1);
-    }
+    /* Pattern variant has no top-left brand — tag only. */
+    #post-canvas.variant-pattern .top-brand { display: none; }
 
     /* News tag top-right */
     .news-tag {
@@ -132,9 +131,17 @@
       line-height: 0.95; letter-spacing: -1.04px;
       white-space: pre-line; overflow-wrap: break-word;
     }
-    #post-canvas.variant-dark    .headline { top: 140px; right: 41px; }
-    #post-canvas.variant-split   .headline { top: 780px; right: 41px; }
-    #post-canvas.variant-pattern .headline { top: 140px; right: 41px; }
+    /* Dark (1st): pattern image fills bottom half. Text distributed across
+       the upper (dark) half. */
+    #post-canvas.variant-dark .headline { top: 140px; left: 41px; right: 41px; }
+    /* Split (2nd): pattern fills top half. Text across bottom (dark) half. */
+    #post-canvas.variant-split .headline { top: 735px; left: 41px; right: 41px; }
+    /* Pattern (3rd): text across top half, pattern + big logo bottom half.
+       Headline is smaller for this layout. */
+    #post-canvas.variant-pattern .headline { top: 140px; left: 41px; right: 41px; }
+    #post-canvas.variant-pattern .headline p {
+      font-size: 52px; line-height: 0.95; letter-spacing: -0.52px;
+    }
 
     /* Body copy */
     .body-block {
@@ -145,16 +152,15 @@
     }
     .body-block.hidden { display: none !important; }
     .body-block p {
-      font-size: 26px; font-weight: 400;
+      font-size: 36px; font-weight: 400;
       color: #fff;
-      line-height: 1.35; letter-spacing: -0.13px;
+      line-height: 0.95; letter-spacing: -0.18px;
       white-space: pre-line;
     }
-    /* Body copy must never overlap the pattern strip. Constrain so bottom
-       edge stays inside each variant's dark zone. */
-    #post-canvas.variant-dark    .body-block { top: 540px; right: 41px; max-width: 880px; max-height: calc(1350px - 540px - 220px - 40px); overflow: hidden; }
-    #post-canvas.variant-split   .body-block { top: 1100px; right: 41px; max-width: 880px; max-height: calc(1350px - 1100px - 41px); overflow: hidden; }
-    #post-canvas.variant-pattern .body-block { top: 520px; right: 41px; max-width: 880px; max-height: calc(50% - 520px - 10px); overflow: hidden; }
+    /* Body copy sits inside the dark half — never overlaps the pattern. */
+    #post-canvas.variant-dark    .body-block { top: 470px; left: 41px; right: 41px; max-width: 880px; }
+    #post-canvas.variant-split   .body-block { top: 1060px; left: 41px; right: 41px; max-width: 880px; }
+    #post-canvas.variant-pattern .body-block { top: 360px; left: 41px; right: 41px; max-width: 880px; }
 
     /* Paysend wordmark at bottom (used by solid + pattern variants) */
     .bottom-brand {
@@ -300,7 +306,6 @@
 
         <div class="top-brand">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
-          <img class="logo-planet" src="/assets/logo-planet.svg" alt="" />
         </div>
 
         <div class="news-tag" id="news-tag">
@@ -453,10 +458,12 @@
     if (!el) return;
     const headlineWrap = document.getElementById('headline');
     const available = headlineWrap.clientWidth;
-    let size = HL_BASE;
+    const isPattern = canvas.classList.contains('variant-pattern');
+    let size = isPattern ? 52 : HL_BASE;
+    const minSize = isPattern ? 28 : HL_MIN;
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {
-      if (size <= HL_MIN) break;
+      if (size <= minSize) break;
       if (longestWordWidth(el) <= available + 0.5) break;
       size -= 2;
       el.style.fontSize = size + 'px';

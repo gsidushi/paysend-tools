@@ -172,11 +172,16 @@
     #post-canvas.mode-newhire .top-badges,
     #post-canvas.mode-newhire .top-logos .logo-partner,
     #post-canvas.mode-newhire .top-logos .logo-divider { display: none !important; }
-    #post-canvas.mode-newhire .top-logos {
-      right: auto; left: 41px;  /* move to top-left */
-    }
+    /* Top-right stays — wordmark in black + planet icon after it */
+    #post-canvas.mode-newhire .top-logos { gap: 12px; }
     #post-canvas.mode-newhire .top-logos .logo-paysend {
       height: 40px; filter: none; /* keep original black */
+    }
+    #post-canvas.mode-newhire .top-logos::after {
+      content: '';
+      width: 40px; height: 40px;
+      background: url('/assets/logo-planet.svg') center / contain no-repeat;
+      flex-shrink: 0;
     }
     /* Photo is not bg-removed in new-hire mode — keep object-fit
        cover so the raw portrait fills the frame without distortion. */
@@ -185,16 +190,34 @@
     }
     /* Swap roles in nameplate: np-title (white) = "Name Surname", and
        np-name (accent) = "Welcome our new …" (big, multi-line). */
+    /* Stack spans the full width so the accent strip can be edge-to-edge. */
     #post-canvas.mode-newhire .nameplate-stack {
-      right: 41px;
-      gap: 8px;
+      left: 0; right: 0; bottom: 0;
+      gap: 12px;
+      align-items: flex-start;
     }
-    #post-canvas.mode-newhire .np-title { order: 0; background: transparent; padding: 0; }
-    #post-canvas.mode-newhire .np-name  { order: 1; align-self: stretch; max-width: none; background: transparent; padding: 0; }
-    #post-canvas.mode-newhire .np-title p { font-size: 28px; letter-spacing: -0.28px; color: #141414; }
-    #post-canvas.mode-newhire .np-name p  {
+    /* Name Surname: small white chip, left-inset to 41px */
+    #post-canvas.mode-newhire .np-title {
+      order: 0;
+      margin-left: 41px;
+      padding: 10px 14px;
+      background: #fff;
+    }
+    #post-canvas.mode-newhire .np-title p {
+      font-size: 28px; letter-spacing: -0.28px; color: #141414; line-height: 1;
+    }
+    /* Welcome headline: full-width accent strip with inner padding */
+    #post-canvas.mode-newhire .np-name {
+      order: 1;
+      align-self: stretch;
+      max-width: none;
+      padding: 32px 41px 41px;
+      background: var(--accent, #08ffce);
+    }
+    #post-canvas.mode-newhire .np-name p {
       font-size: 88px; letter-spacing: -0.88px;
-      line-height: 1; white-space: pre-line; color: #141414;
+      line-height: 1; white-space: pre-line;
+      color: var(--text-on-accent, #141414);
     }
 
     /* ── Toggle switch + collapsible section ── */
@@ -724,8 +747,12 @@
     const el = document.getElementById('preview-name');
     if (!el) return;
     const cvs = document.getElementById('post-canvas');
-    const available = cvs.clientWidth - 2 * CANVAS_SIDE_PAD - 2 * NP_NAME_PAD_X;
     const isNewHire = cvs.classList.contains('mode-newhire');
+    // New-hire: accent strip has 41px left/right padding, spans full canvas.
+    // Event: nameplate at left:41, np-name has 14px left/right padding.
+    const available = isNewHire
+      ? cvs.clientWidth - 2 * 41
+      : cvs.clientWidth - 2 * CANVAS_SIDE_PAD - 2 * NP_NAME_PAD_X;
     let size = isNewHire ? NAME_BASE_SIZE_3_NEWHIRE : NAME_BASE_SIZE_3;
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {

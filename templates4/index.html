@@ -94,14 +94,15 @@
     /* Bottom block: subheadline + headline */
     .bottom-block {
       position: absolute;
-      left: 41px; bottom: 41px;
-      max-width: calc(100% - 82px);
+      left: 41px; right: 41px; bottom: 41px;
       display: flex; flex-direction: column; gap: 12px;
       align-items: flex-start;
       z-index: 3;
     }
-    /* In split mode accent wraps tightly around tag + headline. */
+    /* Split mode: accent block is edge-to-edge with inner padding. */
     #post-canvas.mode-split .bottom-block {
+      left: 0; right: 0; bottom: 0;
+      padding: 41px;
       background: var(--accent, #08ffce);
     }
     .subheadline {
