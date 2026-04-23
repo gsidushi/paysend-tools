@@ -176,18 +176,13 @@
     /* Hide bottom-brand where design doesn't show one */
     #post-canvas.variant-dark .bottom-brand,
     #post-canvas.variant-split .bottom-brand { display: none; }
-    /* Pattern variant: huge wordmark overlays the pattern strip */
+    /* Pattern variant: huge combined Paysend ○ wordmark overlays the
+       pattern strip. The wordmark SVG already includes the planet, so
+       no separate planet icon is added (avoids duplicate planets). */
     #post-canvas.variant-pattern .bottom-brand {
-      left: 41px; bottom: 60px; gap: 16px;
+      left: 41px; bottom: 60px;
     }
     #post-canvas.variant-pattern .bottom-brand .logo-paysend { height: 140px; }
-    #post-canvas.variant-pattern .bottom-brand::after {
-      content: '';
-      width: 120px; height: 120px;
-      background: url('/assets/logo-planet.svg') center / contain no-repeat;
-      filter: brightness(0) invert(1);
-      flex-shrink: 0;
-    }
 
     /* ── Toggle + controls styles ── */
     .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }

@@ -172,16 +172,10 @@
     #post-canvas.mode-newhire .top-badges,
     #post-canvas.mode-newhire .top-logos .logo-partner,
     #post-canvas.mode-newhire .top-logos .logo-divider { display: none !important; }
-    /* Top-right stays — wordmark in black + planet icon after it */
-    #post-canvas.mode-newhire .top-logos { gap: 12px; }
+    /* The Paysend wordmark SVG already contains the planet, so no extra
+       planet icon is needed (avoids duplicate planets). */
     #post-canvas.mode-newhire .top-logos .logo-paysend {
-      height: 40px; filter: none; /* keep original black */
-    }
-    #post-canvas.mode-newhire .top-logos::after {
-      content: '';
-      width: 40px; height: 40px;
-      background: url('/assets/logo-planet.svg') center / contain no-repeat;
-      flex-shrink: 0;
+      height: 44px; filter: none; /* keep original black */
     }
     /* Photo is not bg-removed in new-hire mode — keep object-fit
        cover so the raw portrait fills the frame without distortion. */
@@ -196,11 +190,12 @@
       gap: 12px;
       align-items: flex-start;
     }
-    /* Name Surname: small white chip, left-inset to 41px */
+    /* Name Surname: small white chip. No left margin; left padding matches
+       the accent strip (41px) so the text lines up with the welcome headline. */
     #post-canvas.mode-newhire .np-title {
       order: 0;
-      margin-left: 41px;
-      padding: 10px 14px;
+      margin-left: 0;
+      padding: 10px 14px 10px 41px;
       background: #fff;
     }
     #post-canvas.mode-newhire .np-title p {
