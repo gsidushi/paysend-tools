@@ -103,6 +103,7 @@
       position: absolute;
       top: 41px; right: 41px;
       display: flex; align-items: center; gap: 20px;
+      z-index: 4;
     }
     .top-logos .logo-paysend,
     .top-logos .logo-partner { height: 40px; width: auto; max-width: 200px; display: block; flex-shrink: 0; object-fit: contain; }
@@ -187,6 +188,7 @@
     /* Stack spans the full width so the accent strip can be edge-to-edge. */
     #post-canvas.mode-newhire .nameplate-stack {
       left: 0; right: 0; bottom: 0;
+      max-width: none;
       gap: 12px;
       align-items: flex-start;
     }
