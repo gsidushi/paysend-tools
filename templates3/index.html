@@ -603,17 +603,7 @@
         </div>
       </div>
       <input type="file" accept="image/*" id="person-file" style="display:none" />
-      <p class="bg-auto-note event-only" id="bg-note">Background is removed automatically on upload.</p>
-    </div>
-
-    <!-- BG removal API key (event mode only) -->
-    <div class="control-section event-only" id="api-key-section">
-      <label class="control-label">withoutbg API Key <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb;font-size:10px">(optional — faster removal)</span></label>
-      <div style="display:flex;gap:6px;align-items:center">
-        <input class="control-input" type="password" id="input-api-key" placeholder="wbg-xxxxxxxxxxxxxxxx" style="flex:1;font-family:monospace;font-size:12px" />
-        <button type="button" id="api-key-toggle-vis" style="padding:9px 10px;border:1px solid #e0e0e0;border-radius:6px;background:#fafafa;cursor:pointer;font-size:13px;flex-shrink:0" title="Show/hide">👁</button>
-      </div>
-      <p style="font-size:11px;color:#aaa;margin-top:4px;line-height:1.4">Key is stored locally in your browser. If no key is set, removal runs offline via WASM (slower first load).</p>
+      <p class="bg-auto-note event-only">Background is removed automatically on upload.</p>
     </div>
 
     <div class="control-section">
@@ -664,51 +654,6 @@
 
   // ── Background removal helpers ──────────────────────────────
   const BG_MAX_EDGE = 2000;
-  const LS_KEY = 'paysend_wbg_api_key';
-
-  // API key persistence
-  function getApiKey() { return localStorage.getItem(LS_KEY) || ''; }
-  function setApiKey(v) { v ? localStorage.setItem(LS_KEY, v) : localStorage.removeItem(LS_KEY); }
-
-  // Wire up the key input
-  const apiKeyInput = document.getElementById('input-api-key');
-  const apiKeyToggle = document.getElementById('api-key-toggle-vis');
-  if (apiKeyInput) {
-    apiKeyInput.value = getApiKey();
-    apiKeyInput.addEventListener('input', () => setApiKey(apiKeyInput.value.trim()));
-    apiKeyToggle.addEventListener('click', () => {
-      apiKeyInput.type = apiKeyInput.type === 'password' ? 'text' : 'password';
-    });
-  }
-
-  // ── withoutbg cloud removal ─────────────────────────────────
-  async function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(',')[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function removeWithWithoutBg(file, apiKey) {
-    const b64 = await fileToBase64(file);
-    const res = await fetch('https://api.withoutbg.com/v1.0/image-without-background-base64', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-      body: JSON.stringify({ image_base64: b64 })
-    });
-    if (!res.ok) throw new Error(`withoutbg ${res.status}: ${await res.text()}`);
-    const data = await res.json();
-    // Response: { image_base64: '...' }
-    const resultB64 = data.image_base64 || data.result_b64 || data.result;
-    const bytes = atob(resultB64);
-    const arr = new Uint8Array(bytes.length);
-    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-    return URL.createObjectURL(new Blob([arr], { type: 'image/png' }));
-  }
-
-  // ── Local WASM removal fallback ─────────────────────────────
   let bgRemoveFn = null;
   async function loadBgRemoval() {
     if (bgRemoveFn) return bgRemoveFn;
@@ -735,23 +680,13 @@
 
   async function removeImageBackground(file) {
     showBgOverlay();
-    const apiKey = getApiKey();
     try {
-      if (apiKey) {
-        // Try withoutbg first (fast cloud, ~800ms)
-        try {
-          return await removeWithWithoutBg(file, apiKey);
-        } catch (cloudErr) {
-          console.warn('withoutbg failed, falling back to local WASM:', cloudErr);
-        }
-      }
-      // Local WASM fallback
       const remove = await loadBgRemoval();
       const inputBlob = await fileToDownscaledBlob(file, BG_MAX_EDGE);
       const resultBlob = await remove(inputBlob);
       return URL.createObjectURL(resultBlob);
     } catch (err) {
-      console.error('Background removal failed, using original image:', err);
+      console.error('Background removal failed, falling back to original image:', err);
       return await fileToOptimizedSrc(file);
     } finally {
       hideBgOverlay();
