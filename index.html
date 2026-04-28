@@ -3,100 +3,404 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Paysend Tools</title>
+  <title>Paysend Social Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --page-bg: #ececec;
+      --card-bg: #ffffff;
+      --ink: #141414;
+      --ink-muted: #6b6b6b;
+      --tile-bg: #141414;
+      --tile-ink: #ffffff;
+      --border: #141414;
+    }
+
+    html, body { height: 100%; }
     body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--page-bg);
+      color: var(--ink);
+      min-height: 100vh;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 16px;
-      min-height: 100vh;
       padding: 40px 24px;
-      background: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    .label {
-      font-size: 12px;
-      font-weight: 500;
-      color: #999;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .btn-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px;
-      max-width: 960px;
+    .stage {
       width: 100%;
+      max-width: 720px;
     }
 
-    a.layout-btn {
-      padding: 16px 28px;
-      background: #141414;
-      color: #fff;
-      text-decoration: none;
-      font-size: 15px;
-      font-weight: 600;
-      border-radius: 8px;
-      transition: background 0.15s, transform 0.1s;
-      text-align: center;
+    .screen {
+      background: var(--card-bg);
+      border: 1px solid var(--ink);
+      padding: 36px 36px 32px;
+      display: none;
+      flex-direction: column;
+      min-height: 540px;
+      position: relative;
+    }
+    .screen.active { display: flex; }
+
+    .screen-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 56px;
+    }
+    .screen-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+    }
+    .screen-title h2 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.25;
+      margin-top: 18px;
+      max-width: 360px;
     }
 
-    a.layout-btn:hover  { background: #333; }
-    a.layout-btn:active { transform: scale(0.97); }
-
-    a.layout-btn .sub {
-      display: block;
+    /* ── Breadcrumb (top right of card) ───────────────────────── */
+    .crumb {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.2;
+      flex-shrink: 0;
+    }
+    .crumb-item {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      color: var(--ink);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      text-align: left;
+    }
+    .crumb-item:hover { opacity: 0.6; }
+    .crumb-arrow {
       font-size: 11px;
-      font-weight: 400;
-      color: rgba(255,255,255,0.55);
-      margin-top: 3px;
+      line-height: 1;
+      margin: 2px 0;
+      color: var(--ink);
+      user-select: none;
     }
 
     .home-logo {
-      position: fixed;
-      top: 20px;
-      left: 24px;
-      width: 32px;
-      height: 32px;
-      opacity: 0.15;
+      position: absolute;
+      top: 32px;
+      right: 32px;
+      width: 26px;
+      height: 26px;
+      opacity: 1;
+    }
+    .crumb { margin-right: 56px; }
+
+    /* ── Tile grid (Screens 1 & 2) ────────────────────────────── */
+    .tiles {
+      margin-top: auto;
+      display: grid;
+      gap: 0;
+    }
+    .tiles.cols-2 { grid-template-columns: 1fr 1fr; }
+    .tiles.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+    .tile {
+      background: var(--tile-bg);
+      color: var(--tile-ink);
+      border: 1px solid var(--ink);
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.15s, color 0.15s;
+      margin: -1px 0 0 -1px; /* collapse borders */
+      font-family: inherit;
+    }
+    .tile:hover { background: #2a2a2a; }
+    .tile:active { background: #000; }
+
+    /* ── Layout picker (Screen 3) ─────────────────────────────── */
+    .layout-grid {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .layout-card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .layout-card:hover { transform: translateY(-2px); }
+    .layout-thumb {
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      background: #ddd;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .layout-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .layout-name {
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      text-align: center;
+    }
+
+    /* small screens */
+    @media (max-width: 560px) {
+      .screen { padding: 24px; min-height: 480px; }
+      .screen-head { margin-bottom: 36px; }
+      .screen-title h1, .screen-title h2 { font-size: 18px; }
+      .tiles.cols-3 { grid-template-columns: 1fr 1fr; }
+      .layout-grid { grid-template-columns: 1fr 1fr; }
+      .home-logo { top: 22px; right: 22px; width: 22px; height: 22px; }
     }
   </style>
 </head>
 <body>
-  <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
-  <p class="label">Choose a template</p>
-  <div class="btn-group">
-    <a class="layout-btn" href="/templates">
-      Layout Option 1
-      <span class="sub">1080 × 1350 Event Portrait</span>
-    </a>
-    <a class="layout-btn" href="/templates2">
-      Layout Option 2
-      <span class="sub">1200 × 627 Event Landscape</span>
-    </a>
-    <a class="layout-btn" href="/templates3">
-      Layout Option 3
-      <span class="sub">1080 × 1440 Event / New Hire</span>
-    </a>
-    <a class="layout-btn" href="/templates4">
-      Layout Option 4
-      <span class="sub">1080 × 1350 Event Portrait</span>
-    </a>
-    <a class="layout-btn" href="/templates5">
-      Layout Option 5
-      <span class="sub">1200 × 627 Event Landscape</span>
-    </a>
-    <a class="layout-btn" href="/templates6">
-      Layout Option 6
-      <span class="sub">1080 × 1350 Milestone</span>
-    </a>
+  <div class="stage">
+    <!-- ─────────────── Screen 1: Purpose ─────────────── -->
+    <section class="screen active" data-screen="1">
+      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+      <div class="screen-head">
+        <div class="screen-title">
+          <h1>Hey!</h1>
+          <h2>Welcome to the Paysend<br/>social media content builder</h2>
+          <h2 style="margin-top:24px;">What are you up to today?</h2>
+        </div>
+        <nav class="crumb" id="crumb-1">
+          <button class="crumb-item" data-goto="1">Main</button>
+          <span class="crumb-arrow">↓</span>
+        </nav>
+      </div>
+      <div class="tiles cols-3" id="purpose-tiles"></div>
+    </section>
+
+    <!-- ─────────────── Screen 2: Activity ─────────────── -->
+    <section class="screen" data-screen="2">
+      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+      <div class="screen-head">
+        <div class="screen-title">
+          <h1>Great!</h1>
+          <h2>Now it's time to choose the<br/>type of media we're making</h2>
+        </div>
+        <nav class="crumb" id="crumb-2"></nav>
+      </div>
+      <div class="tiles cols-2" id="activity-tiles"></div>
+    </section>
+
+    <!-- ─────────────── Screen 3: Layout ─────────────── -->
+    <section class="screen" data-screen="3">
+      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+      <div class="screen-head">
+        <div class="screen-title">
+          <h1>One last step</h1>
+          <h2>Choose a layout you want<br/>to use for your task</h2>
+        </div>
+        <nav class="crumb" id="crumb-3"></nav>
+      </div>
+      <div class="layout-grid" id="layout-grid"></div>
+    </section>
   </div>
+
+  <script>
+  // ─── Content map ────────────────────────────────────────────
+  const PURPOSES = [
+    { id: 'hr',           label: 'HR / People' },
+    { id: 'pr',           label: 'PR / News' },
+    { id: 'thought',      label: 'Thought Leadership' },
+    { id: 'product',      label: 'Product / Sales' },
+    { id: 'personal',     label: 'Personal Brand' },
+    { id: 'engagement',   label: 'Engagement / Reach' },
+  ];
+
+  const ACTIVITIES = {
+    hr: [
+      { id: 'new-job',       label: 'New Job Announcement' },
+      { id: 'promotion',     label: 'Promotion Announcement' },
+      { id: 'hiring',        label: "We're Hiring" },
+      { id: 'bts',           label: 'Behind-the-Scenes' },
+    ],
+    pr: [
+      { id: 'company-news',  label: 'Company News' },
+      { id: 'press-release', label: 'Press Release' },
+      { id: 'partnership',   label: 'Partnership Announcement' },
+    ],
+    thought: [
+      { id: 'insight',       label: 'Insight / POV' },
+      { id: 'educational',   label: 'Educational / How-To' },
+      { id: 'case-study',    label: 'Case Study' },
+    ],
+    product: [
+      { id: 'feature',       label: 'Feature / Product Highlight' },
+      { id: 'before-after',  label: 'Before / After' },
+      { id: 'testimonial',   label: 'Customer Testimonial' },
+    ],
+    personal: [
+      { id: 'story',         label: 'Story / Experience' },
+      { id: 'unpopular',     label: 'Unpopular Opinion' },
+      { id: 'founder-pov',   label: 'Founder POV' },
+    ],
+    engagement: [
+      { id: 'question',      label: 'Question Post' },
+      { id: 'poll',          label: 'Poll' },
+      { id: 'relatable',     label: 'Relatable / Light Content' },
+    ],
+  };
+
+  // All 6 layouts. For now every one routes to /templates (Layout 1) per
+  // user instruction; preserve them so we can resort/relink per branch later.
+  const LAYOUTS = [
+    { id: 1, name: 'Layout 1 — Event Portrait',   thumb: '/assets/placeholder-person1.png', href: '/templates' },
+    { id: 2, name: 'Layout 2 — Event Landscape',  thumb: '/assets/placeholder-person2.png', href: '/templates' },
+    { id: 3, name: 'Layout 3 — Event / New Hire', thumb: '/assets/person_placeholder.png',  href: '/templates' },
+    { id: 4, name: 'Layout 4 — Event Portrait',   thumb: '/assets/placeholder-venue.png',   href: '/templates' },
+    { id: 5, name: 'Layout 5 — Event Landscape',  thumb: '/assets/city-placeholder.png',    href: '/templates' },
+    { id: 6, name: 'Layout 6 — Milestone',        thumb: '/assets/pattern-1.png',           href: '/templates' },
+  ];
+
+  // ─── State ──────────────────────────────────────────────────
+  const state = { purposeId: null, activityId: null };
+
+  const $screens   = document.querySelectorAll('.screen');
+  const $purpose   = document.getElementById('purpose-tiles');
+  const $activity  = document.getElementById('activity-tiles');
+  const $grid      = document.getElementById('layout-grid');
+  const $crumb2    = document.getElementById('crumb-2');
+  const $crumb3    = document.getElementById('crumb-3');
+
+  function purposeLabel() {
+    const p = PURPOSES.find(p => p.id === state.purposeId);
+    return p ? p.label : '';
+  }
+  function activityLabel() {
+    const list = ACTIVITIES[state.purposeId] || [];
+    const a = list.find(a => a.id === state.activityId);
+    return a ? a.label : '';
+  }
+
+  function showScreen(n) {
+    $screens.forEach(s => s.classList.toggle('active', +s.dataset.screen === n));
+    window.scrollTo({ top: 0 });
+  }
+
+  // ─── Render helpers ─────────────────────────────────────────
+  function renderPurpose() {
+    $purpose.innerHTML = '';
+    PURPOSES.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'tile';
+      btn.textContent = p.label;
+      btn.addEventListener('click', () => {
+        state.purposeId = p.id;
+        state.activityId = null;
+        renderActivity();
+        renderCrumb2();
+        showScreen(2);
+      });
+      $purpose.appendChild(btn);
+    });
+  }
+
+  function renderActivity() {
+    $activity.innerHTML = '';
+    const list = ACTIVITIES[state.purposeId] || [];
+    // 2-col grid in the figma; if odd count, last cell spans both
+    list.forEach((a, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'tile';
+      btn.textContent = a.label;
+      if (i === list.length - 1 && list.length % 2 === 1) {
+        btn.style.gridColumn = '1 / -1';
+      }
+      btn.addEventListener('click', () => {
+        state.activityId = a.id;
+        renderGrid();
+        renderCrumb3();
+        showScreen(3);
+      });
+      $activity.appendChild(btn);
+    });
+  }
+
+  function renderGrid() {
+    $grid.innerHTML = '';
+    LAYOUTS.forEach(l => {
+      const a = document.createElement('a');
+      a.className = 'layout-card';
+      a.href = l.href;
+      a.innerHTML = `
+        <div class="layout-thumb"><img src="${l.thumb}" alt="${l.name}" onerror="this.style.display='none'"/></div>
+        <div class="layout-name">${l.name}</div>
+      `;
+      $grid.appendChild(a);
+    });
+  }
+
+  // ─── Breadcrumbs ────────────────────────────────────────────
+  function makeCrumbItem(label, onClick) {
+    const b = document.createElement('button');
+    b.className = 'crumb-item';
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+  function makeArrow() {
+    const s = document.createElement('span');
+    s.className = 'crumb-arrow';
+    s.textContent = '↓';
+    return s;
+  }
+
+  function renderCrumb2() {
+    $crumb2.innerHTML = '';
+    $crumb2.appendChild(makeCrumbItem('Main', () => showScreen(1)));
+    $crumb2.appendChild(makeArrow());
+    $crumb2.appendChild(makeCrumbItem(purposeLabel(), () => showScreen(2)));
+    $crumb2.appendChild(makeArrow());
+  }
+
+  function renderCrumb3() {
+    $crumb3.innerHTML = '';
+    $crumb3.appendChild(makeCrumbItem('Main', () => showScreen(1)));
+    $crumb3.appendChild(makeArrow());
+    $crumb3.appendChild(makeCrumbItem(purposeLabel(), () => showScreen(2)));
+    $crumb3.appendChild(makeArrow());
+    $crumb3.appendChild(makeCrumbItem(activityLabel(), () => showScreen(3)));
+    $crumb3.appendChild(makeArrow());
+  }
+
+  // ─── Init ───────────────────────────────────────────────────
+  renderPurpose();
+  </script>
 </body>
 </html>
