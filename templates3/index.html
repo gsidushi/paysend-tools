@@ -895,12 +895,15 @@
   // translates it further down (letting the user push it past the frame).
   const photoEl = document.getElementById('person-photo');
   const slider = document.getElementById('photo-position-slider');
+  // Declared up-front so applyPhotoPosition can read .value without
+  // tripping the TDZ if it runs before the zoom block.
+  const personZoom = { value: 1 };
   function applyPhotoPosition() {
     // Slider range scales with zoom so it can traverse the overflow
     // introduced by scale > 1. Base range ±15% (no zoom) grows by
     // (scale-1)*50% so at scale=2 the slider can move ±65% of the
     // photo's own height.
-    const scale = (typeof personZoom !== 'undefined') ? personZoom.value : 1;
+    const scale = personZoom.value;
     const range = 15 + (scale - 1) * 50;
     const offset = (parseFloat(slider.value) - 50) / 50 * range;
     canvas.style.setProperty('--photo-offset', offset + '%');
@@ -910,7 +913,6 @@
 
   // ── Photo zoom ─────────────────────────────────────────────
   const ZOOM_MIN = 0.5, ZOOM_MAX = 2.5, ZOOM_STEP = 0.1;
-  const personZoom = { value: 1 };
   const zoomControl = document.querySelector('[data-zoom-target="person"]');
   const zoomValueEl = zoomControl.querySelector('.zoom-value');
   const zoomDecBtn = zoomControl.querySelector('[data-dir="-1"]');
