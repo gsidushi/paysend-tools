@@ -92,9 +92,11 @@
       font-size: 36px; font-weight: 600; color: #141414;
       line-height: 1; letter-spacing: -0.36px; white-space: nowrap;
     }
-    .t-badge-date { background: #141414; padding: 8px 14px; }
+    /* Event mode: bottom date tag sits over the event photo. Use accent
+       bg + dark text so the pill reads as an active highlight. */
+    .t-badge-date { background: var(--accent, #08ffce); padding: 8px 14px; }
     .t-badge-date span {
-      font-size: 24px; font-weight: 400; color: var(--accent, #08ffce);
+      font-size: 24px; font-weight: 400; color: #141414;
       line-height: 1; letter-spacing: 0.48px; white-space: nowrap;
     }
 
@@ -206,8 +208,10 @@
       padding: 10px 14px 10px 41px;
       background: #fff;
     }
+    /* Match event-mode subheading: 36 / 600 / -0.36 / 0.95 */
     #post-canvas.mode-newhire .np-title p {
-      font-size: 28px; letter-spacing: -0.28px; color: #141414; line-height: 1;
+      font-size: 36px; font-weight: 600; letter-spacing: -0.36px;
+      color: #141414; line-height: 0.95;
     }
     /* Welcome headline: full-width accent strip with inner padding */
     #post-canvas.mode-newhire .np-name {
@@ -217,9 +221,10 @@
       padding: 32px 41px 41px;
       background: var(--accent, #08ffce);
     }
+    /* Match event-mode headline: 120 / 600 / -1.2 / 0.9 */
     #post-canvas.mode-newhire .np-name p {
-      font-size: 88px; letter-spacing: -0.88px;
-      line-height: 1; white-space: pre-line;
+      font-size: 120px; font-weight: 600; letter-spacing: -1.2px;
+      line-height: 0.9; white-space: pre-line;
       color: var(--text-on-accent, #141414);
     }
 
@@ -720,7 +725,7 @@
   // fits within the canvas (accounting for canvas padding + np-name
   // padding). Only the name text is affected.
   const NAME_BASE_SIZE_3 = 120;         // Event mode base
-  const NAME_BASE_SIZE_3_NEWHIRE = 88;  // New Hire mode base
+  const NAME_BASE_SIZE_3_NEWHIRE = 120; // New-Hire matches event mode
   const NAME_MIN_SIZE_3 = 40;
   const CANVAS_SIDE_PAD = 41;   // matches .top-badges / .nameplate-stack inset
   const NP_NAME_PAD_X = 14;     // .np-name padding-left/right
