@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Builder — We're hiring</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Medium.woff2') format('woff2');
+      font-weight: 500; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
+      font-weight: 600; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Bold.woff2') format('woff2');
+      font-weight: 700; font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
+
+    .header { padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .header-logo { width: 28px; height: 28px; flex-shrink: 0; display: block; }
+    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p  { font-size: 13px; color: #999; }
+    .workspace { flex: 1; display: grid; grid-template-columns: 1fr 25vw; min-height: 0; overflow: hidden; }
+    .preview-area { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 32px; gap: 12px; overflow: hidden; }
+    .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
+    .preview-hint { font-size: 12px; color: #aaa; }
+
+    /* ── Canvas ── */
+    #post-canvas {
+      width: 1080px; height: 1350px;
+      transform-origin: top left;
+      font-family: 'GT Standard', sans-serif;
+      position: relative; overflow: hidden;
+      background: #0a0a0a;
+      color: #fff;
+    }
+    .bg-image {
+      position: absolute; inset: 0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      z-index: 0;
+    }
+    #post-canvas.variant-1 .bg-image { background-image: url('/assets/we-re-hiring-1.jpg'); }
+    #post-canvas.variant-2 .bg-image { background-image: url('/assets/we-re-hiring-2.jpg'); }
+
+    /* ── Headline ── */
+    .headline {
+      position: absolute; top: 41px; left: 41px; right: 41px;
+      z-index: 3; max-width: 998px;
+    }
+    .headline p {
+      font-size: 140px; font-weight: 600; color: #fff;
+      line-height: 1; letter-spacing: -1.4px;
+      white-space: pre-line; overflow-wrap: break-word;
+    }
+
+    /* ── Role pill (lavender) ── */
+    .role-pill {
+      display: inline-block;
+      background: #d8b4fe;
+      color: #141414;
+      font-size: 64px;
+      font-weight: 600;
+      letter-spacing: -0.64px;
+      line-height: 1.1;
+      padding: 10px 24px;
+      white-space: nowrap;
+    }
+    .role-pill.hidden { display: none !important; }
+
+    /* Variant 1: pill stacked directly above the white card, both anchored to bottom. */
+    .v1-stack {
+      position: absolute;
+      left: 41px; right: 41px; bottom: 0;
+      display: flex; flex-direction: column;
+      align-items: flex-start;
+      z-index: 3;
+    }
+    .v1-pill { /* pill flows naturally above the card */ }
+    .info-card {
+      width: 100%;
+      background: #fff;
+      color: #141414;
+      padding: 40px;
+    }
+    .info-card .location {
+      font-size: 32px; font-weight: 400; color: #141414;
+      line-height: 1.2; letter-spacing: -0.16px;
+      margin-bottom: 36px;
+    }
+    .info-card .req-label {
+      font-size: 32px; font-weight: 600; color: #141414;
+      line-height: 1.2; letter-spacing: -0.16px;
+      margin-bottom: 18px;
+    }
+    .info-card ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 16px; }
+    .info-card li {
+      display: flex; align-items: flex-start; gap: 16px;
+      font-size: 30px; font-weight: 400; color: #141414;
+      line-height: 1.3; letter-spacing: -0.15px;
+    }
+    .info-card li::before {
+      content: '';
+      width: 14px; height: 14px;
+      background: #b75eff;
+      flex-shrink: 0;
+      margin-top: 14px;
+      border-radius: 1px;
+    }
+
+    /* Variant 2: three pills */
+    .v2-pills .role-pill { position: absolute; z-index: 3; }
+    .v2-pill-1 { top: 834px; left: 514px; }
+    .v2-pill-2 { top: 1023px; left: 41px; }
+    .v2-pill-3 { top: 1244px; left: 514px; }
+
+    /* show/hide by variant */
+    #post-canvas.variant-1 .v1-only { display: block; }
+    #post-canvas.variant-1 .v2-only { display: none; }
+    #post-canvas.variant-2 .v1-only { display: none; }
+    #post-canvas.variant-2 .v2-only { display: block; }
+
+    /* ── Controls ── */
+    .controls { background: #fff; border-left: 1px solid #e8e8e8; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+    .control-section { display: flex; flex-direction: column; gap: 6px; }
+    .control-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: #888; }
+    .control-input, .control-textarea { width: 100%; padding: 9px 11px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; font-family: inherit; color: #1a1a1a; background: #fafafa; transition: border-color 0.15s; resize: none; }
+    .control-input:focus, .control-textarea:focus { outline: none; border-color: #b75eff; background: #fff; }
+    .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
+    .seg-control { display: flex; gap: 4px; background: #f5f5f5; padding: 4px; border-radius: 8px; }
+    .seg-btn { flex: 1; padding: 8px 10px; font-size: 12px; font-weight: 600; font-family: inherit; color: #555; background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .seg-btn.active { background: #141414; color: #fff; }
+    .seg-btn:not(.active):hover { color: #141414; }
+    .section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .section-row .control-label { margin-bottom: 0; }
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
+    .toggle-slider::before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #141414; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+    .control-section.section-off .control-input { opacity: 0.4; pointer-events: none; }
+    .download-btn { margin-top: auto; padding: 13px 20px; background: #141414; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s, transform 0.1s; }
+    .download-btn:hover:not(:disabled) { background: #333; }
+    .download-btn:active:not(:disabled) { transform: scale(0.98); }
+    .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    @media (max-width: 1199px) { .workspace { grid-template-columns: 1fr 33vw; } }
+    @media (max-width:  799px) { .workspace { grid-template-columns: 1fr 40vw; } }
+    @media (max-width:  499px) {
+      html, body { height: auto; overflow: auto; }
+      .workspace { display: flex; flex-direction: column; overflow: visible; height: auto; }
+      .preview-area { padding: 0; overflow: visible; justify-content: flex-start; align-items: stretch; flex-shrink: 0; height: auto; }
+      .preview-wrapper { width: 100vw !important; border-radius: 0; box-shadow: none; flex-shrink: 0; }
+      .preview-hint { display: none; }
+      .controls { border-left: none; border-top: 1px solid #e8e8e8; height: auto; overflow-y: visible; flex: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="/" title="Back to layouts">
+      <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </a>
+    <h1>Post Builder</h1>
+    <p>1080 × 1350 · We're hiring</p>
+  </header>
+
+  <main class="workspace">
+
+    <div class="preview-area">
+      <div class="preview-wrapper">
+        <div id="post-canvas" class="variant-1">
+
+          <div class="bg-image"></div>
+
+          <!-- Headline -->
+          <div class="headline">
+            <p id="preview-headline">We&rsquo;re hiring!</p>
+          </div>
+
+          <!-- Variant 1: pill + white card -->
+          <div class="v1-only v1-stack">
+            <div class="role-pill v1-pill" id="v1-pill"><span id="v1-pill-text">Editorial Lead*</span></div>
+            <div class="info-card">
+              <p class="location" id="preview-location">Location: EU based, remote or Belgrade, hybrid</p>
+              <p class="req-label">Requirements:</p>
+              <ul id="preview-reqs">
+                <li>Minimum 1 year of sales experience in the UAE (Personal Finance segment).</li>
+                <li>Strong leadership and communication skills.</li>
+                <li>Ability to manage and motivate a sales team.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Variant 2: three floating pills -->
+          <div class="v2-only v2-pills">
+            <div class="role-pill v2-pill-1" id="v2-pill-1"><span id="v2-pill-1-text">Editorial Lead*</span></div>
+            <div class="role-pill v2-pill-2" id="v2-pill-2"><span id="v2-pill-2-text">Brand Designer*</span></div>
+            <div class="role-pill v2-pill-3" id="v2-pill-3"><span id="v2-pill-3-text">Sales Manager*</span></div>
+          </div>
+
+        </div>
+      </div>
+      <p class="preview-hint">Preview scaled — exports 1080 × 1350</p>
+    </div>
+
+    <div class="controls">
+
+      <div class="control-section">
+        <label class="control-label">Variant</label>
+        <div class="seg-control" id="variant-switch">
+          <button class="seg-btn active" data-variant="1" type="button">Card</button>
+          <button class="seg-btn"        data-variant="2" type="button">Floating pills</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-section">
+        <label class="control-label">Headline</label>
+        <input class="control-input" id="input-headline" type="text" value="We&rsquo;re hiring!" />
+      </div>
+
+      <!-- Variant 1 controls -->
+      <div class="control-section v1-section">
+        <label class="control-label">Role title</label>
+        <input class="control-input" id="input-role" type="text" value="Editorial Lead*" />
+      </div>
+
+      <div class="control-section v1-section">
+        <label class="control-label">Location</label>
+        <input class="control-input" id="input-location" type="text" value="Location: EU based, remote or Belgrade, hybrid" />
+      </div>
+
+      <div class="control-section v1-section">
+        <label class="control-label">Requirements (one per line)</label>
+        <textarea class="control-textarea" id="input-reqs" rows="6">Minimum 1 year of sales experience in the UAE (Personal Finance segment).
+Strong leadership and communication skills.
+Ability to manage and motivate a sales team.</textarea>
+      </div>
+
+      <!-- Variant 2 controls — three separate pills, each with its own toggle -->
+      <div class="control-section v2-section">
+        <div class="section-row">
+          <label class="control-label">Role 1 (top-right)</label>
+          <label class="toggle-switch"><input type="checkbox" id="v2-pill-1-toggle" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <input class="control-input" id="input-role-1" type="text" value="Editorial Lead*" />
+      </div>
+
+      <div class="control-section v2-section">
+        <div class="section-row">
+          <label class="control-label">Role 2 (middle-left)</label>
+          <label class="toggle-switch"><input type="checkbox" id="v2-pill-2-toggle" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <input class="control-input" id="input-role-2" type="text" value="Brand Designer*" />
+      </div>
+
+      <div class="control-section v2-section">
+        <div class="section-row">
+          <label class="control-label">Role 3 (bottom-right)</label>
+          <label class="toggle-switch"><input type="checkbox" id="v2-pill-3-toggle" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <input class="control-input" id="input-role-3" type="text" value="Sales Manager*" />
+      </div>
+
+      <button class="download-btn" id="download-btn">Download PNG</button>
+
+    </div>
+  </main>
+
+  <script>
+  const canvas = document.getElementById('post-canvas');
+
+  /* ── Variant switch ── */
+  const variantSwitch = document.getElementById('variant-switch');
+  const v1Sections = document.querySelectorAll('.v1-section');
+  const v2Sections = document.querySelectorAll('.v2-section');
+  function applyVariant(v) {
+    canvas.classList.toggle('variant-1', v === '1');
+    canvas.classList.toggle('variant-2', v === '2');
+    variantSwitch.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.variant === v));
+    v1Sections.forEach(s => { s.style.display = (v === '1') ? '' : 'none'; });
+    v2Sections.forEach(s => { s.style.display = (v === '2') ? '' : 'none'; });
+  }
+  variantSwitch.querySelectorAll('.seg-btn').forEach(b => b.addEventListener('click', () => applyVariant(b.dataset.variant)));
+
+  /* Initial variant — read from ?variants=7.1,7.2 if present, else default to 1. */
+  (function initFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const v = params.get('variants');
+    const first = v ? v.split(',')[0].trim() : '7.1';
+    applyVariant(first === '7.2' ? '2' : '1');
+  })();
+
+  /* ── Text bindings ── */
+  const headlineInput = document.getElementById('input-headline');
+  headlineInput.addEventListener('input', () => {
+    document.getElementById('preview-headline').textContent = headlineInput.value;
+  });
+
+  // Variant 1 role title (single pill)
+  const roleInput = document.getElementById('input-role');
+  roleInput.addEventListener('input', () => {
+    document.getElementById('v1-pill-text').textContent = roleInput.value;
+  });
+
+  // Variant 2 — three independent pills with text + on/off
+  function bindV2Pill(n) {
+    const input  = document.getElementById('input-role-' + n);
+    const text   = document.getElementById('v2-pill-' + n + '-text');
+    const pill   = document.getElementById('v2-pill-' + n);
+    const toggle = document.getElementById('v2-pill-' + n + '-toggle');
+    input.addEventListener('input', () => { text.textContent = input.value; });
+    const apply = () => {
+      pill.classList.toggle('hidden', !toggle.checked);
+      input.closest('.control-section').classList.toggle('section-off', !toggle.checked);
+    };
+    toggle.addEventListener('change', apply);
+    apply();
+  }
+  bindV2Pill(1); bindV2Pill(2); bindV2Pill(3);
+
+  const locationInput = document.getElementById('input-location');
+  locationInput.addEventListener('input', () => {
+    document.getElementById('preview-location').textContent = locationInput.value;
+  });
+
+  const reqsInput = document.getElementById('input-reqs');
+  reqsInput.addEventListener('input', () => {
+    const ul = document.getElementById('preview-reqs');
+    const lines = reqsInput.value.split('\n').map(l => l.trim()).filter(Boolean);
+    ul.innerHTML = '';
+    for (const line of lines) {
+      const li = document.createElement('li');
+      li.textContent = line;
+      ul.appendChild(li);
+    }
+  });
+
+  /* ── Download ── */
+  const CANVAS_W = 1080, CANVAS_H = 1350;
+  document.getElementById('download-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('download-btn');
+    btn.disabled = true; btn.textContent = 'Exporting…';
+    try {
+      const result = await html2canvas(canvas, { scale: 1, useCORS: true, allowTaint: true, width: CANVAS_W, height: CANVAS_H });
+      const a = document.createElement('a'); a.href = result.toDataURL('image/png');
+      a.download = 'paysend-hiring.png'; a.click();
+    } finally {
+      btn.disabled = false; btn.textContent = 'Download PNG';
+    }
+  });
+
+  /* ── Preview scaling (measurement-based, matches Layout 3) ── */
+  (function scalePreview() {
+    const PAD_X = 32 * 2;
+    const PAD_Y = 40 * 2;
+    const HINT_RESERVE = 24;
+    const previewArea = document.querySelector('.preview-area');
+    const wrapper = document.querySelector('.preview-wrapper');
+    const cvs = document.getElementById('post-canvas');
+    function update() {
+      const w = window.innerWidth;
+      const rect = previewArea.getBoundingClientRect();
+      let availW, availH;
+      if (w < 500) { availW = w; availH = Infinity; }
+      else { availW = rect.width - PAD_X; availH = rect.height - PAD_Y - HINT_RESERVE; }
+      const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
+      wrapper.style.width = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
+      cvs.style.transform = `scale(${scale})`;
+    }
+    update();
+    window.addEventListener('resize', update);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
+  })();
+  </script>
+</body>
+</html>
