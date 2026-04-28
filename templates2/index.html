@@ -464,9 +464,10 @@
             <div class="post-logos">
               <!-- Paysend logo -->
               <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
-              <div class="logo-divider"></div>
-              <!-- Partner logo: placeholder, replaceable via upload -->
-              <img class="logo-partner" id="logo-partner" src="/assets/partner-logo.png" alt="Partner Logo" />
+              <div class="logo-divider" id="divider-1"></div>
+              <img class="logo-partner" id="logo-partner-1" src="/assets/partner-logo.png" alt="Partner 1" />
+              <div class="logo-divider" id="divider-2"></div>
+              <img class="logo-partner" id="logo-partner-2" src="/assets/partner-logo.png" alt="Partner 2" />
             </div>
             <div class="post-badges">
               <div class="badge badge-location">
@@ -650,17 +651,17 @@ at GFTN Japan</textarea>
       </div>
     </div>
 
-    <!-- Partner logo upload -->
+    <!-- Partner logo 1 -->
     <div class="control-section">
       <div class="section-row">
-        <label class="control-label">Partner Logo</label>
+        <label class="control-label">Partner Logo 1</label>
         <label class="toggle-switch">
-          <input type="checkbox" id="partner-logo-toggle" checked />
+          <input type="checkbox" id="partner1-toggle" checked />
           <span class="toggle-slider"></span>
         </label>
       </div>
       <div class="section-body">
-      <div class="upload-zone" id="partner-logo-zone">
+      <div class="upload-zone" id="partner1-zone">
         <div class="upload-placeholder">
           <span class="upload-icon">↑</span>
           <span>Upload logo</span>
@@ -671,8 +672,33 @@ at GFTN Japan</textarea>
           <button class="remove-photo">Remove</button>
         </div>
       </div>
-      <input type="file" accept="image/*,.svg" id="partner-logo-file" style="display:none" />
-      </div><!-- /section-body -->
+      <input type="file" accept="image/*,.svg" id="partner1-file" style="display:none" />
+      </div>
+    </div>
+
+    <!-- Partner logo 2 -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Partner Logo 2</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner2-toggle" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+      <div class="upload-zone" id="partner2-zone">
+        <div class="upload-placeholder">
+          <span class="upload-icon">↑</span>
+          <span>Upload logo</span>
+          <span class="upload-hint">PNG, SVG, JPG</span>
+        </div>
+        <div class="upload-preview" style="display:none">
+          <img src="" alt="thumb" style="object-fit:contain; background:#1a1a1a;" />
+          <button class="remove-photo">Remove</button>
+        </div>
+      </div>
+      <input type="file" accept="image/*,.svg" id="partner2-file" style="display:none" />
+      </div>
     </div>
 
     <div class="divider"></div>
@@ -1015,23 +1041,27 @@ at GFTN Japan</textarea>
   badgesToggle.addEventListener('change', applyBadgesVisibility);
   applyBadgesVisibility();
 
-  // ── Partner logo toggle ─────────────────────────────────
-  const partnerLogoToggle = document.getElementById('partner-logo-toggle');
-  const partnerLogoEl = document.getElementById('logo-partner');
-  const logoDivider = document.querySelector('.logo-divider');
+  // ── Partner logo toggles ────────────────────────────────
   function updateLogoLayout() {
     const visible = document.querySelectorAll('.logo-partner:not(.hidden)').length;
     document.getElementById('post-canvas').classList.toggle('logo-compact', visible >= 2);
   }
-  function applyPartnerLogoVisibility() {
-    const off = !partnerLogoToggle.checked;
-    partnerLogoEl.classList.toggle('hidden', off);
-    logoDivider.classList.toggle('hidden', off);
-    syncSectionOff(partnerLogoToggle);
-    updateLogoLayout();
+  function bindPartnerToggle(toggleId, logoId, dividerId) {
+    const cb = document.getElementById(toggleId);
+    const logo = document.getElementById(logoId);
+    const divider = document.getElementById(dividerId);
+    const apply = () => {
+      const off = !cb.checked;
+      logo.classList.toggle('hidden', off);
+      divider.classList.toggle('hidden', off);
+      syncSectionOff(cb);
+      updateLogoLayout();
+    };
+    cb.addEventListener('change', apply);
+    apply();
   }
-  partnerLogoToggle.addEventListener('change', applyPartnerLogoVisibility);
-  applyPartnerLogoVisibility();
+  bindPartnerToggle('partner1-toggle', 'logo-partner-1', 'divider-1');
+  bindPartnerToggle('partner2-toggle', 'logo-partner-2', 'divider-2');
 
   // ── Nameplate toggles (per person) ──────────────────────
   // Person 1's nameplate appears as name-c1 / name-c2a / name-c3a;
@@ -1303,40 +1333,45 @@ at GFTN Japan</textarea>
     venueZone.querySelector('.upload-preview').style.display = 'none';
   });
 
-  // ── Partner logo upload ──────────────────────────────────
-  const partnerLogoZone = document.getElementById('partner-logo-zone');
-  const partnerLogoFile = document.getElementById('partner-logo-file');
-  const partnerLogoImg = document.getElementById('logo-partner');
-
-  function applyPartnerLogo(src) {
-    partnerLogoImg.src = src;
-    // Let the image load then reset height to its natural proportional size
-    partnerLogoImg.onload = () => { partnerLogoImg.style.height = '36px'; };
-    const preview = partnerLogoZone.querySelector('.upload-preview');
-    preview.querySelector('img').src = src;
-    preview.style.display = 'flex';
-    partnerLogoZone.querySelector('.upload-placeholder').style.display = 'none';
+  // ── Partner logo uploads ─────────────────────────────────
+  function setupLogoUpload({ zoneId, fileId, imgId, defaultSrc }) {
+    const zone = document.getElementById(zoneId);
+    const fileInput = document.getElementById(fileId);
+    const img = document.getElementById(imgId);
+    const placeholder = zone.querySelector('.upload-placeholder');
+    const preview = zone.querySelector('.upload-preview');
+    const thumb = preview.querySelector('img');
+    const removeBtn = preview.querySelector('.remove-photo');
+    function setSrc(src) {
+      img.src = src; thumb.src = src;
+      placeholder.style.display = 'none';
+      preview.style.display = 'flex';
+    }
+    function clearSrc() {
+      img.src = defaultSrc;
+      fileInput.value = '';
+      placeholder.style.display = '';
+      preview.style.display = 'none';
+    }
+    zone.addEventListener('click', e => {
+      if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+      fileInput.click();
+    });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+    zone.addEventListener('drop', async e => {
+      e.preventDefault(); zone.style.borderColor = '';
+      const f = e.dataTransfer.files[0];
+      if (f) setSrc(await fileToOptimizedSrc(f));
+    });
+    fileInput.addEventListener('change', async () => {
+      const f = fileInput.files[0];
+      if (f) setSrc(await fileToOptimizedSrc(f));
+    });
+    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
   }
-
-  partnerLogoZone.addEventListener('click', () => partnerLogoFile.click());
-  partnerLogoZone.addEventListener('dragover', e => { e.preventDefault(); partnerLogoZone.style.borderColor = '#141414'; });
-  partnerLogoZone.addEventListener('dragleave', () => { partnerLogoZone.style.borderColor = ''; });
-  partnerLogoZone.addEventListener('drop', async e => {
-    e.preventDefault(); partnerLogoZone.style.borderColor = '';
-    const f = e.dataTransfer.files[0];
-    if (f) applyPartnerLogo(await fileToOptimizedSrc(f));
-  });
-  partnerLogoFile.addEventListener('change', async () => {
-    const f = partnerLogoFile.files[0];
-    if (f) applyPartnerLogo(await fileToOptimizedSrc(f));
-  });
-  partnerLogoZone.querySelector('.remove-photo').addEventListener('click', e => {
-    e.stopPropagation();
-    partnerLogoImg.src = '/assets/partner-logo.png';
-    partnerLogoImg.style.height = '';
-    partnerLogoZone.querySelector('.upload-placeholder').style.display = '';
-    partnerLogoZone.querySelector('.upload-preview').style.display = 'none';
-  });
+  setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
+  setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
 
   // Person photos
   personMap.forEach(({ photoIds }, i) => {

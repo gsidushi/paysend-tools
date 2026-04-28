@@ -234,7 +234,9 @@
         <div class="top-logos">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
           <div class="logo-divider" id="divider-1"></div>
-          <img class="logo-partner" id="logo-partner-1" src="/assets/partner-logo.png" alt="Partner" />
+          <img class="logo-partner" id="logo-partner-1" src="/assets/partner-logo.png" alt="Partner 1" />
+          <div class="logo-divider" id="divider-2"></div>
+          <img class="logo-partner" id="logo-partner-2" src="/assets/partner-logo.png" alt="Partner 2" />
         </div>
 
         <div class="top-badges" id="top-badges">
@@ -310,14 +312,14 @@
 
     <div class="control-section">
       <div class="section-row">
-        <label class="control-label">Partner Logo</label>
+        <label class="control-label">Partner Logo 1</label>
         <label class="toggle-switch">
-          <input type="checkbox" id="partner-toggle" checked />
+          <input type="checkbox" id="partner1-toggle" checked />
           <span class="toggle-slider"></span>
         </label>
       </div>
       <div class="section-body">
-        <div class="upload-zone" id="partner-zone">
+        <div class="upload-zone" id="partner1-zone">
           <div class="upload-placeholder">
             <span class="upload-icon">↑</span>
             <span>Upload logo</span>
@@ -328,7 +330,31 @@
             <button class="remove-photo">Remove</button>
           </div>
         </div>
-        <input type="file" accept="image/*,.svg" id="partner-file" style="display:none" />
+        <input type="file" accept="image/*,.svg" id="partner1-file" style="display:none" />
+      </div>
+    </div>
+
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Partner Logo 2</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner2-toggle" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <div class="upload-zone" id="partner2-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Upload logo</span>
+            <span class="upload-hint">PNG, SVG, JPG</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*,.svg" id="partner2-file" style="display:none" />
       </div>
     </div>
 
@@ -451,15 +477,15 @@
   bindToggle('subheadline-toggle', document.getElementById('subheadline'));
   bindToggle('headline-toggle', document.getElementById('headline'));
 
-  (function bindPartnerToggle() {
-    const canvas = document.getElementById('post-canvas');
-    function updateLogoLayout() {
-      const visible = document.querySelectorAll('.logo-partner:not(.hidden)').length;
-      canvas.classList.toggle('logo-compact', visible >= 2);
-    }
-    const cb = document.getElementById('partner-toggle');
-    const logo = document.getElementById('logo-partner-1');
-    const divider = document.getElementById('divider-1');
+  function updateLogoLayout() {
+    const cvs = document.getElementById('post-canvas');
+    const visible = document.querySelectorAll('.logo-partner:not(.hidden)').length;
+    cvs.classList.toggle('logo-compact', visible >= 2);
+  }
+  function bindPartnerToggle(toggleId, logoId, dividerId) {
+    const cb = document.getElementById(toggleId);
+    const logo = document.getElementById(logoId);
+    const divider = document.getElementById(dividerId);
     const apply = () => {
       logo.classList.toggle('hidden', !cb.checked);
       divider.classList.toggle('hidden', !cb.checked);
@@ -468,25 +494,29 @@
     };
     cb.addEventListener('change', apply);
     apply();
-  })();
+  }
+  bindPartnerToggle('partner1-toggle', 'logo-partner-1', 'divider-1');
+  bindPartnerToggle('partner2-toggle', 'logo-partner-2', 'divider-2');
 
-  (function setupLogoUpload() {
-    const zone = document.getElementById('partner-zone');
-    const fileInput = document.getElementById('partner-file');
-    const img = document.getElementById('logo-partner-1');
+  function setupLogoUpload({ zoneId, fileId, imgId, defaultSrc }) {
+    const zone = document.getElementById(zoneId);
+    const fileInput = document.getElementById(fileId);
+    const img = document.getElementById(imgId);
     const placeholder = zone.querySelector('.upload-placeholder');
     const preview = zone.querySelector('.upload-preview');
     const thumb = preview.querySelector('img');
     const removeBtn = preview.querySelector('.remove-photo');
     async function setSrc(src) { img.src = src; thumb.src = src; placeholder.style.display = 'none'; preview.style.display = 'flex'; }
-    function clearSrc() { img.src = '/assets/partner-logo.png'; fileInput.value = ''; placeholder.style.display = 'flex'; preview.style.display = 'none'; }
+    function clearSrc() { img.src = defaultSrc; fileInput.value = ''; placeholder.style.display = 'flex'; preview.style.display = 'none'; }
     zone.addEventListener('click', e => { if (e.target === removeBtn || removeBtn.contains(e.target)) return; fileInput.click(); });
     zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
     zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
     zone.addEventListener('drop', async e => { e.preventDefault(); zone.style.borderColor = ''; const f = e.dataTransfer.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
     fileInput.addEventListener('change', async () => { const f = fileInput.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
     removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
-  })();
+  }
+  setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
+  setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
 
   const modeSwitch = document.getElementById('mode-switch');
   function applyMode(mode) {

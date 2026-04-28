@@ -787,8 +787,15 @@
 
   // Partner logo toggles (each controls its own logo + adjacent divider)
   function updateLogoLayout() {
+    const cvs = document.getElementById('post-canvas');
+    // New-hire hides partners via mode-newhire CSS (display:none), not via
+    // the .hidden class — so don't trigger compact in that mode.
+    if (cvs.classList.contains('mode-newhire')) {
+      cvs.classList.remove('logo-compact');
+      return;
+    }
     const visible = document.querySelectorAll('.logo-partner:not(.hidden)').length;
-    document.getElementById('post-canvas').classList.toggle('logo-compact', visible >= 2);
+    cvs.classList.toggle('logo-compact', visible >= 2);
   }
   function bindPartnerToggle(toggleId, logoId, dividerId) {
     const cb = document.getElementById(toggleId);

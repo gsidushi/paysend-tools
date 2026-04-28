@@ -580,10 +580,14 @@
               <img class="logo-paysend"
                 src="/assets/logo-paysend-wordmark.svg"
                 width="313" height="53" alt="Paysend" />
-              <div class="logo-divider"></div>
-              <img class="logo-pa360"
+              <div class="logo-divider" id="divider-1"></div>
+              <img class="logo-pa360" id="logo-partner-1"
                 src="/assets/partner-logo.png"
-                width="174" height="103" alt="Partner Logo" />
+                width="174" height="103" alt="Partner 1" />
+              <div class="logo-divider" id="divider-2"></div>
+              <img class="logo-pa360" id="logo-partner-2"
+                src="/assets/partner-logo.png"
+                width="174" height="103" alt="Partner 2" />
             </div>
             <div class="post-badges">
               <div class="badge">
@@ -795,14 +799,14 @@ at ICE Barcelona!</textarea>
 
       <div class="control-section">
         <div class="section-row">
-          <label class="control-label">Partner Logo</label>
+          <label class="control-label">Partner Logo 1</label>
           <label class="toggle-switch">
-            <input type="checkbox" id="partner-logo-toggle" checked />
+            <input type="checkbox" id="partner1-toggle" checked />
             <span class="toggle-slider"></span>
           </label>
         </div>
         <div class="section-body">
-          <div class="upload-zone" id="partner-logo-zone">
+          <div class="upload-zone" id="partner1-zone">
             <div class="upload-placeholder">
               <span class="upload-icon">↑</span>
               <span>Upload logo</span>
@@ -813,15 +817,31 @@ at ICE Barcelona!</textarea>
               <button class="remove-photo">Remove</button>
             </div>
           </div>
-          <input type="file" accept="image/*,.svg" id="partner-logo-file" style="display:none" />
-          <div>
-            <label class="sub-label">Position</label>
-            <div class="position-slider-wrap">
-              <span>Up</span>
-              <input type="range" class="position-slider" id="partner-logo-position-slider" min="-80" max="40" value="-20" />
-              <span>Down</span>
+          <input type="file" accept="image/*,.svg" id="partner1-file" style="display:none" />
+        </div>
+      </div>
+
+      <div class="control-section">
+        <div class="section-row">
+          <label class="control-label">Partner Logo 2</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="partner2-toggle" />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="section-body">
+          <div class="upload-zone" id="partner2-zone">
+            <div class="upload-placeholder">
+              <span class="upload-icon">↑</span>
+              <span>Upload logo</span>
+              <span class="upload-hint">PNG, SVG, JPG</span>
+            </div>
+            <div class="upload-preview" style="display:none">
+              <img src="" alt="thumb" style="object-fit:contain; background:#1a1a1a;" />
+              <button class="remove-photo">Remove</button>
             </div>
           </div>
+          <input type="file" accept="image/*,.svg" id="partner2-file" style="display:none" />
         </div>
       </div>
 
@@ -1167,52 +1187,46 @@ at ICE Barcelona!</textarea>
       apply()
     })
 
-    // ── Partner logo vertical position slider ─────────────
-    const partnerLogo = document.querySelector('.logo-pa360')
-    const partnerSlider = document.getElementById('partner-logo-position-slider')
-    function applyPartnerLogoPos() {
-      partnerLogo.style.marginTop = `${partnerSlider.value}px`
-    }
-    partnerSlider.addEventListener('input', applyPartnerLogoPos)
-    applyPartnerLogoPos() // apply default position on load
-
-    // ── Partner logo upload ───────────────────────────────
-    const partnerLogoZone = document.getElementById('partner-logo-zone')
-    const partnerLogoFile = document.getElementById('partner-logo-file')
-    const partnerPlaceholder = partnerLogoZone.querySelector('.upload-placeholder')
-    const partnerPreview = partnerLogoZone.querySelector('.upload-preview')
-    const partnerPreviewImg = partnerPreview.querySelector('img')
+    // ── Partner logo uploads ──────────────────────────────
     const DEFAULT_PARTNER_LOGO = '/assets/partner-logo.png'
-
-    function applyPartnerLogo(src) {
-      partnerLogo.src = src
-      partnerPreviewImg.src = src
-      partnerPlaceholder.style.display = 'none'
-      partnerPreview.style.display = ''
+    function setupLogoUpload({ zoneId, fileId, imgId }) {
+      const zone = document.getElementById(zoneId)
+      const fileInput = document.getElementById(fileId)
+      const img = document.getElementById(imgId)
+      const placeholder = zone.querySelector('.upload-placeholder')
+      const preview = zone.querySelector('.upload-preview')
+      const thumb = preview.querySelector('img')
+      const removeBtn = preview.querySelector('.remove-photo')
+      function setSrc(src) {
+        img.src = src; thumb.src = src
+        placeholder.style.display = 'none'
+        preview.style.display = ''
+      }
+      function clearSrc() {
+        img.src = DEFAULT_PARTNER_LOGO
+        fileInput.value = ''
+        placeholder.style.display = ''
+        preview.style.display = 'none'
+      }
+      zone.addEventListener('click', e => {
+        if (e.target.closest('.remove-photo')) return
+        fileInput.click()
+      })
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414' })
+      zone.addEventListener('dragleave', () => { zone.style.borderColor = '' })
+      zone.addEventListener('drop', async e => {
+        e.preventDefault(); zone.style.borderColor = ''
+        const f = e.dataTransfer.files[0]
+        if (f) setSrc(await fileToOptimizedSrc(f))
+      })
+      fileInput.addEventListener('change', async () => {
+        const f = fileInput.files[0]
+        if (f) setSrc(await fileToOptimizedSrc(f))
+      })
+      removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc() })
     }
-
-    partnerLogoZone.addEventListener('click', e => {
-      if (e.target.closest('.remove-photo')) return
-      partnerLogoFile.click()
-    })
-    partnerLogoZone.addEventListener('dragover', e => { e.preventDefault(); partnerLogoZone.style.borderColor = '#141414' })
-    partnerLogoZone.addEventListener('dragleave', () => { partnerLogoZone.style.borderColor = '' })
-    partnerLogoZone.addEventListener('drop', async e => {
-      e.preventDefault(); partnerLogoZone.style.borderColor = ''
-      const f = e.dataTransfer.files[0]
-      if (f) applyPartnerLogo(await fileToOptimizedSrc(f))
-    })
-    partnerLogoFile.addEventListener('change', async () => {
-      const f = partnerLogoFile.files[0]
-      if (f) applyPartnerLogo(await fileToOptimizedSrc(f))
-    })
-    partnerPreview.querySelector('.remove-photo').addEventListener('click', e => {
-      e.stopPropagation()
-      partnerLogo.src = DEFAULT_PARTNER_LOGO
-      partnerPlaceholder.style.display = ''
-      partnerPreview.style.display = 'none'
-      partnerLogoFile.value = ''
-    })
+    setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1' })
+    setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2' })
 
     // Helper: toggle .section-off on the section containing a checkbox
     function syncSectionOff(cb) {
@@ -1221,7 +1235,6 @@ at ICE Barcelona!</textarea>
     }
 
     // ── Visibility toggles ─────────────────────────────────
-    const logoDivider = document.querySelector('.logo-divider')
     const postBadgesEl = document.querySelector('.post-badges')
     const subheadEl = document.getElementById('preview-subheadline')
     const headlineEl = document.getElementById('preview-headline')
@@ -1234,20 +1247,26 @@ at ICE Barcelona!</textarea>
     headlineToggle.addEventListener('change', applyHeadlineVisibility)
     applyHeadlineVisibility()
 
-    const partnerLogoToggle = document.getElementById('partner-logo-toggle')
     function updateLogoLayout() {
       const visible = document.querySelectorAll('.logo-pa360:not(.hidden)').length
       document.getElementById('post-canvas').classList.toggle('logo-compact', visible >= 2)
     }
-    function applyPartnerLogoVisibility() {
-      const off = !partnerLogoToggle.checked
-      partnerLogo.classList.toggle('hidden', off)
-      logoDivider.classList.toggle('hidden', off)
-      syncSectionOff(partnerLogoToggle)
-      updateLogoLayout()
+    function bindPartnerToggle(toggleId, logoId, dividerId) {
+      const cb = document.getElementById(toggleId)
+      const logo = document.getElementById(logoId)
+      const divider = document.getElementById(dividerId)
+      const apply = () => {
+        const off = !cb.checked
+        logo.classList.toggle('hidden', off)
+        divider.classList.toggle('hidden', off)
+        syncSectionOff(cb)
+        updateLogoLayout()
+      }
+      cb.addEventListener('change', apply)
+      apply()
     }
-    partnerLogoToggle.addEventListener('change', applyPartnerLogoVisibility)
-    applyPartnerLogoVisibility()
+    bindPartnerToggle('partner1-toggle', 'logo-partner-1', 'divider-1')
+    bindPartnerToggle('partner2-toggle', 'logo-partner-2', 'divider-2')
 
     const badgesToggle = document.getElementById('badges-toggle')
     function applyBadgesVisibility() {
