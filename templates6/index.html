@@ -417,24 +417,6 @@
 
     <div class="divider"></div>
 
-    <!-- Background color (drives the dark/text portion only — pattern stays) -->
-    <div class="control-section">
-      <label class="control-label">Background Color</label>
-      <div class="color-palette" id="bg-palette">
-        <button class="color-swatch active" data-color="#0a0a0a" style="background:#0a0a0a" title="Black"></button>
-        <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
-        <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
-        <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
-        <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
-        <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
-        <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
-        <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
-        <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
-        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
-        <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
-      </div>
-    </div>
-
     <!-- Partner logo 1 -->
     <div class="control-section">
       <div class="section-row">
@@ -618,22 +600,6 @@
   // Init pattern-variant-aware logo on first paint
   bottomBrandLogo.src = canvas.classList.contains('variant-pattern') ? PAYSEND_MAIN : PAYSEND_WORDMARK;
 
-  // ── Background color palette ───────────────────────────
-  // Backgrounds with sufficient contrast for white text. Anything
-  // outside this set switches text/logos to dark.
-  const DARK_BG = new Set(['#0a0a0a', '#4a57c5']);
-  const bgPalette = document.getElementById('bg-palette');
-  bgPalette.querySelectorAll('.color-swatch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      bgPalette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-      sw.classList.add('active');
-      const c = sw.dataset.color;
-      canvas.style.setProperty('--bg-color', c);
-      const isDark = DARK_BG.has(c);
-      canvas.style.setProperty('--text-color', isDark ? '#fff' : '#141414');
-      canvas.classList.toggle('bg-light', !isDark);
-    });
-  });
 
   // ── Partner logo toggles ───────────────────────────────
   function updateLogoLayout() {
