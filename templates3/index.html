@@ -621,6 +621,18 @@
 
     <div class="control-section">
       <label class="control-label">Photo</label>
+      <select class="control-input team-preset" id="person-preset">
+        <option value="custom">Team member…</option>
+        <option value="abdul-abdulkerimov">Abdul Abdulkerimov</option>
+        <option value="alex-nicolaus">Alex Nicolaus</option>
+        <option value="anna-jacobson">Anna Jacobson</option>
+        <option value="ben-chisel">Ben Chisel</option>
+        <option value="dmitriy-palchikov">Dmitriy Palchikov</option>
+        <option value="ivan-alekseev">Ivan Alekseev</option>
+        <option value="jairo-riveros">Jairo Riveros</option>
+        <option value="ronnie-miller">Ronnie Miller</option>
+        <option value="wilhelm-rohde">Wilhelm Rohde</option>
+      </select>
       <div class="upload-zone" id="person-zone">
         <div class="upload-placeholder">
           <span class="upload-icon">↑</span>
@@ -983,10 +995,24 @@
   setupPartnerPreset({ selectId: 'partner1-preset', zoneId: 'partner1-zone', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
   setupPartnerPreset({ selectId: 'partner2-preset', zoneId: 'partner2-zone', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
 
+  // ── Team photo presets ─────────────────────────────────────
+  const TEAM_PRESETS = {
+    'abdul-abdulkerimov': '/assets/team-opt/abdul-abdulkerimov.jpg',
+    'alex-nicolaus':      '/assets/team-opt/alex-nicolaus.jpg',
+    'anna-jacobson':      '/assets/team-opt/anna-jacobson.jpg',
+    'ben-chisel':         '/assets/team-opt/ben-chisel.jpg',
+    'dmitriy-palchikov':  '/assets/team-opt/dmitriy-palchikov.jpg',
+    'ivan-alekseev':      '/assets/team-opt/ivan-alekseev.jpg',
+    'jairo-riveros':      '/assets/team-opt/jairo-riveros.jpg',
+    'ronnie-miller':      '/assets/team-opt/ronnie-miller.jpg',
+    'wilhelm-rohde':      '/assets/team-opt/wilhelm-rohde.jpg',
+  };
+
   // ── Person photo upload (auto background removal) ─────────
   (function setupPersonUpload() {
     const zone = document.getElementById('person-zone');
     const fileInput = document.getElementById('person-file');
+    const presetSel = document.getElementById('person-preset');
     const placeholder = zone.querySelector('.upload-placeholder');
     const preview = zone.querySelector('.upload-preview');
     const thumb = preview.querySelector('img');
@@ -1004,6 +1030,7 @@
       fileInput.value = '';
       placeholder.style.display = 'flex';
       preview.style.display = 'none';
+      if (presetSel) presetSel.value = 'custom';
     }
     async function ingest(file) {
       // In new-hire mode we keep the original photo with its background.
@@ -1014,6 +1041,7 @@
         ? await fileToOptimizedSrc(file)
         : await removeImageBackground(file);
       setPhoto(src);
+      if (presetSel) presetSel.value = 'custom';
     }
 
     zone.addEventListener('click', e => {
@@ -1032,6 +1060,19 @@
       if (f) ingest(f);
     });
     removeBtn.addEventListener('click', e => { e.stopPropagation(); clearPhoto(); });
+
+    // Team preset
+    if (presetSel) {
+      presetSel.addEventListener('change', () => {
+        const v = presetSel.value;
+        if (v === 'custom') {
+          zone.style.display = '';
+        } else {
+          const src = TEAM_PRESETS[v];
+          if (src) { zone.style.display = 'none'; setPhoto(src); }
+        }
+      });
+    }
   })();
 
   // ── Responsive preview scaling ─────────────────────────────

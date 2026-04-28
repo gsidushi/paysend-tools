@@ -769,6 +769,18 @@ at GFTN Japan</textarea>
       </div>
       <div class="control-section">
         <label class="control-label">Photo</label>
+        <select class="control-input team-preset" data-person="1">
+          <option value="custom">Team member…</option>
+          <option value="abdul-abdulkerimov">Abdul Abdulkerimov</option>
+          <option value="alex-nicolaus">Alex Nicolaus</option>
+          <option value="anna-jacobson">Anna Jacobson</option>
+          <option value="ben-chisel">Ben Chisel</option>
+          <option value="dmitriy-palchikov">Dmitriy Palchikov</option>
+          <option value="ivan-alekseev">Ivan Alekseev</option>
+          <option value="jairo-riveros">Jairo Riveros</option>
+          <option value="ronnie-miller">Ronnie Miller</option>
+          <option value="wilhelm-rohde">Wilhelm Rohde</option>
+        </select>
         <div class="upload-zone" data-person="1">
           <div class="upload-placeholder">
             <span class="upload-icon">↑</span>
@@ -820,6 +832,18 @@ at GFTN Japan</textarea>
       </div>
       <div class="control-section">
         <label class="control-label">Photo</label>
+        <select class="control-input team-preset" data-person="2">
+          <option value="custom">Team member…</option>
+          <option value="abdul-abdulkerimov">Abdul Abdulkerimov</option>
+          <option value="alex-nicolaus">Alex Nicolaus</option>
+          <option value="anna-jacobson">Anna Jacobson</option>
+          <option value="ben-chisel">Ben Chisel</option>
+          <option value="dmitriy-palchikov">Dmitriy Palchikov</option>
+          <option value="ivan-alekseev">Ivan Alekseev</option>
+          <option value="jairo-riveros">Jairo Riveros</option>
+          <option value="ronnie-miller">Ronnie Miller</option>
+          <option value="wilhelm-rohde">Wilhelm Rohde</option>
+        </select>
         <div class="upload-zone" data-person="2">
           <div class="upload-placeholder">
             <span class="upload-icon">↑</span>
@@ -871,6 +895,18 @@ at GFTN Japan</textarea>
       </div>
       <div class="control-section">
         <label class="control-label">Photo</label>
+        <select class="control-input team-preset" data-person="3">
+          <option value="custom">Team member…</option>
+          <option value="abdul-abdulkerimov">Abdul Abdulkerimov</option>
+          <option value="alex-nicolaus">Alex Nicolaus</option>
+          <option value="anna-jacobson">Anna Jacobson</option>
+          <option value="ben-chisel">Ben Chisel</option>
+          <option value="dmitriy-palchikov">Dmitriy Palchikov</option>
+          <option value="ivan-alekseev">Ivan Alekseev</option>
+          <option value="jairo-riveros">Jairo Riveros</option>
+          <option value="ronnie-miller">Ronnie Miller</option>
+          <option value="wilhelm-rohde">Wilhelm Rohde</option>
+        </select>
         <div class="upload-zone" data-person="3">
           <div class="upload-placeholder">
             <span class="upload-icon">↑</span>
@@ -1281,6 +1317,8 @@ at GFTN Japan</textarea>
     if (personKey) {
       const btn = document.querySelector(`.bg-remove-btn[data-person="${personKey}"]`);
       if (btn) btn.disabled = false;
+      const presetSel = document.querySelector(`.team-preset[data-person="${personKey}"]`);
+      if (presetSel) presetSel.value = 'custom';
     }
   }
 
@@ -1423,6 +1461,42 @@ at GFTN Japan</textarea>
     const zone = document.querySelector(`.upload-zone[data-person="${i + 1}"]`);
     const input = document.querySelector(`.file-input[data-person="${i + 1}"]`);
     setupUpload(zone, input, photoIds);
+  });
+
+  // ── Team photo presets ──────────────────────────────────
+  const TEAM_PRESETS = {
+    'abdul-abdulkerimov': '/assets/team-opt/abdul-abdulkerimov.jpg',
+    'alex-nicolaus':      '/assets/team-opt/alex-nicolaus.jpg',
+    'anna-jacobson':      '/assets/team-opt/anna-jacobson.jpg',
+    'ben-chisel':         '/assets/team-opt/ben-chisel.jpg',
+    'dmitriy-palchikov':  '/assets/team-opt/dmitriy-palchikov.jpg',
+    'ivan-alekseev':      '/assets/team-opt/ivan-alekseev.jpg',
+    'jairo-riveros':      '/assets/team-opt/jairo-riveros.jpg',
+    'ronnie-miller':      '/assets/team-opt/ronnie-miller.jpg',
+    'wilhelm-rohde':      '/assets/team-opt/wilhelm-rohde.jpg',
+  };
+  personMap.forEach(({ photoIds }, i) => {
+    const key = String(i + 1);
+    const presetSel = document.querySelector(`.team-preset[data-person="${key}"]`);
+    const zone = document.querySelector(`.upload-zone[data-person="${key}"]`);
+    if (!presetSel || !zone) return;
+    presetSel.addEventListener('change', () => {
+      const v = presetSel.value;
+      if (v === 'custom') {
+        zone.style.display = '';
+      } else {
+        const src = TEAM_PRESETS[v];
+        if (src) { zone.style.display = 'none'; setPhotoSrc(photoIds, src, zone); }
+      }
+    });
+  });
+  // Reset preset to "custom" when a file is uploaded or removed
+  document.querySelectorAll('.team-preset[data-person]').forEach(sel => {
+    const zone = document.querySelector(`.upload-zone[data-person="${sel.dataset.person}"]`);
+    if (!zone) return;
+    zone.querySelector('.remove-photo')?.addEventListener('click', () => {
+      sel.value = 'custom';
+    }, true);
   });
 
   // ── Responsive preview scaling ───────────────────────────
