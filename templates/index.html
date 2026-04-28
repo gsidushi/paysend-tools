@@ -133,11 +133,17 @@
     .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
     .toggle-switch input:checked + .toggle-slider { background: #141414; }
     .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
-    .badge { background: #fff; display: flex; align-items: center; gap: 15px; padding: 13px 14px; }
-    .badge-icon { display: block; flex-shrink: 0; }
-    .badge span {
-      font-size: 28px; font-weight: 400; color: #141414;
-      letter-spacing: 0.56px; white-space: nowrap; line-height: 1.2;
+    .post-badges { gap: 4px; }
+    .badge { display: flex; align-items: center; padding: 13px 18px; }
+    .badge-location { background: #fff; }
+    .badge-location span {
+      font-size: 32px; font-weight: 600; color: #141414;
+      letter-spacing: -0.32px; white-space: nowrap; line-height: 1;
+    }
+    .badge-date { background: #141414; padding: 10px 18px; }
+    .badge-date span {
+      font-size: 22px; font-weight: 400; color: var(--accent, #08ffce);
+      letter-spacing: 0.44px; white-space: nowrap; line-height: 1;
     }
 
     /* ── Text area ── */
@@ -590,26 +596,11 @@
                 width="174" height="103" alt="Partner 2" />
             </div>
             <div class="post-badges">
-              <div class="badge">
-                <svg class="badge-icon" width="28" height="26" viewBox="0 0 28 26" fill="none">
-                  <rect x="1" y="4" width="26" height="21" rx="1" stroke="#141414" stroke-width="2"/>
-                  <path d="M1 10H27" stroke="#141414" stroke-width="2"/>
-                  <path d="M8 1V7" stroke="#141414" stroke-width="3" stroke-linecap="round"/>
-                  <path d="M20 1V7" stroke="#141414" stroke-width="3" stroke-linecap="round"/>
-                  <rect x="4" y="14" width="4" height="3" fill="#141414"/>
-                  <rect x="12" y="14" width="4" height="3" fill="#141414"/>
-                  <rect x="20" y="14" width="4" height="3" fill="#141414"/>
-                  <rect x="4" y="20" width="4" height="3" fill="#141414"/>
-                  <rect x="12" y="20" width="4" height="3" fill="#141414"/>
-                </svg>
-                <span id="preview-date">January 19–21, 2026</span>
-              </div>
-              <div class="badge">
-                <svg class="badge-icon" width="25" height="28" viewBox="0 0 25 28" fill="none">
-                  <path d="M12.5 27C12.5 27 23 17.5 23 10.5C23 4.701 18.299 0 12.5 0C6.701 0 2 4.701 2 10.5C2 17.5 12.5 27 12.5 27Z" stroke="#141414" stroke-width="2" stroke-linejoin="round"/>
-                  <circle cx="12.5" cy="10.5" r="3.5" stroke="#141414" stroke-width="2"/>
-                </svg>
+              <div class="badge badge-location">
                 <span id="preview-location">Barcelona, Spain</span>
+              </div>
+              <div class="badge badge-date">
+                <span id="preview-date">January 19–21, 2026</span>
               </div>
             </div>
           </div>
@@ -1306,16 +1297,20 @@ at ICE Barcelona!</textarea>
     })
 
     // ── Photo background color palette ─────────────────────
+    const postCanvasEl = document.getElementById('post-canvas')
     document.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', () => {
         const color = swatch.dataset.color
         document.querySelectorAll('.p-photo-bg').forEach(bg => {
           bg.style.background = color
         })
+        // Drive --accent so the date badge picks up the swatch color too
+        postCanvasEl.style.setProperty('--accent', color)
         document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'))
         swatch.classList.add('active')
       })
     })
+    postCanvasEl.style.setProperty('--accent', '#08ffce')
 
     // ── Layout switcher ────────────────────────────────────
     let currentMode = 1

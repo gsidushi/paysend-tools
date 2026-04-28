@@ -81,17 +81,18 @@
     }
     .top-badges.hidden { display: none !important; }
     .badge-pill {
-      background: #fff; padding: 8px 14px;
-      display: inline-flex; align-items: center; gap: 8px;
-      border-radius: 4px;
+      display: inline-flex; align-items: center;
+      padding: 8px 14px;
     }
-    .badge-pill.accent {
-      background: var(--accent, #08ffce);
+    .badge-pill.badge-location { background: #fff; }
+    .badge-pill.badge-location span {
+      font-size: 24px; font-weight: 600; color: #141414;
+      line-height: 1; letter-spacing: -0.24px; white-space: nowrap;
     }
-    .badge-pill.accent span { color: var(--text-on-accent, #141414); }
-    .badge-pill span {
-      font-size: 22px; font-weight: 400; color: #141414;
-      line-height: 1; letter-spacing: -0.11px; white-space: nowrap;
+    .badge-pill.badge-date { background: #141414; padding: 6px 14px; }
+    .badge-pill.badge-date span {
+      font-size: 16px; font-weight: 400; color: var(--accent, #08ffce);
+      line-height: 1; letter-spacing: 0.32px; white-space: nowrap;
     }
 
     /* Bottom block */
@@ -240,10 +241,10 @@
         </div>
 
         <div class="top-badges" id="top-badges">
-          <div class="badge-pill">
+          <div class="badge-pill badge-location">
             <span id="preview-location">San Francisco, USA</span>
           </div>
-          <div class="badge-pill accent">
+          <div class="badge-pill badge-date">
             <span id="preview-date">January 19–21, 2026</span>
           </div>
         </div>

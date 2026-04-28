@@ -136,11 +136,15 @@
     .control-section.section-off .section-body { display: none; }
     .sub-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 4px; display: block; }
     .badge { display: flex; align-items: center; padding: 0 10px; }
-    .badge-location { background: #fff; height: 40px; }
-    .badge-date { background: var(--accent, #08ffce); height: 43px; }
-    .badge span {
+    .badge-location { background: #fff; height: 43px; }
+    .badge-location span {
       font-size: 32px; font-weight: 600; color: #141414;
       white-space: nowrap; line-height: 1;
+    }
+    .badge-date { background: #141414; height: 36px; }
+    .badge-date span {
+      font-size: 22px; font-weight: 400; color: var(--accent, #08ffce);
+      white-space: nowrap; line-height: 1; letter-spacing: 0.44px;
     }
 
     /* ── Bottom card area (313px) ── */
@@ -190,11 +194,9 @@
       font-size: 32px; font-weight: 600; color: var(--text-on-accent, #141414);
       letter-spacing: -0.32px; line-height: 1;
     }
-    /* Top-right date badge is always on accent bg → follows text-on-accent.
-       Venue overlay date badge has a white inline bg, so it stays black via
-       the base .badge span rule. Venue overlay location badge is on accent. */
-    .post-badges .badge-date span { color: var(--text-on-accent, #141414); }
-    #venue-loc-overlay { color: var(--text-on-accent, #141414); }
+    /* Venue-overlay (mode 1) mirrors the new top-right pattern: location on
+       top (white), date on bottom (black with accent text). */
+    .venue-overlay .badge-location span { color: #141414 !important; }
 
     /* Nameplate at top: nameplate first, then photo */
     .nameplate-top .p-nameplate { order: -1; }
@@ -486,11 +488,11 @@
           <div class="venue-col">
             <img class="venue-photo" id="venue-photo" src="/assets/city-placeholder.png" alt="" />
             <div class="venue-overlay">
-              <div class="badge badge-date" style="background:#fff">
-                <span id="venue-date-overlay">January 19–21, 2026</span>
-              </div>
-              <div class="badge badge-location" style="background:var(--accent,#08ffce)">
+              <div class="badge badge-location">
                 <span id="venue-loc-overlay">San Francisco, USA</span>
+              </div>
+              <div class="badge badge-date">
+                <span id="venue-date-overlay">January 19–21, 2026</span>
               </div>
             </div>
           </div>

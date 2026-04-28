@@ -84,19 +84,19 @@
     }
     .top-badges.hidden { display: none !important; }
     .t-badge {
-      padding: 10px 12px;
       display: inline-flex; align-items: center;
       align-self: flex-start;
     }
-    .t-badge span {
-      font-size: 52px; font-weight: 600; color: #141414;
-      line-height: 0.9; letter-spacing: -0.52px; white-space: nowrap;
+    .t-badge-event { background: #fff; padding: 10px 14px; }
+    .t-badge-event span {
+      font-size: 36px; font-weight: 600; color: #141414;
+      line-height: 1; letter-spacing: -0.36px; white-space: nowrap;
     }
-    .t-badge-date { background: var(--accent, #08ffce); }
-    /* Date badge sits on accent bg — use variable so dark-blue → white text */
-    .t-badge-date span { color: var(--text-on-accent, #141414); }
-    .t-badge-event { background: #fff; }
-    .t-badge-event span { font-size: 36px; letter-spacing: -0.36px; }
+    .t-badge-date { background: #141414; padding: 8px 14px; }
+    .t-badge-date span {
+      font-size: 24px; font-weight: 400; color: var(--accent, #08ffce);
+      line-height: 1; letter-spacing: 0.48px; white-space: nowrap;
+    }
 
     /* Top-right logos */
     .top-logos {
@@ -439,8 +439,8 @@
 
         <!-- Top-left: Date + Event name badges -->
         <div class="top-badges" id="top-badges">
-          <div class="t-badge t-badge-date"><span id="preview-date">January 19</span></div>
           <div class="t-badge t-badge-event"><span id="preview-event">FinTec Symposium</span></div>
+          <div class="t-badge t-badge-date"><span id="preview-date">January 19</span></div>
         </div>
 
         <!-- Top-right: Paysend + partner logos -->
