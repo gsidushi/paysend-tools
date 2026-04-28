@@ -40,14 +40,16 @@
       font-family: 'GT Standard', sans-serif;
       position: relative;
       overflow: hidden;
-      background: #0a0a0a;
+      background: var(--bg-color, #0a0a0a);
       --split-top: 675px;
+      --bg-color: #0a0a0a;
     }
 
-    /* Layered backgrounds — visibility driven by .variant-X on the canvas */
+    /* Layered backgrounds — visibility driven by .variant-X on the canvas.
+       The dark portions follow --bg-color; the pattern strips do NOT. */
     .bg-dark-full {
       position: absolute; inset: 0;
-      background: #0a0a0a;
+      background: var(--bg-color, #0a0a0a);
       display: none;
     }
     .bg-pattern-strip-bottom {
@@ -65,14 +67,14 @@
     .bg-dark-bottom {
       position: absolute; left: 0; right: 0; bottom: 0;
       height: 50%;
-      background: #0a0a0a;
+      background: var(--bg-color, #0a0a0a);
       display: none;
     }
     /* Pattern variant: dark top, pattern bottom */
     .bg-dark-top {
       position: absolute; left: 0; right: 0; top: 0;
       height: 50%;
-      background: #0a0a0a;
+      background: var(--bg-color, #0a0a0a);
       display: none;
     }
     .bg-pattern-strip-pattern {
@@ -92,18 +94,30 @@
     #post-canvas.variant-pattern .bg-dark-top,
     #post-canvas.variant-pattern .bg-pattern-strip-pattern { display: block; }
 
-    /* Top-left Paysend wordmark (white). Height matches the tag's height. */
-    .top-brand {
+    /* Top-left Paysend wordmark (white) + optional partner logos. */
+    .top-logos {
       position: absolute; top: 41px; left: 41px;
-      z-index: 3; display: flex; align-items: center;
+      z-index: 3; display: flex; align-items: center; gap: 16px;
       height: 48px; /* = news-tag height (10+28+10) */
     }
-    .top-brand .logo-paysend {
+    .top-logos .logo-paysend {
       height: 100%; width: auto;
       filter: brightness(0) invert(1);
+      flex-shrink: 0;
     }
+    .top-logos .logo-divider {
+      width: 2px; height: 100%;
+      background: rgba(255,255,255,0.55);
+      flex-shrink: 0;
+    }
+    .top-logos .logo-partner {
+      height: 100%; width: auto; object-fit: contain;
+      display: block; flex-shrink: 0;
+    }
+    .top-logos .logo-partner.hidden,
+    .top-logos .logo-divider.hidden { display: none !important; }
     /* Pattern variant has no top-left brand — tag only. */
-    #post-canvas.variant-pattern .top-brand { display: none; }
+    #post-canvas.variant-pattern .top-logos { display: none; }
 
     /* News tag top-right */
     .news-tag {
@@ -134,14 +148,12 @@
     /* Dark (1st): pattern image fills bottom half. Text distributed across
        the upper (dark) half. */
     #post-canvas.variant-dark .headline { top: 140px; left: 41px; right: 41px; }
-    /* Split (2nd): pattern fills top half. Text across bottom (dark) half. */
-    #post-canvas.variant-split .headline { top: 735px; left: 41px; right: 41px; }
+    /* Split (2nd): pattern fills top half. Headline anchored to the
+       bottom-left of the frame with the same 41px margin as elsewhere. */
+    #post-canvas.variant-split .headline { top: auto; bottom: 41px; left: 41px; right: 41px; }
     /* Pattern (3rd): text across top half, pattern + big logo bottom half.
-       Headline is smaller for this layout. */
-    #post-canvas.variant-pattern .headline { top: 140px; left: 41px; right: 41px; }
-    #post-canvas.variant-pattern .headline p {
-      font-size: 52px; line-height: 0.95; letter-spacing: -0.52px;
-    }
+       Headline at top-left corner, same size as other variants. */
+    #post-canvas.variant-pattern .headline { top: 41px; left: 41px; right: 41px; }
 
     /* Body copy */
     .body-block {
@@ -157,10 +169,20 @@
       line-height: 0.95; letter-spacing: -0.18px;
       white-space: pre-line;
     }
-    /* Body copy sits inside the dark half — never overlaps the pattern. */
-    #post-canvas.variant-dark    .body-block { top: 470px; left: 41px; right: 41px; max-width: 880px; }
-    #post-canvas.variant-split   .body-block { top: 1060px; left: 41px; right: 41px; max-width: 880px; }
-    #post-canvas.variant-pattern .body-block { top: 360px; left: 41px; right: 41px; max-width: 880px; }
+    /* Body copy hugs the image edge with consistent 41px side paddings.
+       - Dark/Pattern: pattern strip at bottom (y=675-1350) → body sits flush
+         against image's top edge (bottom anchored at y=675).
+       - Split: pattern strip at top (y=0-675) → body sits flush against
+         image's bottom edge (top anchored at y=675). */
+    #post-canvas.variant-dark .body-block {
+      top: auto; bottom: 716px; left: 41px; right: 41px; max-width: 880px;
+    }
+    #post-canvas.variant-split .body-block {
+      top: 716px; left: 41px; right: 41px; max-width: 880px;
+    }
+    #post-canvas.variant-pattern .body-block {
+      top: auto; bottom: 716px; left: 41px; right: 41px; max-width: 880px;
+    }
 
     /* Paysend wordmark at bottom (used by solid + pattern variants) */
     .bottom-brand {
@@ -176,13 +198,17 @@
     /* Hide bottom-brand where design doesn't show one */
     #post-canvas.variant-dark .bottom-brand,
     #post-canvas.variant-split .bottom-brand { display: none; }
-    /* Pattern variant: huge combined Paysend ○ wordmark overlays the
-       pattern strip. The wordmark SVG already includes the planet, so
-       no separate planet icon is added (avoids duplicate planets). */
+    /* Pattern variant: full-width Paysend mark fills the pattern strip,
+       respecting 41px margins on both sides. The mark is centered
+       vertically inside the pattern strip's lower portion. */
     #post-canvas.variant-pattern .bottom-brand {
-      left: 41px; bottom: 60px;
+      left: 41px; right: 41px; bottom: 41px;
+      display: flex; align-items: center; justify-content: center;
     }
-    #post-canvas.variant-pattern .bottom-brand .logo-paysend { height: 140px; }
+    #post-canvas.variant-pattern .bottom-brand .logo-paysend {
+      width: 100%; height: auto;
+      max-width: 998px; /* canvas 1080 − 41 × 2 */
+    }
 
     /* ── Toggle + controls styles ── */
     .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
@@ -299,8 +325,12 @@
         <div class="bg-dark-top"></div>
         <div class="bg-pattern-strip-pattern"></div>
 
-        <div class="top-brand">
+        <div class="top-logos">
           <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+          <div class="logo-divider" id="divider-1"></div>
+          <img class="logo-partner" id="logo-partner-1" src="/assets/partner-logo.png" alt="Partner 1" />
+          <div class="logo-divider" id="divider-2"></div>
+          <img class="logo-partner" id="logo-partner-2" src="/assets/partner-logo.png" alt="Partner 2" />
         </div>
 
         <div class="news-tag" id="news-tag">
@@ -316,7 +346,7 @@
         </div>
 
         <div class="bottom-brand">
-          <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+          <img class="logo-paysend" id="bottom-brand-logo" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
         </div>
 
       </div>
@@ -377,6 +407,76 @@
       </div>
       <div class="section-body">
         <textarea class="control-textarea" id="input-body" rows="5">Now officially registered as a Payment Service Provider (PSP) under Canada's new regulatory framework. Proud to be one of the first in the country!</textarea>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Background color (drives the dark/text portion only — pattern stays) -->
+    <div class="control-section">
+      <label class="control-label">Background Color</label>
+      <div class="color-palette" id="bg-palette">
+        <button class="color-swatch active" data-color="#0a0a0a" style="background:#0a0a0a" title="Black"></button>
+        <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+        <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
+        <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
+        <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
+        <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
+        <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
+        <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
+        <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+        <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+      </div>
+    </div>
+
+    <!-- Partner logo 1 -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Partner Logo 1</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner1-toggle" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <div class="upload-zone" id="partner1-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Upload logo</span>
+            <span class="upload-hint">PNG, SVG, JPG</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" style="object-fit:contain; background:#1a1a1a;" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*,.svg" id="partner1-file" style="display:none" />
+      </div>
+    </div>
+
+    <!-- Partner logo 2 -->
+    <div class="control-section">
+      <div class="section-row">
+        <label class="control-label">Partner Logo 2</label>
+        <label class="toggle-switch">
+          <input type="checkbox" id="partner2-toggle" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="section-body">
+        <div class="upload-zone" id="partner2-zone">
+          <div class="upload-placeholder">
+            <span class="upload-icon">↑</span>
+            <span>Upload logo</span>
+            <span class="upload-hint">PNG, SVG, JPG</span>
+          </div>
+          <div class="upload-preview" style="display:none">
+            <img src="" alt="thumb" style="object-fit:contain; background:#1a1a1a;" />
+            <button class="remove-photo">Remove</button>
+          </div>
+        </div>
+        <input type="file" accept="image/*,.svg" id="partner2-file" style="display:none" />
       </div>
     </div>
 
@@ -453,9 +553,8 @@
     if (!el) return;
     const headlineWrap = document.getElementById('headline');
     const available = headlineWrap.clientWidth;
-    const isPattern = canvas.classList.contains('variant-pattern');
-    let size = isPattern ? 52 : HL_BASE;
-    const minSize = isPattern ? 28 : HL_MIN;
+    let size = HL_BASE;
+    const minSize = HL_MIN;
     el.style.fontSize = size + 'px';
     for (let i = 0; i < 50; i++) {
       if (size <= minSize) break;
@@ -483,6 +582,9 @@
 
   // Variant switch
   const variantSwitch = document.getElementById('variant-switch');
+  const bottomBrandLogo = document.getElementById('bottom-brand-logo');
+  const PAYSEND_WORDMARK = '/assets/logo-paysend-wordmark.svg';
+  const PAYSEND_MAIN     = '/assets/Paysend-main-logo.svg';
   function applyVariant(v) {
     ['dark','split','pattern'].forEach(x => {
       canvas.classList.toggle('variant-' + x, x === v);
@@ -491,11 +593,87 @@
     variantSwitch.querySelectorAll('.seg-btn').forEach(b => {
       b.classList.toggle('active', b.dataset.variant === v);
     });
+    // Pattern variant uses the full Paysend mark (planet + wordmark)
+    bottomBrandLogo.src = (v === 'pattern') ? PAYSEND_MAIN : PAYSEND_WORDMARK;
     applyHeadline();
   }
   variantSwitch.querySelectorAll('.seg-btn').forEach(b => {
     b.addEventListener('click', () => applyVariant(b.dataset.variant));
   });
+  // Init pattern-variant-aware logo on first paint
+  bottomBrandLogo.src = canvas.classList.contains('variant-pattern') ? PAYSEND_MAIN : PAYSEND_WORDMARK;
+
+  // ── Background color palette ───────────────────────────
+  const bgPalette = document.getElementById('bg-palette');
+  bgPalette.querySelectorAll('.color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      bgPalette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      canvas.style.setProperty('--bg-color', sw.dataset.color);
+    });
+  });
+
+  // ── Partner logo toggles ───────────────────────────────
+  function updateLogoLayout() {
+    const visible = document.querySelectorAll('.top-logos .logo-partner:not(.hidden)').length;
+    canvas.classList.toggle('logo-compact', visible >= 2);
+  }
+  function bindPartnerToggle(toggleId, logoId, dividerId) {
+    const cb = document.getElementById(toggleId);
+    const logo = document.getElementById(logoId);
+    const divider = document.getElementById(dividerId);
+    const apply = () => {
+      const off = !cb.checked;
+      logo.classList.toggle('hidden', off);
+      divider.classList.toggle('hidden', off);
+      syncSectionOff(cb);
+      updateLogoLayout();
+    };
+    cb.addEventListener('change', apply);
+    apply();
+  }
+  bindPartnerToggle('partner1-toggle', 'logo-partner-1', 'divider-1');
+  bindPartnerToggle('partner2-toggle', 'logo-partner-2', 'divider-2');
+
+  // ── Partner logo uploads ───────────────────────────────
+  function setupLogoUpload({ zoneId, fileId, imgId, defaultSrc }) {
+    const zone = document.getElementById(zoneId);
+    const fileInput = document.getElementById(fileId);
+    const img = document.getElementById(imgId);
+    const placeholder = zone.querySelector('.upload-placeholder');
+    const preview = zone.querySelector('.upload-preview');
+    const thumb = preview.querySelector('img');
+    const removeBtn = preview.querySelector('.remove-photo');
+    function setSrc(src) {
+      img.src = src; thumb.src = src;
+      placeholder.style.display = 'none';
+      preview.style.display = 'flex';
+    }
+    function clearSrc() {
+      img.src = defaultSrc;
+      fileInput.value = '';
+      placeholder.style.display = '';
+      preview.style.display = 'none';
+    }
+    zone.addEventListener('click', e => {
+      if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+      fileInput.click();
+    });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+    zone.addEventListener('drop', async e => {
+      e.preventDefault(); zone.style.borderColor = '';
+      const f = e.dataTransfer.files[0];
+      if (f) setSrc(await fileToOptimizedSrc(f));
+    });
+    fileInput.addEventListener('change', async () => {
+      const f = fileInput.files[0];
+      if (f) setSrc(await fileToOptimizedSrc(f));
+    });
+    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
+  }
+  setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
+  setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
 
 
   // Preview scaling
