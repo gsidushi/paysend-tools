@@ -4,82 +4,109 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Paysend Social Builder</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ── Fonts (same as the builder) ─────────────────────────── */
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('/fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('/fonts/GT-Standard-L-Standard-Medium.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('/fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('/fonts/GT-Standard-L-Standard-Bold.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --page-bg: #ececec;
-      --card-bg: #ffffff;
       --ink: #141414;
-      --ink-muted: #6b6b6b;
-      --tile-bg: #141414;
-      --tile-ink: #ffffff;
-      --border: #141414;
+      --bg:  #ffffff;
+      --margin: 20px;
+      --tile-gap: 4px;
+      --tile-font: 40px;
     }
 
     html, body { height: 100%; }
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--page-bg);
+      font-family: 'GT Standard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
       color: var(--ink);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 24px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
-    .stage {
-      width: 100%;
-      max-width: 720px;
-    }
-
+    /* ── Each screen takes the full viewport ─────────────────── */
     .screen {
-      background: var(--card-bg);
-      border: 1px solid var(--ink);
-      padding: 36px 36px 32px;
       display: none;
-      flex-direction: column;
-      min-height: 540px;
-      position: relative;
+      width: 100vw;
+      min-height: 100vh;
+      padding: var(--margin);
+      grid-template-columns: 1fr 1fr;          /* two equal columns        */
+      grid-template-rows: auto 1fr auto;        /* head, spacer, tiles      */
+      column-gap: 0;
+      row-gap: 0;
     }
-    .screen.active { display: flex; }
+    .screen.active { display: grid; }
 
-    .screen-head {
+    /* ── Left column: titles ─────────────────────────────────── */
+    .titles {
+      grid-column: 1;
+      grid-row: 1;
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 24px;
-      margin-bottom: 56px;
+      flex-direction: column;
+      gap: 28px;
     }
-    .screen-title h1 {
-      font-size: 22px;
+    .titles h1 {
+      font-size: 40px;
       font-weight: 700;
       letter-spacing: -0.01em;
-      line-height: 1.25;
+      line-height: 1;
     }
-    .screen-title h2 {
-      font-size: 22px;
+    .titles h2 {
+      font-size: 40px;
       font-weight: 700;
       letter-spacing: -0.01em;
-      line-height: 1.25;
-      margin-top: 18px;
-      max-width: 360px;
+      line-height: 1.1;
     }
 
-    /* ── Breadcrumb (top right of card) ───────────────────────── */
+    /* ── Right column: breadcrumb (left edge) + logo (right) ─ */
+    .right-head {
+      grid-column: 2;
+      grid-row: 1;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+    }
     .crumb {
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      gap: 0;
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 500;
       line-height: 1.2;
-      flex-shrink: 0;
+      /* sits at the very left of the right column — i.e. the
+         vertical centre axis of the whole page */
+      padding-top: 4px;
     }
     .crumb-item {
       text-decoration: underline;
@@ -92,73 +119,74 @@
       font: inherit;
       text-align: left;
     }
-    .crumb-item:hover { opacity: 0.6; }
+    .crumb-item:hover { opacity: 0.55; }
     .crumb-arrow {
-      font-size: 11px;
+      font-size: 14px;
       line-height: 1;
-      margin: 2px 0;
-      color: var(--ink);
+      margin: 4px 0 8px;
       user-select: none;
     }
-
     .home-logo {
-      position: absolute;
-      top: 32px;
-      right: 32px;
-      width: 26px;
-      height: 26px;
-      opacity: 1;
+      width: 32px;
+      height: 32px;
+      display: block;
+      align-self: start;
+      justify-self: end;
     }
-    .crumb { margin-right: 56px; }
 
-    /* ── Tile grid (Screens 1 & 2) ────────────────────────────── */
+    /* ── Tiles row (full width at the bottom) ────────────────── */
     .tiles {
-      margin-top: auto;
+      grid-column: 1 / -1;
+      grid-row: 3;
       display: grid;
-      gap: 0;
+      gap: var(--tile-gap);
     }
     .tiles.cols-2 { grid-template-columns: 1fr 1fr; }
     .tiles.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .tiles.cols-4 { grid-template-columns: repeat(4, 1fr); }
 
     .tile {
-      background: var(--tile-bg);
-      color: var(--tile-ink);
-      border: 1px solid var(--ink);
-      padding: 12px 14px;
-      font-size: 14px;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      padding: 14px 24px;
+      font-family: inherit;
+      font-size: var(--tile-font);
       font-weight: 500;
+      line-height: 1.1;
       cursor: pointer;
       text-align: center;
       transition: background 0.15s, color 0.15s;
-      margin: -1px 0 0 -1px; /* collapse borders */
-      font-family: inherit;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .tile:hover { background: #2a2a2a; }
+    .tile:hover  { background: #2a2a2a; }
     .tile:active { background: #000; }
+
+    /* span helper for odd-count rows */
+    .tile.span-2 { grid-column: span 2; }
+    .tile.span-3 { grid-column: span 3; }
 
     /* ── Layout picker (Screen 3) ─────────────────────────────── */
     .layout-grid {
-      margin-top: auto;
+      grid-column: 1 / -1;
+      grid-row: 3;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+      gap: var(--tile-gap);
     }
     .layout-card {
       display: block;
       text-decoration: none;
       color: inherit;
       cursor: pointer;
-      transition: transform 0.15s;
     }
-    .layout-card:hover { transform: translateY(-2px); }
     .layout-thumb {
       width: 100%;
       aspect-ratio: 4 / 5;
       background: #ddd;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       position: relative;
     }
     .layout-thumb img {
@@ -167,80 +195,84 @@
       object-fit: cover;
       display: block;
     }
+    .layout-card:hover .layout-thumb { opacity: 0.92; }
     .layout-name {
-      margin-top: 8px;
-      font-size: 11px;
+      margin-top: 6px;
+      font-size: 13px;
       font-weight: 500;
-      color: var(--ink-muted);
-      text-align: center;
+      color: var(--ink);
     }
 
-    /* small screens */
-    @media (max-width: 560px) {
-      .screen { padding: 24px; min-height: 480px; }
-      .screen-head { margin-bottom: 36px; }
-      .screen-title h1, .screen-title h2 { font-size: 18px; }
+    /* ── Small screens ───────────────────────────────────────── */
+    @media (max-width: 760px) {
+      :root { --tile-font: 22px; }
+      .screen { grid-template-columns: 1fr; }
+      .titles h1, .titles h2 { font-size: 28px; }
+      .right-head {
+        grid-column: 1;
+        grid-row: 2;
+        margin-top: 16px;
+      }
+      .titles { grid-row: 1; }
+      .tiles { grid-row: 3; }
       .tiles.cols-3 { grid-template-columns: 1fr 1fr; }
       .layout-grid { grid-template-columns: 1fr 1fr; }
-      .home-logo { top: 22px; right: 22px; width: 22px; height: 22px; }
     }
   </style>
 </head>
 <body>
-  <div class="stage">
-    <!-- ─────────────── Screen 1: Purpose ─────────────── -->
-    <section class="screen active" data-screen="1">
+  <!-- ─────────────── Screen 1: Purpose ─────────────── -->
+  <section class="screen active" data-screen="1">
+    <div class="titles">
+      <h1>Hey!</h1>
+      <h2>Welcome to the Paysend °<br/>social media content builder</h2>
+      <h2>What are you up to today?</h2>
+    </div>
+    <div class="right-head">
+      <nav class="crumb" id="crumb-1">
+        <button class="crumb-item" data-goto="1">Main</button>
+        <span class="crumb-arrow">↓</span>
+      </nav>
       <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
-      <div class="screen-head">
-        <div class="screen-title">
-          <h1>Hey!</h1>
-          <h2>Welcome to the Paysend<br/>social media content builder</h2>
-          <h2 style="margin-top:24px;">What are you up to today?</h2>
-        </div>
-        <nav class="crumb" id="crumb-1">
-          <button class="crumb-item" data-goto="1">Main</button>
-          <span class="crumb-arrow">↓</span>
-        </nav>
-      </div>
-      <div class="tiles cols-3" id="purpose-tiles"></div>
-    </section>
+    </div>
+    <div class="tiles cols-4" id="purpose-tiles"></div>
+  </section>
 
-    <!-- ─────────────── Screen 2: Activity ─────────────── -->
-    <section class="screen" data-screen="2">
+  <!-- ─────────────── Screen 2: Activity ─────────────── -->
+  <section class="screen" data-screen="2">
+    <div class="titles">
+      <h1>Great!</h1>
+      <h2>Now it's time to choose the<br/>type of media we're making</h2>
+    </div>
+    <div class="right-head">
+      <nav class="crumb" id="crumb-2"></nav>
       <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
-      <div class="screen-head">
-        <div class="screen-title">
-          <h1>Great!</h1>
-          <h2>Now it's time to choose the<br/>type of media we're making</h2>
-        </div>
-        <nav class="crumb" id="crumb-2"></nav>
-      </div>
-      <div class="tiles cols-2" id="activity-tiles"></div>
-    </section>
+    </div>
+    <div class="tiles cols-2" id="activity-tiles"></div>
+  </section>
 
-    <!-- ─────────────── Screen 3: Layout ─────────────── -->
-    <section class="screen" data-screen="3">
+  <!-- ─────────────── Screen 3: Layout ─────────────── -->
+  <section class="screen" data-screen="3">
+    <div class="titles">
+      <h1>One last step</h1>
+      <h2>Choose a layout you want<br/>to use for your task</h2>
+    </div>
+    <div class="right-head">
+      <nav class="crumb" id="crumb-3"></nav>
       <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
-      <div class="screen-head">
-        <div class="screen-title">
-          <h1>One last step</h1>
-          <h2>Choose a layout you want<br/>to use for your task</h2>
-        </div>
-        <nav class="crumb" id="crumb-3"></nav>
-      </div>
-      <div class="layout-grid" id="layout-grid"></div>
-    </section>
-  </div>
+    </div>
+    <div class="layout-grid" id="layout-grid"></div>
+  </section>
 
   <script>
   // ─── Content map ────────────────────────────────────────────
   const PURPOSES = [
-    { id: 'hr',           label: 'HR / People' },
-    { id: 'pr',           label: 'PR / News' },
-    { id: 'thought',      label: 'Thought Leadership' },
-    { id: 'product',      label: 'Product / Sales' },
-    { id: 'personal',     label: 'Personal Brand' },
-    { id: 'engagement',   label: 'Engagement / Reach' },
+    { id: 'hr',         label: 'HR / People' },
+    { id: 'pr',         label: 'PR / News' },
+    { id: 'personal',   label: 'Personal Brand' },
+    { id: 'thought',    label: 'Thought Leadership' },
+    { id: 'product',    label: 'Product / Sales' },
+    { id: 'engagement', label: 'Engagement / Reach' },
   ];
 
   const ACTIVITIES = {
@@ -277,8 +309,8 @@
     ],
   };
 
-  // All 6 layouts. For now every one routes to /templates (Layout 1) per
-  // user instruction; preserve them so we can resort/relink per branch later.
+  // All 6 layouts. Every card routes to /templates (Layout 1) for now —
+  // re-sort/relink per branch later.
   const LAYOUTS = [
     { id: 1, name: 'Layout 1 — Event Portrait',   thumb: '/assets/placeholder-person1.png', href: '/templates' },
     { id: 2, name: 'Layout 2 — Event Landscape',  thumb: '/assets/placeholder-person2.png', href: '/templates' },
@@ -307,19 +339,23 @@
     const a = list.find(a => a.id === state.activityId);
     return a ? a.label : '';
   }
-
   function showScreen(n) {
     $screens.forEach(s => s.classList.toggle('active', +s.dataset.screen === n));
     window.scrollTo({ top: 0 });
   }
 
-  // ─── Render helpers ─────────────────────────────────────────
+  // ─── Render: tiles auto-pack into rows of 4 (Screen 1) ────
   function renderPurpose() {
     $purpose.innerHTML = '';
-    PURPOSES.forEach(p => {
+    // Per Figma: 4 tiles top row, 3 tiles bottom row. With 6 purposes
+    // we render 4 + 2 — last two share the bottom row each spanning 2.
+    PURPOSES.forEach((p, i) => {
       const btn = document.createElement('button');
       btn.className = 'tile';
       btn.textContent = p.label;
+      // 6 items in a 4-col grid: items 5 & 6 should each span 2 cols
+      // for a clean 3+3 = 4 visual: use 4-col with item 5 span-2, item 6 span-2
+      if (i >= 4) btn.classList.add('span-2');
       btn.addEventListener('click', () => {
         state.purposeId = p.id;
         state.activityId = null;
@@ -334,13 +370,13 @@
   function renderActivity() {
     $activity.innerHTML = '';
     const list = ACTIVITIES[state.purposeId] || [];
-    // 2-col grid in the figma; if odd count, last cell spans both
     list.forEach((a, i) => {
       const btn = document.createElement('button');
       btn.className = 'tile';
       btn.textContent = a.label;
+      // odd count → last one spans the row
       if (i === list.length - 1 && list.length % 2 === 1) {
-        btn.style.gridColumn = '1 / -1';
+        btn.classList.add('span-2');
       }
       btn.addEventListener('click', () => {
         state.activityId = a.id;
@@ -380,7 +416,6 @@
     s.textContent = '↓';
     return s;
   }
-
   function renderCrumb2() {
     $crumb2.innerHTML = '';
     $crumb2.appendChild(makeCrumbItem('Main', () => showScreen(1)));
@@ -388,7 +423,6 @@
     $crumb2.appendChild(makeCrumbItem(purposeLabel(), () => showScreen(2)));
     $crumb2.appendChild(makeArrow());
   }
-
   function renderCrumb3() {
     $crumb3.innerHTML = '';
     $crumb3.appendChild(makeCrumbItem('Main', () => showScreen(1)));
@@ -399,7 +433,6 @@
     $crumb3.appendChild(makeArrow());
   }
 
-  // ─── Init ───────────────────────────────────────────────────
   renderPurpose();
   </script>
 </body>
