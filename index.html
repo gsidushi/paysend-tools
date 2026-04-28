@@ -329,6 +329,8 @@
     5: '/templates5',
     6: '/templates6',
     7: '/work-in-progress.html',
+    8: '/work-in-progress.html',
+    9: '/work-in-progress.html',
   };
 
   // ── Activity → list of variant groups (one card per group) ─
@@ -346,6 +348,11 @@
       'company-news':  [['1.1'], ['2.1'], ['4.1', '4.2'], ['5.1', '5.2'], ['6.1', '6.2', '6.3']],
       'press-release': [['1.1', '1.2', '1.3'], ['2.1', '2.2', '2.3'], ['4.2'], ['5.2']],
       'partnership':   [['4.1', '4.2'], ['5.1', '5.2'], ['6.1', '6.2', '6.3']],
+    },
+    thought: {
+      'insight':     [['4.1', '4.2'], ['5.1', '5.2'], ['8']],
+      'educational': [['4.1', '4.2'], ['5.1', '5.2'], ['6.1', '6.2', '6.3'], ['9']],
+      'case-study':  [['4.1', '4.2'], ['5.1', '5.2'], ['6.1', '6.2', '6.3']],
     },
     // Other purposes mapped section-by-section later. Until mapped,
     // every activity falls back to a single Work-in-progress card.
@@ -421,12 +428,19 @@
                 || [['wip']]; // fallback: single Work-in-progress card
 
     groups.forEach(variants => {
-      const isWip   = variants[0] === '7' || variants[0] === 'wip';
-      const family  = isWip ? 7 : parseInt(variants[0].split('.')[0], 10);
+      const first   = variants[0];
+      // Treat any single-token, no-dot variant as a placeholder family
+      // (layout 7, 8, 9 …) — these don't have builders yet.
+      const isWip   = first === 'wip' || /^\d+$/.test(first);
+      const family  = isWip
+        ? parseInt(first === 'wip' ? '0' : first, 10)
+        : parseInt(first.split('.')[0], 10);
       const route   = FAMILY_ROUTE[family] || '/work-in-progress.html';
       // pass selected variants to the builder so it can show a switcher
       const href    = isWip ? route : `${route}?variants=${variants.join(',')}`;
-      const label   = isWip ? 'Work in progress' : variants.join(' · ');
+      const label   = isWip
+        ? `Layout ${first === 'wip' ? '?' : first} — WIP`
+        : variants.join(' · ');
       const thumb   = isWip
         ? '' // no thumb for WIP — show a neutral box
         : `/assets/placeholders/${variants[0]}.jpg`;
