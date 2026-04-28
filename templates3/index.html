@@ -177,15 +177,22 @@
     #post-canvas.mode-newhire { background: #e8e8e8; }
     #post-canvas.mode-newhire .canvas-planet,
     #post-canvas.mode-newhire .top-badges { display: none !important; }
-    /* In new-hire mode partner logos render in black to match the dark
-       Paysend wordmark on the light background. */
-    #post-canvas.mode-newhire .top-logos .logo-partner { filter: none; }
-    #post-canvas.mode-newhire .top-logos .logo-divider { background: rgba(20,20,20,0.55); }
-    /* The Paysend wordmark SVG already contains the planet, so no extra
-       planet icon is needed (avoids duplicate planets). */
-    #post-canvas.mode-newhire .top-logos .logo-paysend {
-      filter: none; /* keep original black — size already 313×53 from base rule */
+    /* New-hire: logos sit inside a black box that hugs them and sticks
+       to the top-right corner of the canvas. */
+    #post-canvas.mode-newhire .top-logos {
+      top: 0; right: 0;
+      background: #141414;
+      padding: 41px;
     }
+    /* Logos are over black again, so use the same treatment as event mode:
+       Paysend wordmark inverted to white, divider light, partners original. */
+    #post-canvas.mode-newhire .top-logos .logo-paysend {
+      filter: brightness(0) invert(1);
+    }
+    #post-canvas.mode-newhire .top-logos .logo-divider {
+      background: rgba(255,255,255,0.55);
+    }
+    #post-canvas.mode-newhire .top-logos .logo-partner { filter: none; }
     /* Photo is not bg-removed in new-hire mode — keep object-fit
        cover so the raw portrait fills the frame without distortion. */
     #post-canvas.mode-newhire .person-photo {
