@@ -143,7 +143,7 @@
     /* Tags sit over the solid #141414 canvas → invert: accent bg, black text. */
     .badge-date { background: var(--accent, #08ffce); padding: 10px 18px; }
     .badge-date span {
-      font-size: 22px; font-weight: 400; color: #141414;
+      font-size: 22px; font-weight: 400; color: var(--text-on-accent, #141414);
       letter-spacing: 0.44px; white-space: nowrap; line-height: 1;
     }
 
@@ -1146,13 +1146,16 @@ at ICE Barcelona!</textarea>
       if (nEl) nEl.addEventListener('input', () => { personState[key].name  = nEl.value; syncPerson(key); fitNames() })
     })
 
-    // ── Photo position slider (1-person only) ─────────────
+    // ── Photo position slider (applies to person 1's active photo per mode) ─
     const alignControl = document.getElementById('photo-align-control')
-    const photo1 = document.getElementById('photo-1')
     const posSlider = document.getElementById('photo-position-slider')
 
     function applyPhotoPos() {
-      photo1.style.objectPosition = `center ${posSlider.value}%`
+      const p1Photos = (personCanvasMap.P1 && personCanvasMap.P1.photos) || ['photo-1']
+      p1Photos.forEach(id => {
+        const el = document.getElementById(id)
+        if (el) el.style.objectPosition = `center ${posSlider.value}%`
+      })
     }
     posSlider.addEventListener('input', applyPhotoPos)
     applyPhotoPos() // set initial center position on load
@@ -1335,19 +1338,23 @@ at ICE Barcelona!</textarea>
 
     // ── Photo background color palette ─────────────────────
     const postCanvasEl = document.getElementById('post-canvas')
+    // Accents that need white text (low contrast against black)
+    const DARK_ACCENT = new Set(['#4a57c5'])
+    function applyAccent(color) {
+      document.querySelectorAll('.p-photo-bg').forEach(bg => {
+        bg.style.background = color
+      })
+      postCanvasEl.style.setProperty('--accent', color)
+      postCanvasEl.style.setProperty('--text-on-accent', DARK_ACCENT.has(color) ? '#fff' : '#141414')
+    }
     document.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', () => {
-        const color = swatch.dataset.color
-        document.querySelectorAll('.p-photo-bg').forEach(bg => {
-          bg.style.background = color
-        })
-        // Drive --accent so the date badge picks up the swatch color too
-        postCanvasEl.style.setProperty('--accent', color)
+        applyAccent(swatch.dataset.color)
         document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'))
         swatch.classList.add('active')
       })
     })
-    postCanvasEl.style.setProperty('--accent', '#08ffce')
+    applyAccent('#08ffce')
 
     // ── Layout switcher ────────────────────────────────────
     let currentMode = 1
@@ -1386,13 +1393,13 @@ at ICE Barcelona!</textarea>
           section2.style.display = 'flex'
           section3.style.display = 'none'
           section4.style.display = 'none'
-          alignControl.style.display = 'none'
+          alignControl.style.display = 'block'
         } else if (mode === 3) {
           label1.textContent = 'Person 1'
           section2.style.display = 'flex'
           section3.style.display = 'none'
           section4.style.display = 'flex'
-          alignControl.style.display = 'none'
+          alignControl.style.display = 'block'
         }
 
         // Re-fit names to match the newly visible card's width

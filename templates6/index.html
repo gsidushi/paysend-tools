@@ -119,6 +119,11 @@
     /* Pattern variant has no top-left brand — tag only. */
     #post-canvas.variant-pattern .top-logos { display: none; }
 
+    /* Light background mode: invert wordmark + divider so they remain visible */
+    #post-canvas.bg-light .top-logos .logo-paysend,
+    #post-canvas.bg-light .bottom-brand .logo-paysend { filter: none; }
+    #post-canvas.bg-light .top-logos .logo-divider { background: rgba(20,20,20,0.55); }
+
     /* News tag top-right */
     .news-tag {
       position: absolute; top: 41px; right: 41px;
@@ -141,7 +146,7 @@
     .headline.hidden { display: none !important; }
     .headline p {
       font-size: 104px; font-weight: 600;
-      color: #fff;
+      color: var(--text-color, #fff);
       line-height: 0.95; letter-spacing: -1.04px;
       white-space: pre-line; overflow-wrap: break-word;
     }
@@ -165,7 +170,7 @@
     .body-block.hidden { display: none !important; }
     .body-block p {
       font-size: 36px; font-weight: 400;
-      color: #fff;
+      color: var(--text-color, #fff);
       line-height: 0.95; letter-spacing: -0.18px;
       white-space: pre-line;
     }
@@ -614,12 +619,19 @@
   bottomBrandLogo.src = canvas.classList.contains('variant-pattern') ? PAYSEND_MAIN : PAYSEND_WORDMARK;
 
   // ── Background color palette ───────────────────────────
+  // Backgrounds with sufficient contrast for white text. Anything
+  // outside this set switches text/logos to dark.
+  const DARK_BG = new Set(['#0a0a0a', '#4a57c5']);
   const bgPalette = document.getElementById('bg-palette');
   bgPalette.querySelectorAll('.color-swatch').forEach(sw => {
     sw.addEventListener('click', () => {
       bgPalette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
       sw.classList.add('active');
-      canvas.style.setProperty('--bg-color', sw.dataset.color);
+      const c = sw.dataset.color;
+      canvas.style.setProperty('--bg-color', c);
+      const isDark = DARK_BG.has(c);
+      canvas.style.setProperty('--text-color', isDark ? '#fff' : '#141414');
+      canvas.classList.toggle('bg-light', !isDark);
     });
   });
 
