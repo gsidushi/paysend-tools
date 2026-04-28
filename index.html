@@ -314,8 +314,6 @@
     ],
     engagement: [
       { id: 'question',      label: 'Question Post' },
-      { id: 'poll',          label: 'Poll' },
-      { id: 'relatable',     label: 'Relatable / Light Content' },
     ],
   };
 
@@ -331,6 +329,8 @@
     7: '/work-in-progress.html',
     8: '/work-in-progress.html',
     9: '/work-in-progress.html',
+    10: '/work-in-progress.html',
+    11: '/work-in-progress.html',
   };
 
   // ── Activity → list of variant groups (one card per group) ─
@@ -354,8 +354,19 @@
       'educational': [['4.1', '4.2'], ['5.1', '5.2'], ['6.1', '6.2', '6.3'], ['9']],
       'case-study':  [['4.1', '4.2'], ['5.1', '5.2'], ['6.1', '6.2', '6.3']],
     },
-    // Other purposes mapped section-by-section later. Until mapped,
-    // every activity falls back to a single Work-in-progress card.
+    product: {
+      'feature':      [['4.1', '4.2'], ['5.1', '5.2'], ['10']],
+      'before-after': [['4.1', '4.2'], ['5.1', '5.2'], ['10']],
+      'testimonial':  [['4.1', '4.2'], ['5.1', '5.2'], ['8'], ['10']],
+    },
+    personal: {
+      'story':       [['1.1'], ['8'], ['11']],
+      'unpopular':   [['1.1'], ['8'], ['11']],
+      'founder-pov': [['1.1'], ['6.1', '6.2', '6.3'], ['8'], ['11']],
+    },
+    engagement: {
+      'question':    [['4.1', '4.2'], ['5.1', '5.2'], ['8']],
+    },
   };
 
   // ─── State ──────────────────────────────────────────────────
