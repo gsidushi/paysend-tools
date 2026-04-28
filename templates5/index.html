@@ -320,6 +320,11 @@
         </label>
       </div>
       <div class="section-body">
+        <select class="control-input partner-preset" id="partner1-preset">
+          <option value="custom">Custom upload</option>
+          <option value="visa">Visa</option>
+          <option value="mastercard">Mastercard</option>
+        </select>
         <div class="upload-zone" id="partner1-zone">
           <div class="upload-placeholder">
             <span class="upload-icon">↑</span>
@@ -344,6 +349,11 @@
         </label>
       </div>
       <div class="section-body">
+        <select class="control-input partner-preset" id="partner2-preset">
+          <option value="custom">Custom upload</option>
+          <option value="visa">Visa</option>
+          <option value="mastercard">Mastercard</option>
+        </select>
         <div class="upload-zone" id="partner2-zone">
           <div class="upload-placeholder">
             <span class="upload-icon">↑</span>
@@ -518,6 +528,32 @@
   }
   setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
   setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
+  const PARTNER_PRESETS = {
+    visa: '/assets/partner-logos/visa.png',
+    mastercard: '/assets/partner-logos/master-card.png',
+  };
+  function setupPartnerPreset({ selectId, zoneId, imgId, defaultSrc }) {
+    const select = document.getElementById(selectId);
+    const zone = document.getElementById(zoneId);
+    const img = document.getElementById(imgId);
+    if (!select || !zone || !img) return;
+    let lastCustom = defaultSrc;
+    new MutationObserver(() => {
+      if (select.value === 'custom') lastCustom = img.src;
+    }).observe(img, { attributes: true, attributeFilter: ['src'] });
+    select.addEventListener('change', () => {
+      const v = select.value;
+      if (v === 'custom') {
+        zone.style.display = '';
+        img.src = lastCustom;
+      } else if (PARTNER_PRESETS[v]) {
+        zone.style.display = 'none';
+        img.src = PARTNER_PRESETS[v];
+      }
+    });
+  }
+  setupPartnerPreset({ selectId: 'partner1-preset', zoneId: 'partner1-zone', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
+  setupPartnerPreset({ selectId: 'partner2-preset', zoneId: 'partner2-zone', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
 
   const modeSwitch = document.getElementById('mode-switch');
   function applyMode(mode) {
