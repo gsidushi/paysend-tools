@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Work in progress · Paysend</title>
+  <style>
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('/fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('/fonts/GT-Standard-L-Standard-Bold.woff2') format('woff2');
+      font-weight: 700; font-style: normal; font-display: swap;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'GT Standard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #fff;
+      color: #141414;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr;
+      min-height: 100vh;
+    }
+    .titles {
+      display: flex; flex-direction: column; gap: 28px;
+      align-self: start;
+    }
+    .titles h1 {
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+    .titles h2 {
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+    }
+    .right-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+    }
+    .back {
+      font-size: 16px;
+      font-weight: 500;
+      color: #141414;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding-top: 4px;
+    }
+    .back:hover { opacity: 0.55; }
+    .home-logo {
+      width: 32px; height: 32px;
+      justify-self: end;
+    }
+    @media (max-width: 760px) {
+      body { grid-template-columns: 1fr; }
+      .titles h1, .titles h2 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="titles">
+    <h1>Work in progress</h1>
+    <h2>This layout doesn't exist yet.<br/>Check back soon.</h2>
+  </div>
+  <div class="right-head">
+    <button class="back" onclick="history.length > 1 ? history.back() : (location.href = '/')">← Back</button>
+    <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+  </div>
+</body>
+</html>

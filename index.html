@@ -197,9 +197,20 @@
     .layout-card:hover .layout-thumb { opacity: 0.92; }
     .layout-name {
       margin-top: 6px;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 500;
       color: var(--ink);
+      letter-spacing: 0.01em;
+    }
+    .wip-thumb {
+      width: 100%; height: 100%;
+      background: repeating-linear-gradient(
+        45deg, #e8e8e8 0 12px, #dcdcdc 12px 24px);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 22px;
+      color: #888;
+      letter-spacing: 0.08em;
     }
 
     /* ── Small screens ───────────────────────────────────────── */
@@ -308,16 +319,32 @@
     ],
   };
 
-  // All 6 layouts. Every card routes to /templates (Layout 1) for now —
-  // re-sort/relink per branch later.
-  const LAYOUTS = [
-    { id: 1, name: 'Layout 1 — Event Portrait',   thumb: '/assets/placeholder-person1.png', href: '/templates' },
-    { id: 2, name: 'Layout 2 — Event Landscape',  thumb: '/assets/placeholder-person2.png', href: '/templates' },
-    { id: 3, name: 'Layout 3 — Event / New Hire', thumb: '/assets/person_placeholder.png',  href: '/templates' },
-    { id: 4, name: 'Layout 4 — Event Portrait',   thumb: '/assets/placeholder-venue.png',   href: '/templates' },
-    { id: 5, name: 'Layout 5 — Event Landscape',  thumb: '/assets/city-placeholder.png',    href: '/templates' },
-    { id: 6, name: 'Layout 6 — Milestone',        thumb: '/assets/pattern-1.png',           href: '/templates' },
-  ];
+  // ── Layout family routes (one builder per family digit) ───
+  // Family 7 doesn't exist yet → routes to /work-in-progress.html.
+  const FAMILY_ROUTE = {
+    1: '/templates',
+    2: '/templates2',
+    3: '/templates3',
+    4: '/templates4',
+    5: '/templates5',
+    6: '/templates6',
+    7: '/work-in-progress.html',
+  };
+
+  // ── Activity → list of variant groups (one card per group) ─
+  // Each group shares a family digit. Multiple variants in a group
+  // ⇒ a switcher inside the builder. Single variant ⇒ standalone card.
+  // Source: Figma "structure" frame, HR/People section.
+  const ASSIGNMENTS = {
+    hr: {
+      'new-job':   [['1.1'], ['3.1', '3.2'], ['6.1', '6.2', '6.3']],
+      'promotion': [['1.1'], ['4.1', '4.2'], ['6.1', '6.2', '6.3']],
+      'hiring':    [['4.1', '4.2'], ['7']],
+      'bts':       [['1.1'], ['2.1'], ['5.1', '5.2'], ['6.1', '6.2', '6.3']],
+    },
+    // Other purposes mapped section-by-section later. Until mapped,
+    // every activity falls back to a single Work-in-progress card.
+  };
 
   // ─── State ──────────────────────────────────────────────────
   const state = { purposeId: null, activityId: null };
@@ -385,13 +412,30 @@
 
   function renderGrid() {
     $grid.innerHTML = '';
-    LAYOUTS.forEach(l => {
+    const groups = (ASSIGNMENTS[state.purposeId] || {})[state.activityId]
+                || [['wip']]; // fallback: single Work-in-progress card
+
+    groups.forEach(variants => {
+      const isWip   = variants[0] === '7' || variants[0] === 'wip';
+      const family  = isWip ? 7 : parseInt(variants[0].split('.')[0], 10);
+      const route   = FAMILY_ROUTE[family] || '/work-in-progress.html';
+      // pass selected variants to the builder so it can show a switcher
+      const href    = isWip ? route : `${route}?variants=${variants.join(',')}`;
+      const label   = isWip ? 'Work in progress' : variants.join(' · ');
+      const thumb   = isWip
+        ? '' // no thumb for WIP — show a neutral box
+        : `/assets/placeholders/${variants[0]}.jpg`;
+
       const a = document.createElement('a');
       a.className = 'layout-card';
-      a.href = l.href;
+      a.href = href;
       a.innerHTML = `
-        <div class="layout-thumb"><img src="${l.thumb}" alt="${l.name}" onerror="this.style.display='none'"/></div>
-        <div class="layout-name">${l.name}</div>
+        <div class="layout-thumb">
+          ${thumb
+            ? `<img src="${thumb}" alt="Layout ${label}" onerror="this.style.display='none'"/>`
+            : `<div class="wip-thumb">WIP</div>`}
+        </div>
+        <div class="layout-name">${label}</div>
       `;
       $grid.appendChild(a);
     });
