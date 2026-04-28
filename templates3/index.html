@@ -174,9 +174,11 @@
        badge. */
     #post-canvas.mode-newhire { background: #e8e8e8; }
     #post-canvas.mode-newhire .canvas-planet,
-    #post-canvas.mode-newhire .top-badges,
-    #post-canvas.mode-newhire .top-logos .logo-partner,
-    #post-canvas.mode-newhire .top-logos .logo-divider { display: none !important; }
+    #post-canvas.mode-newhire .top-badges { display: none !important; }
+    /* In new-hire mode partner logos render in black to match the dark
+       Paysend wordmark on the light background. */
+    #post-canvas.mode-newhire .top-logos .logo-partner { filter: none; }
+    #post-canvas.mode-newhire .top-logos .logo-divider { background: rgba(20,20,20,0.55); }
     /* The Paysend wordmark SVG already contains the planet, so no extra
        planet icon is needed (avoids duplicate planets). */
     #post-canvas.mode-newhire .top-logos .logo-paysend {
@@ -521,7 +523,7 @@
     <div class="divider"></div>
 
     <!-- Partner logo 1 -->
-    <div class="control-section event-only">
+    <div class="control-section">
       <div class="section-row">
         <label class="control-label">Partner Logo 1</label>
         <label class="toggle-switch">
@@ -546,11 +548,11 @@
     </div>
 
     <!-- Partner logo 2 -->
-    <div class="control-section event-only">
+    <div class="control-section">
       <div class="section-row">
         <label class="control-label">Partner Logo 2</label>
         <label class="toggle-switch">
-          <input type="checkbox" id="partner2-toggle" checked />
+          <input type="checkbox" id="partner2-toggle" />
           <span class="toggle-slider"></span>
         </label>
       </div>
@@ -788,12 +790,6 @@
   // Partner logo toggles (each controls its own logo + adjacent divider)
   function updateLogoLayout() {
     const cvs = document.getElementById('post-canvas');
-    // New-hire hides partners via mode-newhire CSS (display:none), not via
-    // the .hidden class — so don't trigger compact in that mode.
-    if (cvs.classList.contains('mode-newhire')) {
-      cvs.classList.remove('logo-compact');
-      return;
-    }
     const visible = document.querySelectorAll('.logo-partner:not(.hidden)').length;
     cvs.classList.toggle('logo-compact', visible >= 2);
   }
