@@ -42,7 +42,7 @@
       --bg:  #ffffff;
       --margin: 20px;
       --tile-gap: 4px;
-      --tile-font: 40px;
+      --tile-font: 24px;
     }
 
     html, body { height: 100%; }
@@ -149,17 +149,16 @@
       background: var(--ink);
       color: #fff;
       border: none;
-      padding: 14px 24px;
+      padding: 14px 16px;
       font-family: inherit;
       font-size: var(--tile-font);
       font-weight: 500;
-      line-height: 1.1;
+      line-height: 1.15;
       cursor: pointer;
       text-align: center;
       transition: background 0.15s, color 0.15s;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible;
     }
     .tile:hover  { background: #2a2a2a; }
     .tile:active { background: #000; }
@@ -235,7 +234,7 @@
       </nav>
       <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </div>
-    <div class="tiles cols-4" id="purpose-tiles"></div>
+    <div class="tiles cols-3" id="purpose-tiles"></div>
   </section>
 
   <!-- ─────────────── Screen 2: Activity ─────────────── -->
@@ -347,15 +346,11 @@
   // ─── Render: tiles auto-pack into rows of 4 (Screen 1) ────
   function renderPurpose() {
     $purpose.innerHTML = '';
-    // Per Figma: 4 tiles top row, 3 tiles bottom row. With 6 purposes
-    // we render 4 + 2 — last two share the bottom row each spanning 2.
-    PURPOSES.forEach((p, i) => {
+    // 3 columns × 2 rows — every label fits without truncation.
+    PURPOSES.forEach((p) => {
       const btn = document.createElement('button');
       btn.className = 'tile';
       btn.textContent = p.label;
-      // 6 items in a 4-col grid: items 5 & 6 should each span 2 cols
-      // for a clean 3+3 = 4 visual: use 4-col with item 5 span-2, item 6 span-2
-      if (i >= 4) btn.classList.add('span-2');
       btn.addEventListener('click', () => {
         state.purposeId = p.id;
         state.activityId = null;
