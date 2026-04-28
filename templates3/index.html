@@ -105,9 +105,13 @@
       display: flex; align-items: center; gap: 20px;
       z-index: 4;
     }
-    .top-logos .logo-paysend,
-    .top-logos .logo-partner { height: 40px; width: auto; max-width: 200px; display: block; flex-shrink: 0; object-fit: contain; }
-    .top-logos .logo-divider { width: 2px; height: 40px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .top-logos .logo-paysend { width: 313px; height: 53px; object-fit: contain; display: block; flex-shrink: 0; filter: brightness(0) invert(1); }
+    .top-logos .logo-partner { height: 53px; width: auto; max-width: 265px; display: block; flex-shrink: 0; object-fit: contain; }
+    .top-logos .logo-divider { width: 2px; height: 53px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    /* 2 partners compact mode — matches Layout 3 event original sizing */
+    #post-canvas.logo-compact .top-logos .logo-paysend { width: auto; height: 40px; max-width: 200px; }
+    #post-canvas.logo-compact .top-logos .logo-partner { height: 40px; max-width: 200px; }
+    #post-canvas.logo-compact .top-logos .logo-divider { height: 40px; }
     .top-logos .logo-partner.hidden,
     .top-logos .logo-divider.hidden { display: none !important; }
 
@@ -176,7 +180,7 @@
     /* The Paysend wordmark SVG already contains the planet, so no extra
        planet icon is needed (avoids duplicate planets). */
     #post-canvas.mode-newhire .top-logos .logo-paysend {
-      width: 313px; height: 53px; filter: none; /* keep original black */
+      filter: none; /* keep original black — size already 313×53 from base rule */
     }
     /* Photo is not bg-removed in new-hire mode — keep object-fit
        cover so the raw portrait fills the frame without distortion. */
@@ -782,6 +786,10 @@
   bindToggle('nameplate-toggle', document.getElementById('nameplate-stack'));
 
   // Partner logo toggles (each controls its own logo + adjacent divider)
+  function updateLogoLayout() {
+    const visible = document.querySelectorAll('.logo-partner:not(.hidden)').length;
+    document.getElementById('post-canvas').classList.toggle('logo-compact', visible >= 2);
+  }
   function bindPartnerToggle(toggleId, logoId, dividerId) {
     const cb = document.getElementById(toggleId);
     const logo = document.getElementById(logoId);
@@ -790,6 +798,7 @@
       logo.classList.toggle('hidden', !cb.checked);
       divider.classList.toggle('hidden', !cb.checked);
       syncSectionOff(cb);
+      updateLogoLayout();
     };
     cb.addEventListener('change', apply);
     apply();

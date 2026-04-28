@@ -101,9 +101,13 @@
     }
 
     .post-logos { display: flex; align-items: flex-start; gap: 20px; }
-    .logo-paysend { width: 313px; height: 53px; object-fit: contain; display: block; flex-shrink: 0; }
-    .logo-divider  { width: 2px; height: 40px; background: rgba(255,255,255,0.55); flex-shrink: 0; margin-top: 6px; }
-    .logo-pa360    { width: 174px; height: 103px; object-fit: contain; display: block; flex-shrink: 0; margin-top: -40px; }
+    .logo-paysend  { width: 313px; height: 53px; object-fit: contain; display: block; flex-shrink: 0; }
+    .logo-divider  { width: 2px; height: 53px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .logo-pa360    { height: 53px; width: auto; object-fit: contain; display: block; flex-shrink: 0; }
+    /* 2 partners compact mode */
+    #post-canvas.logo-compact .logo-paysend { width: auto; height: 40px; max-width: 200px; }
+    #post-canvas.logo-compact .logo-pa360   { height: 40px; }
+    #post-canvas.logo-compact .logo-divider { height: 40px; }
 
     .post-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .post-badges.hidden { display: none !important; }
@@ -1231,11 +1235,16 @@ at ICE Barcelona!</textarea>
     applyHeadlineVisibility()
 
     const partnerLogoToggle = document.getElementById('partner-logo-toggle')
+    function updateLogoLayout() {
+      const visible = document.querySelectorAll('.logo-pa360:not(.hidden)').length
+      document.getElementById('post-canvas').classList.toggle('logo-compact', visible >= 2)
+    }
     function applyPartnerLogoVisibility() {
       const off = !partnerLogoToggle.checked
       partnerLogo.classList.toggle('hidden', off)
       logoDivider.classList.toggle('hidden', off)
       syncSectionOff(partnerLogoToggle)
+      updateLogoLayout()
     }
     partnerLogoToggle.addEventListener('change', applyPartnerLogoVisibility)
     applyPartnerLogoVisibility()

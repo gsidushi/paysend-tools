@@ -54,14 +54,21 @@
       display: flex; align-items: center; gap: 16px;
       z-index: 3;
     }
-    .top-logos .logo-paysend,
-    .top-logos .logo-partner {
-      height: 36px; width: auto; max-width: 180px;
-      display: block; flex-shrink: 0; object-fit: contain;
+    .top-logos .logo-paysend {
+      width: 313px; height: 53px; object-fit: contain;
+      display: block; flex-shrink: 0;
       filter: brightness(0) invert(1);
     }
-    .top-logos .logo-partner { filter: none; }
-    .top-logos .logo-divider { width: 2px; height: 36px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .top-logos .logo-partner {
+      height: 53px; width: auto; max-width: 265px;
+      display: block; flex-shrink: 0; object-fit: contain;
+      filter: none;
+    }
+    .top-logos .logo-divider { width: 2px; height: 53px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    /* 2 partners compact mode */
+    #post-canvas.logo-compact .top-logos .logo-paysend { width: auto; height: 40px; max-width: 200px; }
+    #post-canvas.logo-compact .top-logos .logo-partner { height: 40px; max-width: 200px; }
+    #post-canvas.logo-compact .top-logos .logo-divider { height: 40px; }
     .top-logos .logo-partner.hidden,
     .top-logos .logo-divider.hidden { display: none !important; }
 
@@ -445,10 +452,20 @@
   bindToggle('headline-toggle', document.getElementById('headline'));
 
   (function bindPartnerToggle() {
+    const canvas = document.getElementById('post-canvas');
+    function updateLogoLayout() {
+      const visible = document.querySelectorAll('.logo-partner:not(.hidden)').length;
+      canvas.classList.toggle('logo-compact', visible >= 2);
+    }
     const cb = document.getElementById('partner-toggle');
     const logo = document.getElementById('logo-partner-1');
     const divider = document.getElementById('divider-1');
-    const apply = () => { logo.classList.toggle('hidden', !cb.checked); divider.classList.toggle('hidden', !cb.checked); syncSectionOff(cb); };
+    const apply = () => {
+      logo.classList.toggle('hidden', !cb.checked);
+      divider.classList.toggle('hidden', !cb.checked);
+      syncSectionOff(cb);
+      updateLogoLayout();
+    };
     cb.addEventListener('change', apply);
     apply();
   })();

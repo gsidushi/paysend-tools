@@ -105,9 +105,13 @@
     }
 
     .post-logos { display: flex; align-items: center; gap: 16px; }
-    .logo-paysend { height: 36px; width: auto; display: block; flex-shrink: 0; }
-    .logo-divider { width: 2px; align-self: stretch; background: rgba(255,255,255,0.55); flex-shrink: 0; }
-    .logo-partner { height: 36px; width: auto; display: block; flex-shrink: 0; }
+    .logo-paysend { width: 313px; height: 53px; object-fit: contain; display: block; flex-shrink: 0; }
+    .logo-divider { width: 2px; height: 53px; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .logo-partner { height: 53px; width: auto; object-fit: contain; display: block; flex-shrink: 0; }
+    /* 2 partners compact mode */
+    #post-canvas.logo-compact .logo-paysend { width: auto; height: 40px; max-width: 200px; }
+    #post-canvas.logo-compact .logo-partner { height: 40px; }
+    #post-canvas.logo-compact .logo-divider { height: 40px; }
 
     .post-badges { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
     .post-badges.hidden { display: none !important; }
@@ -1015,11 +1019,16 @@ at GFTN Japan</textarea>
   const partnerLogoToggle = document.getElementById('partner-logo-toggle');
   const partnerLogoEl = document.getElementById('logo-partner');
   const logoDivider = document.querySelector('.logo-divider');
+  function updateLogoLayout() {
+    const visible = document.querySelectorAll('.logo-partner:not(.hidden)').length;
+    document.getElementById('post-canvas').classList.toggle('logo-compact', visible >= 2);
+  }
   function applyPartnerLogoVisibility() {
     const off = !partnerLogoToggle.checked;
     partnerLogoEl.classList.toggle('hidden', off);
     logoDivider.classList.toggle('hidden', off);
     syncSectionOff(partnerLogoToggle);
+    updateLogoLayout();
   }
   partnerLogoToggle.addEventListener('change', applyPartnerLogoVisibility);
   applyPartnerLogoVisibility();
