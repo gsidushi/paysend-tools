@@ -140,9 +140,10 @@
       font-size: 32px; font-weight: 600; color: #141414;
       letter-spacing: -0.32px; white-space: nowrap; line-height: 1;
     }
-    .badge-date { background: #141414; padding: 10px 18px; }
+    /* Tags sit over the solid #141414 canvas → invert: accent bg, black text. */
+    .badge-date { background: var(--accent, #08ffce); padding: 10px 18px; }
     .badge-date span {
-      font-size: 22px; font-weight: 400; color: var(--accent, #08ffce);
+      font-size: 22px; font-weight: 400; color: #141414;
       letter-spacing: 0.44px; white-space: nowrap; line-height: 1;
     }
 

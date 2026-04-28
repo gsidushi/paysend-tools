@@ -141,11 +141,18 @@
       font-size: 32px; font-weight: 600; color: #141414;
       white-space: nowrap; line-height: 1;
     }
-    .badge-date { background: #141414; height: 36px; }
+    /* Top-right pills sit over the solid #141414 post-header → invert:
+       accent bg, black text. The venue-overlay (mode 1) overrides this
+       below since it sits over a photo. */
+    .badge-date { background: var(--accent, #08ffce); height: 36px; }
     .badge-date span {
-      font-size: 22px; font-weight: 400; color: var(--accent, #08ffce);
+      font-size: 22px; font-weight: 400; color: #141414;
       white-space: nowrap; line-height: 1; letter-spacing: 0.44px;
     }
+    /* Venue-overlay sits over the venue photo, not solid black, so it
+       keeps the original treatment: black bg + accent-color text. */
+    .venue-overlay .badge-date { background: #141414; }
+    .venue-overlay .badge-date span { color: var(--accent, #08ffce); }
 
     /* ── Bottom card area (313px) ── */
     .post-card {
