@@ -1084,26 +1084,29 @@
   // ── Responsive preview scaling ─────────────────────────────
   (function scalePreview() {
     const CANVAS_W = 1080, CANVAS_H = 1440;
-    const PREVIEW_PAD = 64;
-    const HEADER_H = 60;
+    // Vertical and horizontal padding inside .preview-area
+    const PAD_X = 32 * 2;
+    const PAD_Y = 40 * 2;
+    // Reserved for the "Preview scaled — exports …" hint line beneath
+    const HINT_RESERVE = 24;
     const wrapper = document.querySelector('.preview-wrapper');
+    const previewArea = document.querySelector('.preview-area');
     const cvs = document.getElementById('post-canvas');
 
     function update() {
-      const w = window.innerWidth, h = window.innerHeight;
-      let sidebarFrac;
-      if (w < 500)       sidebarFrac = 0;
-      else if (w < 800)  sidebarFrac = 0.40;
-      else if (w < 1200) sidebarFrac = 0.33;
-      else               sidebarFrac = 0.25;
+      const w = window.innerWidth;
+      // Measure the actual preview area instead of guessing from
+      // header/window — this stays correct even if the header height
+      // or any layout chrome shifts.
+      const rect = previewArea.getBoundingClientRect();
 
       let availW, availH;
       if (w < 500) {
         availW = w;
-        availH = Infinity;
+        availH = Infinity;          // mobile stacks; the page scrolls
       } else {
-        availW = w * (1 - sidebarFrac) - PREVIEW_PAD;
-        availH = h - HEADER_H - 80;
+        availW = rect.width  - PAD_X;
+        availH = rect.height - PAD_Y - HINT_RESERVE;
       }
       const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
       wrapper.style.width  = Math.round(CANVAS_W * scale) + 'px';
@@ -1112,6 +1115,10 @@
     }
     update();
     window.addEventListener('resize', update);
+    // The header / sidebar can lay out after fonts load, so re-fit then.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(update);
+    }
   })();
 
   // ── Download ───────────────────────────────────────────────
