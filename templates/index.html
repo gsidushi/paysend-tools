@@ -1182,6 +1182,28 @@ at ICE Barcelona!</textarea>
       if (nEl) nEl.addEventListener('input', () => { personState[key].name  = nEl.value; syncPerson(key); fitNames() })
     })
 
+    // ── Unified photo transform (combines zoom scale + position offset) ──
+    // object-position only moves the image when object-fit:cover already
+    // overflows (aspect mismatch). When the image fits the container exactly,
+    // the slider has no effect — until the user zooms in via transform:scale,
+    // which creates overflow that object-position can't address. To make the
+    // slider work in both cases we ALSO drive a translateY proportional to
+    // the current scale.
+    function applyPhotoTransform(el) {
+      const scale = parseFloat(el.dataset.scale || '1')
+      const pos   = parseFloat(el.dataset.pos   || '50')  // 0-100
+      // At scale s the image overflows the container by (s-1)*100% of its
+      // natural height, split (s-1)/2 each side. translateY in % is relative
+      // to the element's own (unscaled) height, so the usable range is
+      // ±(s-1)*50%. Slider 0 (top) → translate down by max; slider 100
+      // (bottom) → translate up by max. translateY is applied BEFORE scale
+      // so % units stay relative to the layout box.
+      const tY = (50 - pos) * (scale - 1)  // in %
+      el.style.transformOrigin = 'center center'
+      el.style.transform = `scale(${scale}) translateY(${tY}%)`
+      el.style.objectPosition = `center ${pos}%`
+    }
+
     // ── Photo position slider (applies to person 1's active photo per mode) ─
     const alignControl = document.getElementById('photo-align-control')
     const posSlider = document.getElementById('photo-position-slider')
@@ -1190,7 +1212,10 @@ at ICE Barcelona!</textarea>
       const p1Photos = (personCanvasMap.P1 && personCanvasMap.P1.photos) || ['photo-1']
       p1Photos.forEach(id => {
         const el = document.getElementById(id)
-        if (el) el.style.objectPosition = `center ${posSlider.value}%`
+        if (el) {
+          el.dataset.pos = posSlider.value
+          applyPhotoTransform(el)
+        }
       })
     }
     posSlider.addEventListener('input', applyPhotoPos)
@@ -1209,8 +1234,8 @@ at ICE Barcelona!</textarea>
         ids.forEach(id => {
           const el = document.getElementById(id)
           if (el) {
-            el.style.transformOrigin = 'center center'
-            el.style.transform = `scale(${scale})`
+            el.dataset.scale = scale
+            applyPhotoTransform(el)
           }
         })
         valueEl.textContent = Math.round(scale * 100) + '%'

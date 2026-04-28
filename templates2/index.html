@@ -1169,6 +1169,25 @@ at GFTN Japan</textarea>
     });
   });
 
+  // ── Unified photo transform (combines zoom scale + position offset) ──
+  // object-position only handles overflow from object-fit:cover (aspect
+  // mismatch). When the image fits exactly, the slider has no visible
+  // effect — until zoom kicks in and creates overflow that object-position
+  // can't reach. We drive a translateY proportional to (scale-1) so the
+  // slider keeps working at any zoom level.
+  function applyPhotoTransform(el) {
+    const scale = parseFloat(el.dataset.scale || '1');
+    const pos   = parseFloat(el.dataset.pos   || '50');
+    // Usable translate range at scale s is ±(s-1)*50% of the element's own
+    // (unscaled) height. Slider 0=top → translate down by max; 100=bottom
+    // → translate up by max. translateY runs before scale so % stays
+    // relative to the layout box.
+    const tY = (50 - pos) * (scale - 1);
+    el.style.transformOrigin = 'center center';
+    el.style.transform = `scale(${scale}) translateY(${tY}%)`;
+    el.style.objectPosition = `center ${pos}%`;
+  }
+
   // ── Photo position sliders (per person, syncs across all layouts) ──
   const photoIdsByPerson = {
     '1': ['photo-1', 'photo-2a', 'photo-3a'],
@@ -1178,7 +1197,10 @@ at GFTN Japan</textarea>
   function applyPhotoPosition(personKey, pct) {
     (photoIdsByPerson[personKey] || []).forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.style.objectPosition = `center ${pct}%`;
+      if (el) {
+        el.dataset.pos = pct;
+        applyPhotoTransform(el);
+      }
     });
   }
   document.querySelectorAll('.photo-position-slider').forEach(s => {
@@ -1198,8 +1220,8 @@ at GFTN Japan</textarea>
       photoIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
-          el.style.transformOrigin = 'center center';
-          el.style.transform = `scale(${scale})`;
+          el.dataset.scale = scale;
+          applyPhotoTransform(el);
         }
       });
       valueEl.textContent = Math.round(scale * 100) + '%';

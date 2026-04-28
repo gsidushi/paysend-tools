@@ -896,9 +896,13 @@
   const photoEl = document.getElementById('person-photo');
   const slider = document.getElementById('photo-position-slider');
   function applyPhotoPosition() {
-    // (value - 50) * 0.3 maps 0→-15%, 50→0%, 100→+15% of the photo's
-    // own height (translateY with % refers to the element itself).
-    const offset = (parseFloat(slider.value) - 50) * 0.3;
+    // Slider range scales with zoom so it can traverse the overflow
+    // introduced by scale > 1. Base range ±15% (no zoom) grows by
+    // (scale-1)*50% so at scale=2 the slider can move ±65% of the
+    // photo's own height.
+    const scale = (typeof personZoom !== 'undefined') ? personZoom.value : 1;
+    const range = 15 + (scale - 1) * 50;
+    const offset = (parseFloat(slider.value) - 50) / 50 * range;
     canvas.style.setProperty('--photo-offset', offset + '%');
   }
   slider.addEventListener('input', applyPhotoPosition);
@@ -916,6 +920,8 @@
     zoomValueEl.textContent = Math.round(personZoom.value * 100) + '%';
     zoomDecBtn.disabled = personZoom.value <= ZOOM_MIN + 0.001;
     zoomIncBtn.disabled = personZoom.value >= ZOOM_MAX - 0.001;
+    // Re-apply position so the slider range tracks the new zoom.
+    applyPhotoPosition();
   }
   zoomDecBtn.addEventListener('click', () => {
     personZoom.value = Math.max(ZOOM_MIN, +(personZoom.value - ZOOM_STEP).toFixed(2));
