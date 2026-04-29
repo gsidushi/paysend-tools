@@ -73,14 +73,17 @@
     #post-canvas.variant-2 .planet-watermark   { display: none; }
     #post-canvas.variant-2 .paysend-wordmark   { display: block; }
 
-    /* ── Lime quote-mark glyphs (corner accents on V1) ───────── */
+    /* ── Quote-mark glyphs (corner accents on V1) ──
+       Inline SVG so we can recolor with currentColor / --accent. */
     .quote-mark {
       position: absolute;
-      width: 135px; height: 76px;
+      width: 135px; height: 77px;
       z-index: 2;
       pointer-events: none;
+      color: var(--accent, #a0eb31);
     }
-    .quote-mark svg { width: 100%; height: 100%; display: block; }
+    .quote-mark svg { width: 100%; height: 100%; display: block; fill: currentColor; }
+    .quote-mark svg path { fill: currentColor; }
     .quote-mark.tl { top: 41px; left: 41px; }
     .quote-mark.br { bottom: 41px; right: 41px; transform: rotate(180deg); }
     /* Only V1 carries the corner quote marks. V2 hides them. */
@@ -113,15 +116,29 @@
 
     .author-pill {
       display: inline-block;
-      background: #a0eb31;
-      color: #141414;
-      padding: 10px 14px;
-      font-size: 18px;
+      background: var(--accent, #a0eb31);
+      color: var(--accent-text, #141414);
+      padding: 10px 18px;
+      font-size: 36px;
       font-weight: 600;
-      letter-spacing: -0.18px;
+      letter-spacing: -0.36px;
       line-height: 1;
     }
     .author-pill.hidden { display: none !important; }
+
+    /* ── Color palette (controls) ── */
+    .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .color-swatch  {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid transparent; cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s;
+      flex-shrink: 0; padding: 0;
+    }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active {
+      border-color: #141414; transform: scale(1.1);
+      box-shadow: 0 0 0 1px #fff inset;
+    }
 
     /* ── Controls ── */
     .controls { background: #fff; border-left: 1px solid #e8e8e8; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
@@ -192,16 +209,15 @@
 
           <!-- Corner quote-mark glyphs (V1 only) -->
           <span class="quote-mark tl" aria-hidden="true">
-            <svg viewBox="0 0 135 76" xmlns="http://www.w3.org/2000/svg">
-              <!-- Stylised double quote: two slanted parallelograms -->
-              <polygon points="20,76 50,0 80,0 50,76" fill="#a0eb31"/>
-              <polygon points="80,76 110,0 140,0 110,76" fill="#a0eb31"/>
+            <svg viewBox="0 0 135 77" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path d="M68.3131 0C66.4347 8.13996 64.4511 16.8018 62.3639 25.9854C61.3203 30.5772 60.3295 35.117 59.3903 39.6045H23.6305C25.5071 34.4773 27.4608 29.3109 29.4918 24.1064C33.0399 15.5492 36.4835 7.51368 39.8229 0H68.3131ZM134.685 0C132.807 8.13996 130.823 16.8018 128.736 25.9854C127.692 30.5772 126.702 35.117 125.762 39.6045H89.6901C91.5666 34.4773 93.5194 29.3108 95.5504 24.1064C99.0985 15.5492 102.542 7.51368 105.881 0H134.685Z"/>
+              <path d="M46.4912 39.6045C45.552 44.0917 44.6649 48.5273 43.8301 52.9102C42.1604 61.4672 40.8043 69.3983 39.7607 76.7031H2.19141L0 73.2598C1.87845 65.746 4.27914 57.8145 7.20117 49.4658C8.34607 46.1947 9.52344 42.9077 10.7324 39.6045H46.4912ZM112.863 39.6045C111.924 44.0917 111.037 48.5273 110.202 52.9102C108.532 61.4672 107.176 69.3983 106.133 76.7031H68.25L66.0586 73.2598C67.937 65.746 70.3377 57.8145 73.2598 49.4658C74.4047 46.1947 75.582 42.9077 76.791 39.6045H112.863Z"/>
             </svg>
           </span>
           <span class="quote-mark br" aria-hidden="true">
-            <svg viewBox="0 0 135 76" xmlns="http://www.w3.org/2000/svg">
-              <polygon points="20,76 50,0 80,0 50,76" fill="#a0eb31"/>
-              <polygon points="80,76 110,0 140,0 110,76" fill="#a0eb31"/>
+            <svg viewBox="0 0 135 77" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path d="M68.3131 0C66.4347 8.13996 64.4511 16.8018 62.3639 25.9854C61.3203 30.5772 60.3295 35.117 59.3903 39.6045H23.6305C25.5071 34.4773 27.4608 29.3109 29.4918 24.1064C33.0399 15.5492 36.4835 7.51368 39.8229 0H68.3131ZM134.685 0C132.807 8.13996 130.823 16.8018 128.736 25.9854C127.692 30.5772 126.702 35.117 125.762 39.6045H89.6901C91.5666 34.4773 93.5194 29.3108 95.5504 24.1064C99.0985 15.5492 102.542 7.51368 105.881 0H134.685Z"/>
+              <path d="M46.4912 39.6045C45.552 44.0917 44.6649 48.5273 43.8301 52.9102C42.1604 61.4672 40.8043 69.3983 39.7607 76.7031H2.19141L0 73.2598C1.87845 65.746 4.27914 57.8145 7.20117 49.4658C8.34607 46.1947 9.52344 42.9077 10.7324 39.6045H46.4912ZM112.863 39.6045C111.924 44.0917 111.037 48.5273 110.202 52.9102C108.532 61.4672 107.176 69.3983 106.133 76.7031H68.25L66.0586 73.2598C67.937 65.746 70.3377 57.8145 73.2598 49.4658C74.4047 46.1947 75.582 42.9077 76.791 39.6045H112.863Z"/>
             </svg>
           </span>
 
@@ -239,6 +255,26 @@
           <label class="toggle-switch"><input type="checkbox" id="author-toggle" checked /><span class="toggle-slider"></span></label>
         </div>
         <input class="control-input" id="input-author" type="text" value="Albert Einstein" />
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Accent colour: drives the corner quote glyphs + author pill -->
+      <div class="control-section">
+        <label class="control-label">Accent Color</label>
+        <div class="color-palette" id="accent-palette">
+          <button class="color-swatch active" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
+          <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+          <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
+          <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
+          <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
+          <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
+          <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+          <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+          <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
+          <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+          <button class="color-swatch" data-color="#ffffff" style="background:#ffffff;border:1px solid #ddd" title="White"></button>
+        </div>
       </div>
 
       <button class="download-btn" id="download-btn">Download PNG</button>
@@ -312,6 +348,21 @@
   }
   authorToggle.addEventListener('change', syncAuthor);
   syncAuthor();
+
+  /* ── Accent colour ─ recolours both the corner quote glyphs
+     and the author pill. Light accents keep dark pill text;
+     darker accents flip the pill text to white for legibility. */
+  const DARK_ACCENTS = new Set(['#4a57c5', '#b75eff', '#ff574a']);
+  const accentPalette = document.getElementById('accent-palette');
+  accentPalette.querySelectorAll('.color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      accentPalette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      const c = sw.dataset.color;
+      canvas.style.setProperty('--accent', c);
+      canvas.style.setProperty('--accent-text', DARK_ACCENTS.has(c) ? '#fff' : '#141414');
+    });
+  });
 
   /* ── Download ── */
   const CANVAS_W = 1080, CANVAS_H = 1360;
