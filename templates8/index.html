@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Builder — Quote</title>
+  <link rel="stylesheet" href="/assets/breadcrumb.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Medium.woff2') format('woff2');
+      font-weight: 500; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
+      font-weight: 600; font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
+
+    .header { padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .header-logo { width: 28px; height: 28px; flex-shrink: 0; display: block; }
+    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p  { font-size: 13px; color: #999; }
+    .workspace { flex: 1; display: grid; grid-template-columns: 1fr 25vw; min-height: 0; overflow: hidden; }
+    .preview-area { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 32px; gap: 12px; overflow: hidden; }
+    .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
+    .preview-hint { font-size: 12px; color: #aaa; }
+
+    /* ── Canvas (1080 × 1360 portrait) ── */
+    #post-canvas {
+      width: 1080px; height: 1360px;
+      transform-origin: top left;
+      font-family: 'GT Standard', sans-serif;
+      position: relative; overflow: hidden;
+      background: #0a0a0a;
+      color: #fff;
+    }
+
+    /* ── Variant 8.1: planet watermark ───────────────────────── */
+    .planet-watermark {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      width: 1475px;
+      height: auto;
+      color: #1f1f1f;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .planet-watermark svg { width: 100%; height: auto; display: block; fill: currentColor; }
+
+    /* ── Variant 8.2: Paysend wordmark at the bottom ─────────── */
+    .paysend-wordmark {
+      position: absolute;
+      left: 41px; right: 41px; bottom: 41px;
+      width: 998px;
+      z-index: 1;
+    }
+    .paysend-wordmark img { width: 100%; height: auto; display: block; filter: brightness(0) invert(1); }
+
+    /* show/hide per variant */
+    #post-canvas.variant-1 .planet-watermark   { display: block; }
+    #post-canvas.variant-1 .paysend-wordmark   { display: none; }
+    #post-canvas.variant-2 .planet-watermark   { display: none; }
+    #post-canvas.variant-2 .paysend-wordmark   { display: block; }
+
+    /* ── Lime quote-mark glyphs (corner accents on V1) ───────── */
+    .quote-mark {
+      position: absolute;
+      width: 135px; height: 76px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .quote-mark svg { width: 100%; height: 100%; display: block; }
+    .quote-mark.tl { top: 41px; left: 41px; }
+    .quote-mark.br { bottom: 41px; right: 41px; transform: rotate(180deg); }
+    /* Only V1 carries the corner quote marks. V2 hides them. */
+    #post-canvas.variant-2 .quote-mark { display: none; }
+
+    /* ── Quote block: text + author pill ─────────────────────── */
+    .quote-block {
+      position: absolute;
+      left: 41px; right: 41px; top: 265px;
+      z-index: 3;
+      display: flex; flex-direction: column; gap: 32px;
+      align-items: flex-start;
+    }
+    /* In V2 the quote block sits closer to the top — there's no
+       opening quote mark above it. */
+    #post-canvas.variant-2 .quote-block {
+      top: 41px;
+    }
+
+    .quote-text {
+      font-size: 96px;
+      font-weight: 600;
+      line-height: 1.05;
+      letter-spacing: -0.96px;
+      color: #fff;
+      max-width: 998px;
+      white-space: pre-line;
+      overflow-wrap: break-word;
+    }
+
+    .author-pill {
+      display: inline-block;
+      background: #a0eb31;
+      color: #141414;
+      padding: 10px 14px;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.18px;
+      line-height: 1;
+    }
+    .author-pill.hidden { display: none !important; }
+
+    /* ── Controls ── */
+    .controls { background: #fff; border-left: 1px solid #e8e8e8; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+    .control-section { display: flex; flex-direction: column; gap: 6px; }
+    .control-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: #888; }
+    .control-input, .control-textarea { width: 100%; padding: 9px 11px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; font-family: inherit; color: #1a1a1a; background: #fafafa; transition: border-color 0.15s; resize: none; }
+    .control-input:focus, .control-textarea:focus { outline: none; border-color: #a0eb31; background: #fff; }
+    .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
+    .seg-control { display: flex; gap: 4px; background: #f5f5f5; padding: 4px; border-radius: 8px; }
+    .seg-btn { flex: 1; padding: 8px 10px; font-size: 12px; font-weight: 600; font-family: inherit; color: #555; background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .seg-btn.active { background: #141414; color: #fff; }
+    .seg-btn:not(.active):hover { color: #141414; }
+    .section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .section-row .control-label { margin-bottom: 0; }
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
+    .toggle-slider::before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #141414; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+    .control-section.section-off .control-input { opacity: 0.4; pointer-events: none; }
+
+    .download-btn { margin-top: auto; padding: 13px 20px; background: #141414; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s, transform 0.1s; }
+    .download-btn:hover:not(:disabled) { background: #333; }
+    .download-btn:active:not(:disabled) { transform: scale(0.98); }
+    .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    @media (max-width: 1199px) { .workspace { grid-template-columns: 1fr 33vw; } }
+    @media (max-width:  799px) { .workspace { grid-template-columns: 1fr 40vw; } }
+    @media (max-width:  499px) {
+      html, body { height: auto; overflow: auto; }
+      .workspace { display: flex; flex-direction: column; overflow: visible; height: auto; }
+      .preview-area { padding: 0; overflow: visible; justify-content: flex-start; align-items: stretch; flex-shrink: 0; height: auto; }
+      .preview-wrapper { width: 100vw !important; border-radius: 0; box-shadow: none; flex-shrink: 0; }
+      .preview-hint { display: none; }
+      .controls { border-left: none; border-top: 1px solid #e8e8e8; height: auto; overflow-y: visible; flex: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="/" title="Back to layouts">
+      <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </a>
+    <h1>Post Builder</h1>
+    <p>1080 × 1360 · Quote</p>
+  </header>
+
+  <main class="workspace">
+
+    <div class="preview-area">
+      <div class="preview-wrapper">
+        <div id="post-canvas" class="variant-1">
+
+          <!-- V1: dark planet silhouette behind the quote -->
+          <div class="planet-watermark" aria-hidden="true">
+            <!-- Inline planet so we can colour it via currentColor -->
+            <svg viewBox="0 0 361 329" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M179.955 0C252.312 0 313.868 45.6934 336.681 109.47H350.607C356.731 126.59 360.064 145.013 360.064 164.205C360.064 183.397 356.731 201.82 350.607 218.94H336.681C313.868 282.717 252.312 328.41 179.955 328.41C107.598 328.41 46.0424 282.717 23.2288 218.94H9.45723C3.33319 201.82 0 183.397 0 164.205C0 145.013 3.33319 126.59 9.45723 109.47H23.2288C46.0424 45.6934 107.598 0 179.955 0ZM245.775 48.4731C255.357 65.5403 262.833 86.3133 267.458 109.47H281.384C284.804 126.59 286.667 145.013 286.667 164.205C286.667 183.398 284.804 201.82 281.384 218.94H267.458C262.833 242.096 255.357 262.869 245.775 279.936C270.602 266.12 290.535 244.731 302.366 218.94H316.292C323.948 202.252 328.212 183.721 328.212 164.205C328.212 144.69 323.948 126.159 316.292 109.47H302.366C290.535 83.6787 270.603 62.2887 245.775 48.4731ZM43.7716 109.47C36.1162 126.159 31.8517 144.69 31.8517 164.205C31.8517 183.721 36.1161 202.252 43.7716 218.94H57.5432C69.3742 244.731 89.3069 266.12 114.134 279.936C104.552 262.869 97.0757 242.097 92.4504 218.94H78.6785C75.2589 201.82 73.3975 183.397 73.3975 164.205C73.3975 145.013 75.2591 126.59 78.6785 109.47H92.4504C97.0756 86.3132 104.552 65.5403 114.134 48.4731C89.3066 62.2887 69.3741 83.6788 57.5432 109.47H43.7716ZM111.234 109.47C107.44 126.018 105.25 144.482 105.25 164.205C105.25 183.928 107.44 202.393 111.234 218.94H125.005C129.099 236.792 135.059 252.413 142.156 264.973C156.417 290.21 171.072 296.938 179.955 296.938C188.838 296.938 203.493 290.21 217.753 264.973C224.851 252.413 230.811 236.792 234.905 218.94H248.831C252.625 202.393 254.815 183.928 254.815 164.205C254.815 144.482 252.625 126.018 248.831 109.47H234.905C230.811 91.6183 224.851 75.9977 217.753 63.4371C203.493 38.2001 188.838 31.4727 179.955 31.4727C171.072 31.4727 156.417 38.2001 142.156 63.4371C135.059 75.9977 129.099 91.6183 125.005 109.47H111.234Z"/>
+            </svg>
+          </div>
+
+          <!-- V2: big "Paysend" wordmark + planet at the bottom -->
+          <div class="paysend-wordmark" aria-hidden="true">
+            <img src="/assets/Paysend-main-logo.svg" alt="Paysend" />
+          </div>
+
+          <!-- Corner quote-mark glyphs (V1 only) -->
+          <span class="quote-mark tl" aria-hidden="true">
+            <svg viewBox="0 0 135 76" xmlns="http://www.w3.org/2000/svg">
+              <!-- Stylised double quote: two slanted parallelograms -->
+              <polygon points="20,76 50,0 80,0 50,76" fill="#a0eb31"/>
+              <polygon points="80,76 110,0 140,0 110,76" fill="#a0eb31"/>
+            </svg>
+          </span>
+          <span class="quote-mark br" aria-hidden="true">
+            <svg viewBox="0 0 135 76" xmlns="http://www.w3.org/2000/svg">
+              <polygon points="20,76 50,0 80,0 50,76" fill="#a0eb31"/>
+              <polygon points="80,76 110,0 140,0 110,76" fill="#a0eb31"/>
+            </svg>
+          </span>
+
+          <!-- Quote text + author pill -->
+          <div class="quote-block">
+            <p class="quote-text" id="preview-quote">The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking</p>
+            <span class="author-pill" id="preview-author">Albert Einstein</span>
+          </div>
+
+        </div>
+      </div>
+      <p class="preview-hint">Preview scaled — exports 1080 × 1360</p>
+    </div>
+
+    <div class="controls">
+
+      <div class="control-section">
+        <label class="control-label">Variant</label>
+        <div class="seg-control" id="variant-switch">
+          <button class="seg-btn active" data-variant="1" type="button">Planet watermark</button>
+          <button class="seg-btn"        data-variant="2" type="button">Paysend wordmark</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="control-section">
+        <label class="control-label">Quote</label>
+        <textarea class="control-textarea" id="input-quote" rows="8">The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking</textarea>
+      </div>
+
+      <div class="control-section">
+        <div class="section-row">
+          <label class="control-label">Author</label>
+          <label class="toggle-switch"><input type="checkbox" id="author-toggle" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <input class="control-input" id="input-author" type="text" value="Albert Einstein" />
+      </div>
+
+      <button class="download-btn" id="download-btn">Download PNG</button>
+
+    </div>
+  </main>
+
+  <script>
+  /* ── DOM refs (declared up-front so any helper can read them
+     without tripping the TDZ when initFromUrl fires) ── */
+  const canvas         = document.getElementById('post-canvas');
+  const variantSwitch  = document.getElementById('variant-switch');
+  const quoteInput     = document.getElementById('input-quote');
+  const authorInput    = document.getElementById('input-author');
+  const previewQuote   = document.getElementById('preview-quote');
+  const previewAuthor  = document.getElementById('preview-author');
+  const authorToggle   = document.getElementById('author-toggle');
+
+  /* ── Quote auto-fit ──
+     Shrinks the font-size if the text would overflow the available
+     vertical space (canvas height minus top offset and bottom safety). */
+  const QUOTE_BASE = 96, QUOTE_MIN = 48;
+  function availableQuoteHeight() {
+    const isV1 = canvas.classList.contains('variant-1');
+    const top = isV1 ? 265 : 41;
+    const bottomReserved = isV1 ? (76 + 41 + 80) : (170 + 41 + 80);
+    return 1360 - top - bottomReserved;
+  }
+  function fitQuote() {
+    let size = QUOTE_BASE;
+    previewQuote.style.fontSize = size + 'px';
+    const limit = availableQuoteHeight();
+    for (let i = 0; i < 60 && size > QUOTE_MIN; i++) {
+      if (previewQuote.scrollHeight <= limit) break;
+      size -= 2;
+      previewQuote.style.fontSize = size + 'px';
+    }
+  }
+
+  /* ── Variant switch ── */
+  function applyVariant(v) {
+    canvas.classList.toggle('variant-1', v === '1');
+    canvas.classList.toggle('variant-2', v === '2');
+    variantSwitch.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.variant === v));
+    fitQuote();
+  }
+  variantSwitch.querySelectorAll('.seg-btn').forEach(b =>
+    b.addEventListener('click', () => applyVariant(b.dataset.variant)));
+
+  /* Initial variant from ?variants=8.1,8.2 if present */
+  (function initFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const v = params.get('variants');
+    const first = v ? v.split(',')[0].trim() : '8.1';
+    applyVariant(first === '8.2' ? '2' : '1');
+  })();
+
+  /* ── Text bindings ── */
+  quoteInput.addEventListener('input', () => {
+    previewQuote.textContent = quoteInput.value;
+    fitQuote();
+  });
+  authorInput.addEventListener('input', () => {
+    previewAuthor.textContent = authorInput.value;
+  });
+
+  /* Author on/off */
+  function syncAuthor() {
+    previewAuthor.classList.toggle('hidden', !authorToggle.checked);
+    authorInput.closest('.control-section').classList.toggle('section-off', !authorToggle.checked);
+  }
+  authorToggle.addEventListener('change', syncAuthor);
+  syncAuthor();
+
+  /* ── Download ── */
+  const CANVAS_W = 1080, CANVAS_H = 1360;
+  document.getElementById('download-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('download-btn');
+    btn.disabled = true; btn.textContent = 'Exporting…';
+    try {
+      const result = await html2canvas(canvas, { scale: 1, useCORS: true, allowTaint: true, width: CANVAS_W, height: CANVAS_H });
+      const a = document.createElement('a'); a.href = result.toDataURL('image/png');
+      a.download = 'paysend-quote.png'; a.click();
+    } finally {
+      btn.disabled = false; btn.textContent = 'Download PNG';
+    }
+  });
+
+  /* ── Preview scaling (measurement-based) ── */
+  (function scalePreview() {
+    const PAD_X = 32 * 2;
+    const PAD_Y = 40 * 2;
+    const HINT_RESERVE = 24;
+    const previewArea = document.querySelector('.preview-area');
+    const wrapper = document.querySelector('.preview-wrapper');
+    const cvs = document.getElementById('post-canvas');
+    function update() {
+      const w = window.innerWidth;
+      const rect = previewArea.getBoundingClientRect();
+      let availW, availH;
+      if (w < 500) { availW = w; availH = Infinity; }
+      else { availW = rect.width - PAD_X; availH = rect.height - PAD_Y - HINT_RESERVE; }
+      const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
+      wrapper.style.width = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
+      cvs.style.transform = `scale(${scale})`;
+    }
+    update();
+    window.addEventListener('resize', update);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
+  })();
+
+  /* Initial fit */
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitQuote);
+  else fitQuote();
+  </script>
+  <script src="/assets/breadcrumb.js"></script>
+</body>
+</html>
