@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Post Builder — Steps</title>
+  <link rel="stylesheet" href="/assets/breadcrumb.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
+      font-weight: 400; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Medium.woff2') format('woff2');
+      font-weight: 500; font-style: normal;
+    }
+    @font-face {
+      font-family: 'GT Standard';
+      src: url('../fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
+      font-weight: 600; font-style: normal;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; font-family: 'GT Standard', sans-serif; background: #f0f0f0; color: #111; display: flex; flex-direction: column; }
+
+    .header { padding: 14px 24px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+    .header-logo { width: 28px; height: 28px; flex-shrink: 0; display: block; }
+    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .header p  { font-size: 13px; color: #999; }
+    .workspace { flex: 1; display: grid; grid-template-columns: 1fr 25vw; min-height: 0; overflow: hidden; }
+    .preview-area { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 32px; gap: 12px; overflow: hidden; }
+    .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
+    .preview-hint { font-size: 12px; color: #aaa; }
+
+    /* ── Canvas (1080 × 1360) ── */
+    #post-canvas {
+      width: 1080px; height: 1360px;
+      transform-origin: top left;
+      font-family: 'GT Standard', sans-serif;
+      position: relative; overflow: hidden;
+      background: #141414;
+      color: #fff;
+    }
+
+    /* ── Top-logos (Paysend wordmark + optional partners) ── */
+    .top-logos {
+      position: absolute; top: 41px; left: 41px;
+      display: flex; align-items: center; gap: 16px;
+      z-index: 4; height: 53px;
+    }
+    .top-logos .logo-paysend {
+      height: 100%; width: auto;
+      filter: brightness(0) invert(1);
+      flex-shrink: 0;
+    }
+    .top-logos .logo-divider { width: 2px; height: 100%; background: rgba(255,255,255,0.55); flex-shrink: 0; }
+    .top-logos .logo-partner { height: 100%; width: auto; object-fit: contain; display: block; flex-shrink: 0; }
+    .top-logos .logo-partner.hidden,
+    .top-logos .logo-divider.hidden { display: none !important; }
+    #post-canvas.logo-compact .top-logos .logo-paysend { height: 40px; }
+    #post-canvas.logo-compact .top-logos .logo-partner { height: 40px; }
+    #post-canvas.logo-compact .top-logos .logo-divider { height: 40px; }
+
+    /* ── Card stack ── */
+    .cards {
+      position: absolute;
+      left: 40px; right: 40px;
+      display: flex; flex-direction: column;
+      gap: 20px;
+      z-index: 2;
+    }
+    /* V1: single card anchored at top 522 — naturally sized */
+    #post-canvas.variant-1 .cards { top: 522px; }
+    /* V2: two equal cards spanning 1186px starting at y=134 */
+    #post-canvas.variant-2 .cards { top: 134px; height: 1186px; }
+    /* V3: three equal cards spanning 1187px starting at y=133 */
+    #post-canvas.variant-3 .cards { top: 133px; height: 1187px; }
+
+    /* A "card" is the pill + body box stack, with the pill
+       right-aligned ABOVE the body — never inside it. */
+    .card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;     /* right-align the pill */
+      width: 100%;
+      min-height: 0;
+    }
+    /* In multi-card variants each slot grabs an equal share. */
+    #post-canvas.variant-2 .card,
+    #post-canvas.variant-3 .card { flex: 1 0 0; }
+
+    .card.hidden { display: none !important; }
+
+    /* Step pill — sits above the card body, right-aligned. */
+    .step-pill {
+      background: var(--accent, #a0eb31);
+      color:      var(--accent-text, #141414);
+      padding: 10px;
+      font-family: 'GT Standard', sans-serif;
+      font-weight: 400;
+      font-size: 36px;
+      line-height: 0.95;
+      letter-spacing: -0.36px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .step-pill.hidden { display: none !important; }
+
+    /* The card body — translucent white box. */
+    .card-body {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      display: flex;
+      align-items: center;        /* centre body text vertically */
+      flex-shrink: 0;
+    }
+    /* In multi-card variants the body stretches to fill the slot
+       and the text drops to the bottom of the box (per Figma). */
+    #post-canvas.variant-2 .card-body,
+    #post-canvas.variant-3 .card-body {
+      flex: 1 0 0; min-height: 0;
+      align-items: flex-end;
+    }
+
+    .card-text {
+      width: 100%;
+      color: #fff;
+      font-weight: 600;
+      white-space: pre-line;
+      overflow-wrap: break-word;
+    }
+    /* Per-variant text sizing matches Figma. */
+    #post-canvas.variant-1 .card-text { font-size: 52px; line-height: 1;   letter-spacing: -0.52px; }
+    #post-canvas.variant-2 .card-text,
+    #post-canvas.variant-3 .card-text { font-size: 80px; line-height: 0.9; letter-spacing: -0.80px; }
+
+    /* Variant visibility for cards */
+    #post-canvas.variant-1 .card-2,
+    #post-canvas.variant-1 .card-3 { display: none; }
+    #post-canvas.variant-2 .card-3 { display: none; }
+
+    /* ── Controls ── */
+    .controls { background: #fff; border-left: 1px solid #e8e8e8; padding: 24px 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+    .control-section { display: flex; flex-direction: column; gap: 6px; }
+    .control-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: #888; }
+    .control-input, .control-textarea { width: 100%; padding: 9px 11px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; font-family: inherit; color: #1a1a1a; background: #fafafa; transition: border-color 0.15s; resize: none; }
+    .control-input:focus, .control-textarea:focus { outline: none; border-color: #a0eb31; background: #fff; }
+    .divider { height: 1px; background: #f0f0f0; margin: 2px 0; }
+    .seg-control { display: flex; gap: 4px; background: #f5f5f5; padding: 4px; border-radius: 8px; }
+    .seg-btn { flex: 1; padding: 8px 10px; font-size: 12px; font-weight: 600; font-family: inherit; color: #555; background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: background 0.15s, color 0.15s; }
+    .seg-btn.active { background: #141414; color: #fff; }
+    .seg-btn:not(.active):hover { color: #141414; }
+    .section-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .section-row .control-label { margin-bottom: 0; }
+    .section-body { display: flex; flex-direction: column; gap: 10px; }
+    .control-section.section-off .section-body { display: none; }
+    .control-section.section-off .control-input,
+    .control-section.section-off .control-textarea { opacity: 0.4; pointer-events: none; }
+
+    .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; border-radius: 20px; transition: background 0.2s; }
+    .toggle-slider::before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+    .toggle-switch input:checked + .toggle-slider { background: #141414; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+    /* Color palette */
+    .color-palette { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+    .color-swatch { width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.12s, border-color 0.12s; flex-shrink: 0; padding: 0; }
+    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch.active { border-color: #141414; transform: scale(1.1); box-shadow: 0 0 0 1px #fff inset; }
+
+    /* Upload zones */
+    .upload-zone { border: 2px dashed #ddd; border-radius: 8px; padding: 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; min-height: 70px; display: flex; align-items: center; justify-content: center; }
+    .upload-zone:hover { border-color: #a0eb31; background: #f8fff0; }
+    .upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 3px; color: #aaa; font-size: 12px; }
+    .upload-icon { font-size: 18px; line-height: 1; }
+    .upload-hint { font-size: 11px; color: #ccc; }
+    .upload-preview { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+    .upload-preview img { width: 100%; height: 60px; object-fit: contain; background: #1a1a1a; border-radius: 4px; }
+    .remove-photo { font-size: 11px; color: #e94560; background: none; border: none; cursor: pointer; padding: 2px 4px; font-family: inherit; }
+    .remove-photo:hover { text-decoration: underline; }
+
+    .download-btn { margin-top: auto; padding: 13px 20px; background: #141414; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s, transform 0.1s; }
+    .download-btn:hover:not(:disabled) { background: #333; }
+    .download-btn:active:not(:disabled) { transform: scale(0.98); }
+    .download-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    @media (max-width: 1199px) { .workspace { grid-template-columns: 1fr 33vw; } }
+    @media (max-width:  799px) { .workspace { grid-template-columns: 1fr 40vw; } }
+    @media (max-width:  499px) {
+      html, body { height: auto; overflow: auto; }
+      .workspace { display: flex; flex-direction: column; overflow: visible; height: auto; }
+      .preview-area { padding: 0; overflow: visible; justify-content: flex-start; align-items: stretch; flex-shrink: 0; height: auto; }
+      .preview-wrapper { width: 100vw !important; border-radius: 0; box-shadow: none; flex-shrink: 0; }
+      .preview-hint { display: none; }
+      .controls { border-left: none; border-top: 1px solid #e8e8e8; height: auto; overflow-y: visible; flex: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="/" title="Back to layouts">
+      <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </a>
+    <h1>Post Builder</h1>
+    <p>1080 × 1360 · Steps / Educational</p>
+  </header>
+
+  <main class="workspace">
+
+    <div class="preview-area">
+      <div class="preview-wrapper">
+        <div id="post-canvas" class="variant-2">
+
+          <!-- Top-logos -->
+          <div class="top-logos">
+            <img class="logo-paysend" src="/assets/logo-paysend-wordmark.svg" alt="Paysend" />
+            <div class="logo-divider" id="divider-1"></div>
+            <img class="logo-partner" id="logo-partner-1" src="/assets/partner-logo.png" alt="Partner 1" />
+            <div class="logo-divider" id="divider-2"></div>
+            <img class="logo-partner" id="logo-partner-2" src="/assets/partner-logo.png" alt="Partner 2" />
+          </div>
+
+          <!-- Card stack — pill ABOVE each card body (not inside) -->
+          <div class="cards">
+            <div class="card card-1">
+              <span class="step-pill" id="pill-1"><span id="pill-1-text">Step 1</span></span>
+              <div class="card-body"><p class="card-text" id="text-1"></p></div>
+            </div>
+            <div class="card card-2">
+              <span class="step-pill" id="pill-2"><span id="pill-2-text">Step 1</span></span>
+              <div class="card-body"><p class="card-text" id="text-2"></p></div>
+            </div>
+            <div class="card card-3">
+              <span class="step-pill" id="pill-3"><span id="pill-3-text">Step 1</span></span>
+              <div class="card-body"><p class="card-text" id="text-3"></p></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <p class="preview-hint">Preview scaled — exports 1080 × 1360</p>
+    </div>
+
+    <div class="controls">
+
+      <div class="control-section">
+        <label class="control-label">Variant</label>
+        <div class="seg-control" id="variant-switch">
+          <button class="seg-btn"        data-variant="1" type="button">1 card</button>
+          <button class="seg-btn active" data-variant="2" type="button">2 cards</button>
+          <button class="seg-btn"        data-variant="3" type="button">3 cards</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Card 1 -->
+      <div class="control-section">
+        <div class="section-row">
+          <label class="control-label">Card 1 — pill</label>
+          <label class="toggle-switch"><input type="checkbox" id="pill-1-toggle" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <input class="control-input" id="input-pill-1" type="text" value="Step 1" />
+      </div>
+      <div class="control-section">
+        <label class="control-label">Card 1 — text</label>
+        <textarea class="control-textarea" id="input-text-1" rows="6"></textarea>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Card 2 -->
+      <div class="control-section section-2">
+        <div class="section-row">
+          <label class="control-label">Card 2 — pill</label>
+          <label class="toggle-switch"><input type="checkbox" id="pill-2-toggle" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <input class="control-input" id="input-pill-2" type="text" value="Step 1" />
+      </div>
+      <div class="control-section section-2">
+        <label class="control-label">Card 2 — text</label>
+        <textarea class="control-textarea" id="input-text-2" rows="4"></textarea>
+      </div>
+
+      <div class="divider section-3"></div>
+
+      <!-- Card 3 -->
+      <div class="control-section section-3">
+        <div class="section-row">
+          <label class="control-label">Card 3 — pill</label>
+          <label class="toggle-switch"><input type="checkbox" id="pill-3-toggle" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <input class="control-input" id="input-pill-3" type="text" value="Step 1" />
+      </div>
+      <div class="control-section section-3">
+        <label class="control-label">Card 3 — text</label>
+        <textarea class="control-textarea" id="input-text-3" rows="3"></textarea>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Accent colour: drives every step pill -->
+      <div class="control-section">
+        <label class="control-label">Pill Color</label>
+        <div class="color-palette" id="accent-palette">
+          <button class="color-swatch active" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
+          <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
+          <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
+          <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
+          <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
+          <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
+          <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
+          <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
+          <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
+          <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
+          <button class="color-swatch" data-color="#ffffff" style="background:#ffffff;border:1px solid #ddd" title="White"></button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Partner logo 1 -->
+      <div class="control-section">
+        <div class="section-row">
+          <label class="control-label">Partner Logo 1</label>
+          <label class="toggle-switch"><input type="checkbox" id="partner1-toggle" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="section-body">
+          <select class="control-input" id="partner1-preset">
+            <option value="custom">Custom upload</option>
+            <option value="visa">Visa</option>
+            <option value="mastercard">Mastercard</option>
+          </select>
+          <div class="upload-zone" id="partner1-zone">
+            <div class="upload-placeholder">
+              <span class="upload-icon">↑</span>
+              <span>Upload logo</span>
+              <span class="upload-hint">PNG, SVG, JPG</span>
+            </div>
+            <div class="upload-preview" style="display:none">
+              <img src="" alt="thumb" />
+              <button class="remove-photo">Remove</button>
+            </div>
+          </div>
+          <input type="file" accept="image/*,.svg" id="partner1-file" style="display:none" />
+        </div>
+      </div>
+
+      <!-- Partner logo 2 -->
+      <div class="control-section">
+        <div class="section-row">
+          <label class="control-label">Partner Logo 2</label>
+          <label class="toggle-switch"><input type="checkbox" id="partner2-toggle" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="section-body">
+          <select class="control-input" id="partner2-preset">
+            <option value="custom">Custom upload</option>
+            <option value="visa">Visa</option>
+            <option value="mastercard">Mastercard</option>
+          </select>
+          <div class="upload-zone" id="partner2-zone">
+            <div class="upload-placeholder">
+              <span class="upload-icon">↑</span>
+              <span>Upload logo</span>
+              <span class="upload-hint">PNG, SVG, JPG</span>
+            </div>
+            <div class="upload-preview" style="display:none">
+              <img src="" alt="thumb" />
+              <button class="remove-photo">Remove</button>
+            </div>
+          </div>
+          <input type="file" accept="image/*,.svg" id="partner2-file" style="display:none" />
+        </div>
+      </div>
+
+      <button class="download-btn" id="download-btn">Download PNG</button>
+
+    </div>
+  </main>
+
+  <script>
+  /* ── DOM refs hoisted so any helper can read them
+     without tripping a TDZ when initFromUrl fires. ── */
+  const canvas        = document.getElementById('post-canvas');
+  const variantSwitch = document.getElementById('variant-switch');
+  const accentPalette = document.getElementById('accent-palette');
+  const v2Sections    = document.querySelectorAll('.section-2');
+  const v3Sections    = document.querySelectorAll('.section-3');
+
+  /* ── Per-variant default body copy (verbatim from Figma) ── */
+  const PLACEHOLDERS = {
+    '1': [
+      "Here\u2019s to the crazy ones. The misfits. The rebels. The troublemakers. The round pegs in the square holes. The ones who see things differently. They\u2019re not fond of rules. And they have no respect for the status quo. You can quote them, disagree with them, glorify or vilify them. About the only thing you can\u2019t do is ignore them. Because they change things. They push the human race forward. And while some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do.",
+      "",
+      "",
+    ],
+    '2': [
+      "The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking",
+      "The world as we have created it is a process of our thinking. It cannot be changed without changing our thinking",
+      "",
+    ],
+    '3': [
+      "The world as we have created it is a process of our thinking.",
+      "The world as we have created it is a process of our thinking.",
+      "The world as we have created it is a process of our thinking.",
+    ],
+  };
+
+  function setCardText(n, value) {
+    document.getElementById('text-' + n).textContent     = value;
+    document.getElementById('input-text-' + n).value     = value;
+  }
+
+  /* ── Variant switch ── */
+  function applyVariant(v) {
+    canvas.classList.remove('variant-1','variant-2','variant-3');
+    canvas.classList.add('variant-' + v);
+    variantSwitch.querySelectorAll('.seg-btn').forEach(b => b.classList.toggle('active', b.dataset.variant === v));
+    // Hide/show controls for cards 2/3 depending on the variant.
+    v2Sections.forEach(s => s.style.display = (v === '1') ? 'none' : '');
+    v3Sections.forEach(s => s.style.display = (v === '3') ? '' : 'none');
+    // Swap the body copy for each card to the Figma placeholder for
+    // this variant. (Re-applied on every switch, by design — users
+    // can edit again afterwards.)
+    const ph = PLACEHOLDERS[v] || PLACEHOLDERS['2'];
+    setCardText(1, ph[0]);
+    setCardText(2, ph[1]);
+    setCardText(3, ph[2]);
+  }
+  variantSwitch.querySelectorAll('.seg-btn').forEach(b =>
+    b.addEventListener('click', () => applyVariant(b.dataset.variant)));
+
+  /* Initial variant from ?variants=9.1,9.2,9.3 */
+  (function initFromUrl() {
+    const params = new URLSearchParams(location.search);
+    const v = params.get('variants');
+    const first = v ? v.split(',')[0].trim() : '9.2';
+    const map = { '9.1': '1', '9.2': '2', '9.3': '3' };
+    applyVariant(map[first] || '2');
+  })();
+
+  /* ── Card text + pill bindings ── */
+  function bindCard(n) {
+    const pillInput = document.getElementById('input-pill-' + n);
+    const pillText  = document.getElementById('pill-' + n + '-text');
+    const pillEl    = document.getElementById('pill-' + n);
+    const pillToggle= document.getElementById('pill-' + n + '-toggle');
+    const txtInput  = document.getElementById('input-text-' + n);
+    const txtEl     = document.getElementById('text-' + n);
+    pillInput.addEventListener('input', () => { pillText.textContent = pillInput.value; });
+    txtInput.addEventListener('input',  () => { txtEl.textContent    = txtInput.value;  });
+    const apply = () => {
+      pillEl.classList.toggle('hidden', !pillToggle.checked);
+      pillInput.closest('.control-section').classList.toggle('section-off', !pillToggle.checked);
+    };
+    pillToggle.addEventListener('change', apply);
+    apply();
+  }
+  bindCard(1); bindCard(2); bindCard(3);
+
+  /* ── Accent colour ─ recolours every step pill in lock-step. */
+  const DARK_ACCENTS = new Set(['#4a57c5','#b75eff','#ff574a']);
+  accentPalette.querySelectorAll('.color-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      accentPalette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+      sw.classList.add('active');
+      const c = sw.dataset.color;
+      canvas.style.setProperty('--accent', c);
+      canvas.style.setProperty('--accent-text', DARK_ACCENTS.has(c) ? '#fff' : '#141414');
+    });
+  });
+
+  /* ── Image optimiser ── */
+  const MAX_EDGE = 2400, SMALL_FILE_BYTES = 400 * 1024;
+  async function fileToOptimizedSrc(file) {
+    if (file.type === 'image/svg+xml' || file.size <= SMALL_FILE_BYTES) return URL.createObjectURL(file);
+    try {
+      const bitmap = await createImageBitmap(file);
+      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+      if (scale === 1) { bitmap.close(); return URL.createObjectURL(file); }
+      const w = Math.round(bitmap.width * scale), h = Math.round(bitmap.height * scale);
+      const cvs = document.createElement('canvas'); cvs.width = w; cvs.height = h;
+      cvs.getContext('2d').drawImage(bitmap, 0, 0, w, h); bitmap.close();
+      const blob = await new Promise(res => cvs.toBlob(res, 'image/jpeg', 0.88));
+      return URL.createObjectURL(blob);
+    } catch { return URL.createObjectURL(file); }
+  }
+
+  /* ── Partner logo controls ── */
+  function syncSectionOff(cb) {
+    const s = cb.closest('.control-section');
+    if (s) s.classList.toggle('section-off', !cb.checked);
+  }
+  function updateLogoLayout() {
+    const visible = document.querySelectorAll('.top-logos .logo-partner:not(.hidden)').length;
+    canvas.classList.toggle('logo-compact', visible >= 2);
+  }
+  function bindPartnerToggle(toggleId, logoId, dividerId) {
+    const cb = document.getElementById(toggleId);
+    const logo = document.getElementById(logoId), divider = document.getElementById(dividerId);
+    const apply = () => {
+      const off = !cb.checked;
+      logo.classList.toggle('hidden', off);
+      divider.classList.toggle('hidden', off);
+      syncSectionOff(cb);
+      updateLogoLayout();
+    };
+    cb.addEventListener('change', apply);
+    apply();
+  }
+  bindPartnerToggle('partner1-toggle', 'logo-partner-1', 'divider-1');
+  bindPartnerToggle('partner2-toggle', 'logo-partner-2', 'divider-2');
+
+  function setupLogoUpload({ zoneId, fileId, imgId, defaultSrc }) {
+    const zone = document.getElementById(zoneId), fileInput = document.getElementById(fileId), img = document.getElementById(imgId);
+    const placeholder = zone.querySelector('.upload-placeholder'), preview = zone.querySelector('.upload-preview');
+    const thumb = preview.querySelector('img'), removeBtn = preview.querySelector('.remove-photo');
+    function setSrc(src) { img.src = src; thumb.src = src; placeholder.style.display = 'none'; preview.style.display = 'flex'; }
+    function clearSrc() { img.src = defaultSrc; fileInput.value = ''; placeholder.style.display = ''; preview.style.display = 'none'; }
+    zone.addEventListener('click', e => { if (e.target === removeBtn || removeBtn.contains(e.target)) return; fileInput.click(); });
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#141414'; });
+    zone.addEventListener('dragleave', () => { zone.style.borderColor = ''; });
+    zone.addEventListener('drop', async e => { e.preventDefault(); zone.style.borderColor = ''; const f = e.dataTransfer.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
+    fileInput.addEventListener('change', async () => { const f = fileInput.files[0]; if (f) setSrc(await fileToOptimizedSrc(f)); });
+    removeBtn.addEventListener('click', e => { e.stopPropagation(); clearSrc(); });
+  }
+  setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
+  setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
+
+  const PARTNER_PRESETS = { visa: '/assets/partner-logos/visa.png', mastercard: '/assets/partner-logos/master-card.png' };
+  function setupPartnerPreset({ selectId, zoneId, imgId, defaultSrc }) {
+    const select = document.getElementById(selectId), zone = document.getElementById(zoneId), img = document.getElementById(imgId);
+    if (!select || !zone || !img) return;
+    let lastCustom = defaultSrc;
+    new MutationObserver(() => { if (select.value === 'custom') lastCustom = img.src; }).observe(img, { attributes: true, attributeFilter: ['src'] });
+    select.addEventListener('change', () => {
+      const v = select.value;
+      if (v === 'custom') { zone.style.display = ''; img.src = lastCustom; }
+      else if (PARTNER_PRESETS[v]) { zone.style.display = 'none'; img.src = PARTNER_PRESETS[v]; }
+    });
+  }
+  setupPartnerPreset({ selectId: 'partner1-preset', zoneId: 'partner1-zone', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
+  setupPartnerPreset({ selectId: 'partner2-preset', zoneId: 'partner2-zone', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
+
+  /* ── Download ── */
+  const CANVAS_W = 1080, CANVAS_H = 1360;
+  document.getElementById('download-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('download-btn');
+    btn.disabled = true; btn.textContent = 'Exporting…';
+    try {
+      const result = await html2canvas(canvas, { scale: 1, useCORS: true, allowTaint: true, width: CANVAS_W, height: CANVAS_H });
+      const a = document.createElement('a'); a.href = result.toDataURL('image/png');
+      a.download = 'paysend-steps.png'; a.click();
+    } finally {
+      btn.disabled = false; btn.textContent = 'Download PNG';
+    }
+  });
+
+  /* ── Preview scaling (measurement-based) ── */
+  (function scalePreview() {
+    const PAD_X = 32 * 2, PAD_Y = 40 * 2, HINT_RESERVE = 24;
+    const previewArea = document.querySelector('.preview-area');
+    const wrapper = document.querySelector('.preview-wrapper');
+    const cvs = document.getElementById('post-canvas');
+    function update() {
+      const w = window.innerWidth;
+      const rect = previewArea.getBoundingClientRect();
+      let availW, availH;
+      if (w < 500) { availW = w; availH = Infinity; }
+      else { availW = rect.width - PAD_X; availH = rect.height - PAD_Y - HINT_RESERVE; }
+      const scale = Math.min(availW / CANVAS_W, availH / CANVAS_H);
+      wrapper.style.width = Math.round(CANVAS_W * scale) + 'px';
+      wrapper.style.height = Math.round(CANVAS_H * scale) + 'px';
+      cvs.style.transform = `scale(${scale})`;
+    }
+    update();
+    window.addEventListener('resize', update);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(update);
+  })();
+  </script>
+  <script src="/assets/breadcrumb.js"></script>
+</body>
+</html>
