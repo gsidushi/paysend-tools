@@ -4,7 +4,7 @@ This file contains complete ready-to-copy starting points. Pick the canvas size 
 
 ---
 
-## Portrait 1080×1350 — dark/split/pattern variants (e.g. Layout 6)
+## Portrait 1080×1360 — dark/split/pattern variants (e.g. Layout 6)
 
 The most common format. Three background variants: **Dark** (solid bg + pattern strip at bottom), **Split** (pattern top / dark bottom), **Pattern** (dark top / pattern bottom with big Paysend mark).
 
@@ -43,7 +43,7 @@ The most common format. Three background variants: **Dark** (solid bg + pattern 
 
     /* ── Canvas ── */
     #post-canvas {
-      width: 1080px; height: 1350px;
+      width: 1080px; height: 1360px;
       transform-origin: top left;
       font-family: 'GT Standard', sans-serif;
       position: relative; overflow: hidden;
@@ -99,10 +99,10 @@ The most common format. Three background variants: **Dark** (solid bg + pattern 
     .body-block { position: absolute; left: 41px; z-index: 2; max-width: 880px; }
     .body-block p { font-size: 36px; font-weight: 400; color: var(--text-color, #fff); line-height: 0.95; letter-spacing: -0.18px; white-space: pre-line; }
     .body-block.hidden { display: none !important; }
-    /* 675px = midpoint of 1350px canvas. Add 41px gap from the image edge. */
-    #post-canvas.variant-dark    .body-block { top: auto; bottom: 716px; left: 41px; right: 41px; }
-    #post-canvas.variant-split   .body-block { top: 716px; left: 41px; right: 41px; }
-    #post-canvas.variant-pattern .body-block { top: auto; bottom: 716px; left: 41px; right: 41px; }
+    /* 680px = midpoint of 1360px canvas. Add 41px gap from the image edge. */
+    #post-canvas.variant-dark    .body-block { top: auto; bottom: 721px; left: 41px; right: 41px; }
+    #post-canvas.variant-split   .body-block { top: 721px; left: 41px; right: 41px; }
+    #post-canvas.variant-pattern .body-block { top: auto; bottom: 721px; left: 41px; right: 41px; }
 
     /* ── Bottom brand ── */
     .bottom-brand { position: absolute; left: 41px; bottom: 41px; display: flex; align-items: center; gap: 12px; z-index: 3; }
@@ -171,7 +171,7 @@ The most common format. Three background variants: **Dark** (solid bg + pattern 
       <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </a>
     <h1>Post Builder</h1>
-    <p>1080 × 1350 [Layout Name]</p>
+    <p>1080 × 1360 [Layout Name]</p>
   </header>
 
   <main class="workspace">
@@ -219,7 +219,7 @@ The most common format. Three background variants: **Dark** (solid bg + pattern 
 
         </div><!-- #post-canvas -->
       </div><!-- .preview-wrapper -->
-      <p class="preview-hint">Preview scaled — exports 1080 × 1350</p>
+      <p class="preview-hint">Preview scaled — exports 1080 × 1360</p>
     </div><!-- .preview-area -->
 
     <div class="controls variant-dark">
@@ -481,7 +481,7 @@ The most common format. Three background variants: **Dark** (solid bg + pattern 
   setupPartnerPreset({ selectId: 'partner2-preset', zoneId: 'partner2-zone', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
 
   /* ── Download ── */
-  const CANVAS_W = 1080, CANVAS_H = 1350;
+  const CANVAS_W = 1080, CANVAS_H = 1360;
   document.getElementById('download-btn').addEventListener('click', async () => {
     const btn = document.getElementById('download-btn');
     btn.disabled = true; btn.textContent = 'Exporting…';
@@ -528,7 +528,7 @@ After creating a new `templates<N>/` folder, add it to the root `index.html` gri
   </div>
   <div class="layout-info">
     <span class="layout-name">Layout 7</span>
-    <span class="layout-desc">1080 × 1350 · [brief description]</span>
+    <span class="layout-desc">1080 × 1360 · [brief description]</span>
   </div>
 </a>
 ```

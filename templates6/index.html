@@ -34,15 +34,15 @@
     .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
     .preview-hint { font-size: 12px; color: #aaa; }
 
-    /* ── Canvas (1080 × 1350) ── */
+    /* ── Canvas (1080 × 1360) ── */
     #post-canvas {
-      width: 1080px; height: 1350px;
+      width: 1080px; height: 1360px;
       transform-origin: top left;
       font-family: 'GT Standard', sans-serif;
       position: relative;
       overflow: hidden;
       background: var(--bg-color, #0a0a0a);
-      --split-top: 675px;
+      --split-top: 680px;
       --bg-color: #0a0a0a;
     }
 
@@ -176,18 +176,18 @@
       white-space: pre-line;
     }
     /* Body copy hugs the image edge with consistent 41px side paddings.
-       - Dark/Pattern: pattern strip at bottom (y=675-1350) → body sits flush
-         against image's top edge (bottom anchored at y=675).
-       - Split: pattern strip at top (y=0-675) → body sits flush against
-         image's bottom edge (top anchored at y=675). */
+       - Dark/Pattern: pattern strip at bottom (y=680-1360) → body sits flush
+         against image's top edge (bottom anchored at y=680).
+       - Split: pattern strip at top (y=0-680) → body sits flush against
+         image's bottom edge (top anchored at y=680). */
     #post-canvas.variant-dark .body-block {
-      top: auto; bottom: 716px; left: 41px; right: 41px; max-width: 880px;
+      top: auto; bottom: 721px; left: 41px; right: 41px; max-width: 880px;
     }
     #post-canvas.variant-split .body-block {
-      top: 716px; left: 41px; right: 41px; max-width: 880px;
+      top: 721px; left: 41px; right: 41px; max-width: 880px;
     }
     #post-canvas.variant-pattern .body-block {
-      top: auto; bottom: 716px; left: 41px; right: 41px; max-width: 880px;
+      top: auto; bottom: 721px; left: 41px; right: 41px; max-width: 880px;
     }
 
     /* Paysend wordmark at bottom (used by solid + pattern variants) */
@@ -314,7 +314,7 @@
       <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </a>
     <h1>Post Builder</h1>
-    <p>1080 × 1350 Milestone</p>
+    <p>1080 × 1360 Milestone</p>
   </header>
 
   <main class="workspace">
@@ -357,7 +357,7 @@
 
       </div>
     </div>
-    <p class="preview-hint">Preview scaled — exports 1080 × 1350</p>
+    <p class="preview-hint">Preview scaled — exports 1080 × 1360</p>
   </div>
 
   <div class="controls variant-dark">
@@ -693,7 +693,7 @@
 
   // Preview scaling
   (function scalePreview() {
-    const CANVAS_W = 1080, CANVAS_H = 1350;
+    const CANVAS_W = 1080, CANVAS_H = 1360;
     const PREVIEW_PAD = 64; const HEADER_H = 60;
     const wrapper = document.querySelector('.preview-wrapper');
     const cvs = document.getElementById('post-canvas');
@@ -721,7 +721,7 @@
     btn.textContent = 'Exporting…'; btn.disabled = true;
     try {
       const result = await html2canvas(canvas, {
-        scale: 1, width: 1080, height: 1350,
+        scale: 1, width: 1080, height: 1360,
         useCORS: true, allowTaint: true, backgroundColor: null, logging: false
       });
       const link = document.createElement('a');

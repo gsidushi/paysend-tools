@@ -41,12 +41,12 @@ paysend-tools/
 ├── fonts/
 │   ├── GT-Standard-L-Standard-Regular.woff2
 │   └── GT-Standard-L-Standard-Semibold.woff2
-├── templates/          ← Layout 1 (portrait 1080×1350, headshots)
+├── templates/          ← Layout 1 (portrait 1080×1360, headshots)
 ├── templates2/         ← Layout 2 (landscape 1200×627, event)
 ├── templates3/         ← Layout 3 (portrait 1080×1440, event + new-hire)
-├── templates4/         ← Layout 4 (portrait 1080×1350, pattern-bg event)
+├── templates4/         ← Layout 4 (portrait 1080×1360, pattern-bg event)
 ├── templates5/         ← Layout 5 (landscape 1200×627, pattern-bg event)
-├── templates6/         ← Layout 6 (portrait 1080×1350, milestone)
+├── templates6/         ← Layout 6 (portrait 1080×1360, milestone)
 └── index.html          ← root menu — add new layout here
 ```
 
@@ -80,8 +80,8 @@ The canvas element is `#post-canvas` with `transform-origin: top left`. Scale is
 ```
 
 When an element "sticks to the image edge" add 41 px as the gap from that edge:
-- Body above pattern strip (y=675): `bottom: 716px` (675 + 41)
-- Body below pattern strip: `top: 716px`
+- Body above pattern strip (y=675): `bottom: 721px` (675 + 41)
+- Body below pattern strip: `top: 721px`
 
 For landscape (1200px wide) the gap remains 40–41 px on all sides.
 

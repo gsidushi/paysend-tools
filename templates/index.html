@@ -83,7 +83,7 @@
     /* ── Post canvas ── */
     #post-canvas {
       width: 1080px;
-      height: 1350px;
+      height: 1360px;
       transform-origin: top left;
       background: #141414;
       display: flex;
@@ -572,7 +572,7 @@
       <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </a>
     <h1>Post Builder</h1>
-    <p>1080 × 1350 LinkedIn template</p>
+    <p>1080 × 1360 LinkedIn template</p>
   </header>
 
   <main class="workspace">
@@ -690,7 +690,7 @@
 
         </div>
       </div>
-      <p class="preview-hint">Preview at 540×675 — exports 1080×1350</p>
+      <p class="preview-hint">Preview at 540×680 — exports 1080×1360</p>
     </div>
 
     <!-- ── Controls ── -->
@@ -1652,7 +1652,7 @@ at ICE Barcelona!</textarea>
 
     // ── Responsive preview scaling ─────────────────────────
     ;(function scalePreview() {
-      const CANVAS_W = 1080, CANVAS_H = 1350;
+      const CANVAS_W = 1080, CANVAS_H = 1360;
       const PREVIEW_PAD = 64; // 32px × 2 sides
       const HEADER_H = 60;
       const wrapper = document.querySelector('.preview-wrapper')
@@ -1694,7 +1694,7 @@ at ICE Barcelona!</textarea>
         const el     = document.getElementById('post-canvas')
         const canvas = await html2canvas(el, {
           scale: 1, useCORS: true, allowTaint: true,
-          logging: false, width: 1080, height: 1350,
+          logging: false, width: 1080, height: 1360,
           backgroundColor: null,
         })
         const link    = document.createElement('a')

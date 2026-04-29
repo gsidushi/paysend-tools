@@ -34,9 +34,9 @@
     .preview-wrapper { overflow: hidden; box-shadow: 0 8px 48px rgba(0,0,0,0.22); border-radius: 3px; flex-shrink: 0; }
     .preview-hint { font-size: 12px; color: #aaa; }
 
-    /* ── Canvas (1080 × 1350) ── */
+    /* ── Canvas (1080 × 1360) ── */
     #post-canvas {
-      width: 1080px; height: 1350px;
+      width: 1080px; height: 1360px;
       transform-origin: top left;
       font-family: 'GT Standard', sans-serif;
       position: relative;
@@ -232,7 +232,7 @@
       <img class="header-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </a>
     <h1>Post Builder</h1>
-    <p>1080 × 1350 Event Portrait</p>
+    <p>1080 × 1360 Event Portrait</p>
   </header>
 
   <main class="workspace">
@@ -271,7 +271,7 @@
 
       </div>
     </div>
-    <p class="preview-hint">Preview scaled — exports 1080 × 1350</p>
+    <p class="preview-hint">Preview scaled — exports 1080 × 1360</p>
   </div>
 
   <div class="controls">
@@ -631,7 +631,7 @@
 
   // Preview scaling
   (function scalePreview() {
-    const CANVAS_W = 1080, CANVAS_H = 1350;
+    const CANVAS_W = 1080, CANVAS_H = 1360;
     const PREVIEW_PAD = 64; const HEADER_H = 60;
     const wrapper = document.querySelector('.preview-wrapper');
     const cvs = document.getElementById('post-canvas');
@@ -660,7 +660,7 @@
     btn.textContent = 'Exporting…'; btn.disabled = true;
     try {
       const result = await html2canvas(canvas, {
-        scale: 1, width: 1080, height: 1350,
+        scale: 1, width: 1080, height: 1360,
         useCORS: true, allowTaint: true, backgroundColor: null, logging: false
       });
       const link = document.createElement('a');
