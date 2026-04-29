@@ -5,34 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Paysend Social Builder</title>
   <style>
-    /* ── Fonts (same as the builder) ─────────────────────────── */
     @font-face {
       font-family: 'GT Standard';
       src: url('/fonts/GT-Standard-L-Standard-Regular.woff2') format('woff2');
-      font-weight: 400;
-      font-style: normal;
-      font-display: swap;
+      font-weight: 400; font-style: normal; font-display: swap;
     }
     @font-face {
       font-family: 'GT Standard';
       src: url('/fonts/GT-Standard-L-Standard-Medium.woff2') format('woff2');
-      font-weight: 500;
-      font-style: normal;
-      font-display: swap;
+      font-weight: 500; font-style: normal; font-display: swap;
     }
     @font-face {
       font-family: 'GT Standard';
       src: url('/fonts/GT-Standard-L-Standard-Semibold.woff2') format('woff2');
-      font-weight: 600;
-      font-style: normal;
-      font-display: swap;
+      font-weight: 600; font-style: normal; font-display: swap;
     }
     @font-face {
       font-family: 'GT Standard';
       src: url('/fonts/GT-Standard-L-Standard-Bold.woff2') format('woff2');
-      font-weight: 700;
-      font-style: normal;
-      font-display: swap;
+      font-weight: 700; font-style: normal; font-display: swap;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,7 +33,6 @@
       --bg:  #ffffff;
       --margin: 20px;
       --tile-gap: 4px;
-      --tile-font: 24px;
     }
 
     html, body { height: 100%; }
@@ -55,57 +45,31 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* ── Each screen takes the full viewport ─────────────────── */
+    /* ─── Each screen takes the full viewport ──────────────────── */
     .screen {
       display: none;
       width: 100vw;
       min-height: 100vh;
       padding: var(--margin);
-      grid-template-columns: 1fr 1fr;          /* two equal columns        */
-      grid-template-rows: auto 1fr auto;        /* head, spacer, tiles      */
-      column-gap: 0;
-      row-gap: 0;
+      grid-template-rows: auto 1fr auto;
+      gap: 0;
     }
     .screen.active { display: grid; }
 
-    /* ── Left column: titles ─────────────────────────────────── */
-    .titles {
-      grid-column: 1;
-      grid-row: 1;
+    /* ─── Top bar: breadcrumb (left) + planet logo (right) ─────── */
+    .top-bar {
       display: flex;
-      flex-direction: column;
-      gap: 28px;
-    }
-    .titles h1 {
-      font-size: 40px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      line-height: 1;
-    }
-    .titles h2 {
-      font-size: 40px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      line-height: 1.1;
-    }
-
-    /* ── Right column: breadcrumb (left edge) + logo (right) ─ */
-    .right-head {
-      grid-column: 2;
-      grid-row: 1;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: start;
+      justify-content: space-between;
+      align-items: flex-start;
     }
     .crumb {
       display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
       font-size: 16px;
       font-weight: 500;
       line-height: 1.2;
-      /* sits at the very left of the right column — i.e. the
-         vertical centre axis of the whole page */
       padding-top: 4px;
     }
     .crumb-item {
@@ -123,57 +87,70 @@
     .crumb-arrow {
       font-size: 14px;
       line-height: 1;
-      margin: 4px 0 8px;
       user-select: none;
     }
     .home-logo {
       width: 32px;
       height: 32px;
       display: block;
-      align-self: start;
-      justify-self: end;
+      flex-shrink: 0;
     }
 
-    /* ── Tiles row (full width at the bottom) ────────────────── */
+    /* ─── Title block (left, large) ────────────────────────────── */
+    .titles {
+      margin-top: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 50%;
+    }
+    .titles h1 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+    .titles h2 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
+    }
+
+    /* ─── Tiles row (full-width at the bottom) ─────────────────── */
     .tiles {
-      grid-column: 1 / -1;
-      grid-row: 3;
       display: grid;
       gap: var(--tile-gap);
+      align-self: end;
     }
     .tiles.cols-2 { grid-template-columns: 1fr 1fr; }
     .tiles.cols-3 { grid-template-columns: repeat(3, 1fr); }
-    .tiles.cols-4 { grid-template-columns: repeat(4, 1fr); }
 
     .tile {
       background: var(--ink);
       color: #fff;
       border: none;
-      padding: 14px 16px;
+      padding: 12px 16px;
       font-family: inherit;
-      font-size: var(--tile-font);
+      font-size: 18px;
       font-weight: 500;
       line-height: 1.15;
       cursor: pointer;
       text-align: center;
       transition: background 0.15s, color 0.15s;
       white-space: nowrap;
-      overflow: visible;
+      min-height: 44px;
     }
     .tile:hover  { background: #2a2a2a; }
     .tile:active { background: #000; }
-
-    /* span helper for odd-count rows */
     .tile.span-2 { grid-column: span 2; }
-    .tile.span-3 { grid-column: span 3; }
 
-    /* ── Layout picker (Screen 3) ─────────────────────────────── */
+    /* ─── Layout picker (Screen 3) ──────────────────────────────── */
     .layout-grid {
-      grid-column: 1 / -1;
-      grid-row: 3;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: var(--tile-gap);
+      align-self: end;
     }
     .layout-card {
       display: block;
@@ -213,63 +190,57 @@
       letter-spacing: 0.08em;
     }
 
-    /* ── Small screens ───────────────────────────────────────── */
+    /* ─── Small screens ─────────────────────────────────────────── */
     @media (max-width: 760px) {
-      :root { --tile-font: 22px; }
-      .screen { grid-template-columns: 1fr; }
-      .titles h1, .titles h2 { font-size: 28px; }
-      .right-head {
-        grid-column: 1;
-        grid-row: 2;
-        margin-top: 16px;
-      }
-      .titles { grid-row: 1; }
-      .tiles { grid-row: 3; }
+      .titles { max-width: 100%; }
+      .titles h1, .titles h2 { font-size: 26px; }
+      .tile { font-size: 14px; padding: 10px 12px; min-height: 38px; }
       .tiles.cols-3 { grid-template-columns: 1fr 1fr; }
       .layout-grid { grid-template-columns: 1fr 1fr; }
+      .crumb { font-size: 14px; }
     }
   </style>
 </head>
 <body>
   <!-- ─────────────── Screen 1: Purpose ─────────────── -->
   <section class="screen active" data-screen="1">
+    <div class="top-bar">
+      <nav class="crumb" id="crumb-1">
+        <button class="crumb-item" data-goto="1">Main</button>
+        <span class="crumb-arrow">→</span>
+      </nav>
+      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </div>
     <div class="titles">
       <h1>Hey!</h1>
       <h2>Welcome to the Paysend °<br/>social media content builder</h2>
       <h2>What are you up to today?</h2>
-    </div>
-    <div class="right-head">
-      <nav class="crumb" id="crumb-1">
-        <button class="crumb-item" data-goto="1">Main</button>
-        <span class="crumb-arrow">↓</span>
-      </nav>
-      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </div>
     <div class="tiles cols-3" id="purpose-tiles"></div>
   </section>
 
   <!-- ─────────────── Screen 2: Activity ─────────────── -->
   <section class="screen" data-screen="2">
+    <div class="top-bar">
+      <nav class="crumb" id="crumb-2"></nav>
+      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </div>
     <div class="titles">
       <h1>Great!</h1>
       <h2>Now it's time to choose the<br/>type of media we're making</h2>
-    </div>
-    <div class="right-head">
-      <nav class="crumb" id="crumb-2"></nav>
-      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </div>
     <div class="tiles cols-2" id="activity-tiles"></div>
   </section>
 
   <!-- ─────────────── Screen 3: Layout ─────────────── -->
   <section class="screen" data-screen="3">
+    <div class="top-bar">
+      <nav class="crumb" id="crumb-3"></nav>
+      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
+    </div>
     <div class="titles">
       <h1>One last step</h1>
       <h2>Choose a layout you want<br/>to use for your task</h2>
-    </div>
-    <div class="right-head">
-      <nav class="crumb" id="crumb-3"></nav>
-      <img class="home-logo" src="/assets/logo-planet.svg" alt="Paysend" />
     </div>
     <div class="layout-grid" id="layout-grid"></div>
   </section>
@@ -318,7 +289,6 @@
   };
 
   // ── Layout family routes (one builder per family digit) ───
-  // Family 7 doesn't exist yet → routes to /work-in-progress.html.
   const FAMILY_ROUTE = {
     1: '/templates',
     2: '/templates2',
@@ -334,9 +304,6 @@
   };
 
   // ── Activity → list of variant groups (one card per group) ─
-  // Each group shares a family digit. Multiple variants in a group
-  // ⇒ a switcher inside the builder. Single variant ⇒ standalone card.
-  // Source: Figma "structure" frame, HR/People section.
   const ASSIGNMENTS = {
     hr: {
       'new-job':   [['1.1'], ['3.1', '3.2'], ['6.1', '6.2', '6.3']],
@@ -393,10 +360,9 @@
     window.scrollTo({ top: 0 });
   }
 
-  // ─── Render: tiles auto-pack into rows of 4 (Screen 1) ────
+  // ─── Render: tiles ───
   function renderPurpose() {
     $purpose.innerHTML = '';
-    // 3 columns × 2 rows — every label fits without truncation.
     PURPOSES.forEach((p) => {
       const btn = document.createElement('button');
       btn.className = 'tile';
@@ -436,24 +402,27 @@
   function renderGrid() {
     $grid.innerHTML = '';
     const groups = (ASSIGNMENTS[state.purposeId] || {})[state.activityId]
-                || [['wip']]; // fallback: single Work-in-progress card
+                || [['wip']];
 
     groups.forEach(variants => {
       const first   = variants[0];
-      // Treat any single-token, no-dot variant as a placeholder family
-      // (layout 7, 8, 9 …) — these don't have builders yet.
       const isWip   = first === 'wip' || /^\d+$/.test(first);
       const family  = isWip
         ? parseInt(first === 'wip' ? '0' : first, 10)
         : parseInt(first.split('.')[0], 10);
       const route   = FAMILY_ROUTE[family] || '/work-in-progress.html';
-      // pass selected variants to the builder so it can show a switcher
-      const href    = isWip ? route : `${route}?variants=${variants.join(',')}`;
-      const label   = isWip
+
+      // Pass purpose + activity ids so the builder can render its own breadcrumb
+      const ctx = `p=${state.purposeId}&a=${state.activityId}`;
+      const href = isWip
+        ? `${route}?${ctx}`
+        : `${route}?${ctx}&variants=${variants.join(',')}`;
+
+      const label = isWip
         ? `Layout ${first === 'wip' ? '?' : first} — WIP`
         : variants.join(' · ');
-      const thumb   = isWip
-        ? '' // no thumb for WIP — show a neutral box
+      const thumb = isWip
+        ? ''
         : `/assets/placeholders/${variants[0]}.jpg`;
 
       const a = document.createElement('a');
@@ -482,7 +451,7 @@
   function makeArrow() {
     const s = document.createElement('span');
     s.className = 'crumb-arrow';
-    s.textContent = '↓';
+    s.textContent = '→';
     return s;
   }
   function renderCrumb2() {
@@ -503,6 +472,22 @@
   }
 
   renderPurpose();
+
+  // ─── Deep-link: ?screen=2&p=hr or ?screen=3&p=hr&a=hiring ───
+  // (used by builder-screen breadcrumbs to return to the right step)
+  (function deepLink() {
+    const params = new URLSearchParams(location.search);
+    const target = parseInt(params.get('screen') || '1', 10);
+    const p      = params.get('p');
+    const a      = params.get('a');
+    if (target === 2 && p && ACTIVITIES[p]) {
+      state.purposeId = p; state.activityId = null;
+      renderActivity(); renderCrumb2(); showScreen(2);
+    } else if (target === 3 && p && a && ACTIVITIES[p]) {
+      state.purposeId = p; state.activityId = a;
+      renderActivity(); renderGrid(); renderCrumb3(); showScreen(3);
+    }
+  })();
   </script>
 </body>
 </html>

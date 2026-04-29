@@ -1,0 +1,49 @@
+/* Self-mounted top breadcrumb bar for every builder screen.
+   Sizing + placement deliberately mirror the wizard screens so the
+   breadcrumb feels like the same component throughout the app. */
+.builder-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px;
+  background: #fff;
+  font-family: 'GT Standard', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.builder-crumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: #141414;
+  padding-top: 4px;
+}
+.builder-crumb a.crumb-item {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: #141414;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+}
+.builder-crumb a.crumb-item:hover { opacity: 0.55; }
+.builder-crumb .crumb-arrow {
+  font-size: 14px;
+  line-height: 1;
+  user-select: none;
+  color: #141414;
+}
+.builder-topbar-logo {
+  width: 32px;
+  height: 32px;
+  display: block;
+  flex-shrink: 0;
+}
