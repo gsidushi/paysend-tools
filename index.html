@@ -145,15 +145,24 @@
     .tile:active { background: #000; }
     .tile.span-2 { grid-column: span 2; }
 
-    /* ─── Layout picker (Screen 3) ──────────────────────────────── */
+    /* ─── Layout picker (Screen 3) ──────────────────────────────
+       Always a single row. Cards keep their 4:5 aspect ratio
+       and share the row width equally — but the row never grows
+       past 50 % of the viewport height. JS caps each card's
+       width when needed so adding more options shrinks the
+       thumbnails instead of pushing the row taller. */
     .layout-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-wrap: nowrap;
       gap: var(--tile-gap);
       align-self: end;
+      align-items: flex-start;
     }
     .layout-card {
-      display: block;
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
       text-decoration: none;
       color: inherit;
       cursor: pointer;
@@ -196,7 +205,6 @@
       .titles h1, .titles h2 { font-size: 26px; }
       .tile { font-size: 14px; padding: 10px 12px; min-height: 38px; }
       .tiles.cols-3 { grid-template-columns: 1fr 1fr; }
-      .layout-grid { grid-template-columns: 1fr 1fr; }
       .crumb { font-size: 14px; }
     }
   </style>
@@ -358,6 +366,7 @@
   function showScreen(n) {
     $screens.forEach(s => s.classList.toggle('active', +s.dataset.screen === n));
     window.scrollTo({ top: 0 });
+    if (n === 3) requestAnimationFrame(fitLayoutGrid);
   }
 
   // ─── Render: tiles ───
@@ -438,7 +447,37 @@
       `;
       $grid.appendChild(a);
     });
+    // fitLayoutGrid runs from showScreen(3), once the row is visible
+    // (it can't measure clientWidth while the screen is display:none).
   }
+
+  /* Cap each card's width so the whole row stays within 50 % of
+     the viewport height. With few cards (e.g. 3) the cards naturally
+     fit; with many (e.g. 6) the cap kicks in and shrinks them. */
+  const TILE_GAP = 4, LABEL_RESERVE = 26, MAX_ROW_FRACTION = 0.5;
+  function fitLayoutGrid() {
+    if (!$grid || $grid.children.length === 0) return;
+    const cards = $grid.querySelectorAll('.layout-card');
+    const count = cards.length;
+    const containerW = $grid.clientWidth;
+    const widthPerCard = (containerW - TILE_GAP * (count - 1)) / count;
+    const maxRowH = window.innerHeight * MAX_ROW_FRACTION;
+    const maxThumbH = maxRowH - LABEL_RESERVE;
+    const maxThumbW = maxThumbH * 4 / 5;
+    const cardW = Math.min(widthPerCard, maxThumbW);
+    const useFixed = cardW < widthPerCard - 0.5;
+    cards.forEach(c => {
+      if (useFixed) {
+        c.style.flex  = 'none';
+        c.style.width = cardW + 'px';
+      } else {
+        c.style.flex  = '';
+        c.style.width = '';
+      }
+    });
+    $grid.style.justifyContent = useFixed ? 'flex-start' : '';
+  }
+  window.addEventListener('resize', fitLayoutGrid);
 
   // ─── Breadcrumbs ────────────────────────────────────────────
   function makeCrumbItem(label, onClick) {
