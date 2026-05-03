@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Post Builder — Event Portrait (Pattern)</title>
   <link rel="stylesheet" href="/assets/breadcrumb.css" />
+  <script src="/assets/data/loader.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @font-face {
@@ -288,18 +289,8 @@
     <!-- Accent color (only active in split mode) -->
     <div class="control-section" id="accent-section">
       <label class="control-label">Accent Color</label>
-      <div class="color-palette" id="color-palette">
-        <button class="color-swatch active" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
-        <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
-        <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
-        <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
-        <button class="color-swatch" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
-        <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
-        <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
-        <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
-        <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
-        <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
-      </div>
+      <!-- swatches built from /assets/data/colors.json -->
+      <div class="color-palette" id="color-palette"></div>
     </div>
 
     <div class="divider"></div>
@@ -337,8 +328,7 @@
       <div class="section-body">
         <select class="control-input partner-preset" id="partner1-preset">
           <option value="custom">Custom upload</option>
-          <option value="visa">Visa</option>
-          <option value="mastercard">Mastercard</option>
+          <!-- partner options injected from /assets/data/partners.json -->
         </select>
         <div class="upload-zone" id="partner1-zone">
           <div class="upload-placeholder">
@@ -367,8 +357,7 @@
       <div class="section-body">
         <select class="control-input partner-preset" id="partner2-preset">
           <option value="custom">Custom upload</option>
-          <option value="visa">Visa</option>
-          <option value="mastercard">Mastercard</option>
+          <!-- partner options injected from /assets/data/partners.json -->
         </select>
         <div class="upload-zone" id="partner2-zone">
           <div class="upload-placeholder">
@@ -575,32 +564,36 @@
   }
   setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
   setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
-  const PARTNER_PRESETS = {
-    visa: '/assets/partner-logos/visa.png',
-    mastercard: '/assets/partner-logos/master-card.png',
-  };
-  function setupPartnerPreset({ selectId, zoneId, imgId, defaultSrc }) {
-    const select = document.getElementById(selectId);
-    const zone = document.getElementById(zoneId);
-    const img = document.getElementById(imgId);
-    if (!select || !zone || !img) return;
-    let lastCustom = defaultSrc;
-    new MutationObserver(() => {
-      if (select.value === 'custom') lastCustom = img.src;
-    }).observe(img, { attributes: true, attributeFilter: ['src'] });
-    select.addEventListener('change', () => {
-      const v = select.value;
-      if (v === 'custom') {
-        zone.style.display = '';
-        img.src = lastCustom;
-      } else if (PARTNER_PRESETS[v]) {
-        zone.style.display = 'none';
-        img.src = PARTNER_PRESETS[v];
-      }
-    });
-  }
-  setupPartnerPreset({ selectId: 'partner1-preset', zoneId: 'partner1-zone', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
-  setupPartnerPreset({ selectId: 'partner2-preset', zoneId: 'partner2-zone', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
+  /* Partner presets from /assets/data/partners.json */
+  (async function setupPartners() {
+    const { partners } = await window.PaysendData;
+    const presetMap = Object.fromEntries(partners.map(p => [p.id, p.src]));
+    function fillSelect(id) {
+      const sel = document.getElementById(id); if (!sel) return;
+      partners.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id; opt.textContent = p.label; sel.appendChild(opt);
+      });
+    }
+    fillSelect('partner1-preset'); fillSelect('partner2-preset');
+    function setupPartnerPreset({ selectId, zoneId, imgId, defaultSrc }) {
+      const select = document.getElementById(selectId);
+      const zone = document.getElementById(zoneId);
+      const img = document.getElementById(imgId);
+      if (!select || !zone || !img) return;
+      let lastCustom = defaultSrc;
+      new MutationObserver(() => {
+        if (select.value === 'custom') lastCustom = img.src;
+      }).observe(img, { attributes: true, attributeFilter: ['src'] });
+      select.addEventListener('change', () => {
+        const v = select.value;
+        if (v === 'custom') { zone.style.display = ''; img.src = lastCustom; }
+        else if (presetMap[v]) { zone.style.display = 'none'; img.src = presetMap[v]; }
+      });
+    }
+    setupPartnerPreset({ selectId: 'partner1-preset', zoneId: 'partner1-zone', imgId: 'logo-partner-1', defaultSrc: '/assets/partner-logo.png' });
+    setupPartnerPreset({ selectId: 'partner2-preset', zoneId: 'partner2-zone', imgId: 'logo-partner-2', defaultSrc: '/assets/partner-logo.png' });
+  })();
 
   // Mode switch
   const modeSwitch = document.getElementById('mode-switch');
@@ -618,16 +611,27 @@
   });
   applyMode('pattern');
 
-  // Color palette
-  const DARK_ACCENT = new Set(['#4a57c5']);
-  document.querySelectorAll('#color-palette .color-swatch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      canvas.style.setProperty('--accent', sw.dataset.color);
-      canvas.style.setProperty('--text-on-accent', DARK_ACCENT.has(sw.dataset.color) ? '#fff' : '#141414');
-      document.querySelectorAll('#color-palette .color-swatch').forEach(s => s.classList.remove('active'));
-      sw.classList.add('active');
+  /* Accent palette from /assets/data/colors.json */
+  (async function buildPalette() {
+    const { colors } = await window.PaysendData;
+    const palette = document.getElementById('color-palette');
+    const DEFAULT_ID = 'cyan';
+    colors.filter(c => c.id !== 'black' && c.id !== 'white').forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'color-swatch' + (c.id === DEFAULT_ID ? ' active' : '');
+      btn.dataset.color = c.hex;
+      btn.style.background = c.hex;
+      btn.title = c.label; btn.setAttribute('aria-label', c.label);
+      btn.addEventListener('click', () => {
+        canvas.style.setProperty('--accent', c.hex);
+        canvas.style.setProperty('--text-on-accent', c.textColor);
+        palette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+      });
+      palette.appendChild(btn);
     });
-  });
+  })();
 
   // Preview scaling
   (function scalePreview() {

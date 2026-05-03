@@ -1,0 +1,88 @@
+{
+  "purposes": [
+    { "id": "hr",         "label": "HR / People" },
+    { "id": "pr",         "label": "PR / News" },
+    { "id": "personal",   "label": "Personal Brand" },
+    { "id": "thought",    "label": "Thought Leadership" },
+    { "id": "product",    "label": "Product / Sales" },
+    { "id": "engagement", "label": "Engagement / Reach" }
+  ],
+
+  "activities": {
+    "hr": [
+      { "id": "new-job",       "label": "New Job Announcement" },
+      { "id": "promotion",     "label": "Promotion Announcement" },
+      { "id": "hiring",        "label": "We're Hiring" },
+      { "id": "bts",           "label": "Behind-the-Scenes" }
+    ],
+    "pr": [
+      { "id": "company-news",  "label": "Company News" },
+      { "id": "press-release", "label": "Press Release" },
+      { "id": "partnership",   "label": "Partnership Announcement" }
+    ],
+    "thought": [
+      { "id": "insight",       "label": "Insight / POV" },
+      { "id": "educational",   "label": "Educational / How-To" },
+      { "id": "case-study",    "label": "Case Study" }
+    ],
+    "product": [
+      { "id": "feature",       "label": "Feature / Product Highlight" },
+      { "id": "before-after",  "label": "Before / After" },
+      { "id": "testimonial",   "label": "Customer Testimonial" }
+    ],
+    "personal": [
+      { "id": "story",         "label": "Story / Experience" },
+      { "id": "unpopular",     "label": "Unpopular Opinion" },
+      { "id": "founder-pov",   "label": "Founder POV" }
+    ],
+    "engagement": [
+      { "id": "question",      "label": "Question Post" }
+    ]
+  },
+
+  "assignments": {
+    "hr": {
+      "new-job":       [["1.1"], ["3.1", "3.2"], ["6.1", "6.2", "6.3"]],
+      "promotion":     [["1.1"], ["4.1", "4.2"], ["6.1", "6.2", "6.3"]],
+      "hiring":        [["4.1", "4.2"], ["7.1", "7.2"]],
+      "bts":           [["1.1"], ["2.1"], ["5.1", "5.2"], ["6.1", "6.2", "6.3"]]
+    },
+    "pr": {
+      "company-news":  [["1.1"], ["2.1"], ["4.1", "4.2"], ["5.1", "5.2"], ["6.1", "6.2", "6.3"]],
+      "press-release": [["1.1", "1.2", "1.3"], ["2.1", "2.2", "2.3"], ["4.2"], ["5.2"]],
+      "partnership":   [["4.1", "4.2"], ["5.1", "5.2"], ["6.1", "6.2", "6.3"]]
+    },
+    "thought": {
+      "insight":     [["4.1", "4.2"], ["5.1", "5.2"], ["8.1", "8.2"]],
+      "educational": [["4.1", "4.2"], ["5.1", "5.2"], ["6.1", "6.2", "6.3"], ["9.1", "9.2", "9.3"]],
+      "case-study":  [["4.1", "4.2"], ["5.1", "5.2"], ["6.1", "6.2", "6.3"]]
+    },
+    "product": {
+      "feature":      [["4.1", "4.2"], ["5.1", "5.2"], ["10"]],
+      "before-after": [["4.1", "4.2"], ["5.1", "5.2"], ["10"]],
+      "testimonial":  [["4.1", "4.2"], ["5.1", "5.2"], ["8.1", "8.2"], ["10"]]
+    },
+    "personal": {
+      "story":       [["1.1"], ["8.1", "8.2"], ["11"]],
+      "unpopular":   [["1.1"], ["8.1", "8.2"], ["11"]],
+      "founder-pov": [["1.1"], ["6.1", "6.2", "6.3"], ["8.1", "8.2"], ["11"]]
+    },
+    "engagement": {
+      "question":    [["4.1", "4.2"], ["5.1", "5.2"], ["8.1", "8.2"]]
+    }
+  },
+
+  "familyRoutes": {
+    "1":  "/templates",
+    "2":  "/templates2",
+    "3":  "/templates3",
+    "4":  "/templates4",
+    "5":  "/templates5",
+    "6":  "/templates6",
+    "7":  "/templates7",
+    "8":  "/templates8",
+    "9":  "/templates9",
+    "10": "/work-in-progress.html",
+    "11": "/work-in-progress.html"
+  }
+}

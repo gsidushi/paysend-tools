@@ -1,0 +1,14 @@
+[
+  { "id": "black",  "label": "Black",     "hex": "#0a0a0a", "textColor": "#ffffff" },
+  { "id": "cyan",   "label": "Cyan",      "hex": "#08ffce", "textColor": "#141414" },
+  { "id": "sky",    "label": "Sky Blue",  "hex": "#17bff2", "textColor": "#141414" },
+  { "id": "indigo", "label": "Indigo",    "hex": "#4a57c5", "textColor": "#ffffff" },
+  { "id": "teal",   "label": "Teal",      "hex": "#08c197", "textColor": "#141414" },
+  { "id": "lime",   "label": "Lime",      "hex": "#a0eb31", "textColor": "#141414" },
+  { "id": "yellow", "label": "Yellow",    "hex": "#f7e43d", "textColor": "#141414" },
+  { "id": "orange", "label": "Orange",    "hex": "#f7ab3d", "textColor": "#141414" },
+  { "id": "red",    "label": "Red",       "hex": "#ff574a", "textColor": "#ffffff" },
+  { "id": "purple", "label": "Purple",    "hex": "#b75eff", "textColor": "#ffffff" },
+  { "id": "pink",   "label": "Pink",      "hex": "#fe94da", "textColor": "#141414" },
+  { "id": "white",  "label": "White",     "hex": "#ffffff", "textColor": "#141414" }
+]

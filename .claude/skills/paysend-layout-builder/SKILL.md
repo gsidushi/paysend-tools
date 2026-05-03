@@ -7,6 +7,38 @@ Use this skill whenever:
 
 ---
 
+## Shared data — `/assets/data/*.json`
+
+Lists that appear in more than one builder are stored as JSON in
+`/assets/data/` and pulled in via `/assets/data/loader.js`:
+
+| File | Contents |
+|---|---|
+| `partners.json` | Partner-logo presets (Visa, Mastercard, …) — `id / label / src` |
+| `colors.json`   | Accent + background palette — `id / label / hex / textColor` |
+| `team.json`     | Staff portrait presets — `id / name / src` |
+| `layouts.json`  | Wizard data — `purposes`, `activities`, `assignments`, `familyRoutes` |
+
+**Every new builder must:**
+
+1. Add `<script src="/assets/data/loader.js"></script>` in `<head>` BEFORE
+   the inline `<script>` block.
+2. Leave `<select class="partner-preset">` containing only
+   `<option value="custom">Custom upload</option>`. The other options
+   are injected at runtime from `partners.json`.
+3. Leave the colour-palette `<div id="…-palette">` empty. Swatches are
+   injected from `colors.json` in an
+   `(async () => { const { colors } = await window.PaysendData; … })()` IIFE.
+4. Use `presetMap[id]` (built from `partners`) instead of a hard-coded
+   `PARTNER_PRESETS = {…}` object. Same for `team.json` if applicable.
+
+Adding a new partner / colour / staff member is then a one-line edit in
+the matching JSON file — every builder picks it up on next load. Never
+re-introduce hard-coded `<option>` lists or `const PARTNER_PRESETS`
+objects in new layouts.
+
+---
+
 ## Quick-start workflow
 
 1. **Read the Figma design** — note canvas size, variant names, background strategy, which elements are toggleable

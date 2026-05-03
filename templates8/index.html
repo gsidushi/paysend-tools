@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Post Builder — Quote</title>
   <link rel="stylesheet" href="/assets/breadcrumb.css" />
+  <script src="/assets/data/loader.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @font-face {
@@ -259,22 +260,11 @@
 
       <div class="divider"></div>
 
-      <!-- Accent colour: drives the corner quote glyphs + author pill -->
+      <!-- Accent colour: populated from /assets/data/colors.json
+           — drives both the corner quote glyphs and the author pill. -->
       <div class="control-section">
         <label class="control-label">Accent Color</label>
-        <div class="color-palette" id="accent-palette">
-          <button class="color-swatch active" data-color="#a0eb31" style="background:#a0eb31" title="Lime"></button>
-          <button class="color-swatch" data-color="#08ffce" style="background:#08ffce" title="Cyan"></button>
-          <button class="color-swatch" data-color="#17bff2" style="background:#17bff2" title="Sky Blue"></button>
-          <button class="color-swatch" data-color="#08c197" style="background:#08c197" title="Teal"></button>
-          <button class="color-swatch" data-color="#f7e43d" style="background:#f7e43d" title="Yellow"></button>
-          <button class="color-swatch" data-color="#f7ab3d" style="background:#f7ab3d" title="Orange"></button>
-          <button class="color-swatch" data-color="#fe94da" style="background:#fe94da" title="Pink"></button>
-          <button class="color-swatch" data-color="#b75eff" style="background:#b75eff" title="Purple"></button>
-          <button class="color-swatch" data-color="#4a57c5" style="background:#4a57c5" title="Indigo"></button>
-          <button class="color-swatch" data-color="#ff574a" style="background:#ff574a" title="Red"></button>
-          <button class="color-swatch" data-color="#ffffff" style="background:#ffffff;border:1px solid #ddd" title="White"></button>
-        </div>
+        <div class="color-palette" id="accent-palette"></div>
       </div>
 
       <button class="download-btn" id="download-btn">Download PNG</button>
@@ -349,20 +339,35 @@
   authorToggle.addEventListener('change', syncAuthor);
   syncAuthor();
 
-  /* ── Accent colour ─ recolours both the corner quote glyphs
-     and the author pill. Light accents keep dark pill text;
-     darker accents flip the pill text to white for legibility. */
-  const DARK_ACCENTS = new Set(['#4a57c5', '#b75eff', '#ff574a']);
+  /* ── Accent colour ─ swatches built from /assets/data/colors.json.
+     The textColor field on each entry tells the pill which text
+     colour to use ON that accent (so dark accents like Indigo /
+     Purple / Red flip the pill text to white automatically).      */
   const accentPalette = document.getElementById('accent-palette');
-  accentPalette.querySelectorAll('.color-swatch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      accentPalette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-      sw.classList.add('active');
-      const c = sw.dataset.color;
-      canvas.style.setProperty('--accent', c);
-      canvas.style.setProperty('--accent-text', DARK_ACCENTS.has(c) ? '#fff' : '#141414');
+  (async function buildPalette() {
+    const { colors } = await window.PaysendData;
+    const DEFAULT_ID = 'lime';
+    // Skip pure black for an "accent" picker — looks identical to the canvas bg.
+    const accentColors = colors.filter(c => c.id !== 'black');
+    accentColors.forEach(c => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'color-swatch' + (c.id === DEFAULT_ID ? ' active' : '');
+      btn.dataset.color = c.hex;
+      btn.dataset.text  = c.textColor;
+      btn.style.background = c.hex;
+      if (c.hex.toLowerCase() === '#ffffff') btn.style.border = '1px solid #ddd';
+      btn.title = c.label;
+      btn.setAttribute('aria-label', c.label);
+      btn.addEventListener('click', () => {
+        accentPalette.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        canvas.style.setProperty('--accent',      c.hex);
+        canvas.style.setProperty('--accent-text', c.textColor);
+      });
+      accentPalette.appendChild(btn);
     });
-  });
+  })();
 
   /* ── Download ── */
   const CANVAS_W = 1080, CANVAS_H = 1360;

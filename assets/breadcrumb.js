@@ -1,61 +1,42 @@
 /* Builder breadcrumb — self-mounting.
-   Reads ?p=<purposeId>&a=<activityId> from the URL and prepends a
-   sticky top bar with: [Main → Purpose → Activity →]   [planet logo]
-   to every page that loads this script. Falls back gracefully
-   when params are missing (e.g. someone deep-links a builder).      */
+ *
+ * Reads ?p=<purposeId>&a=<activityId> from the URL and prepends a
+ * sticky top bar with [Main → Purpose → Activity →] [planet logo]
+ * to every page that loads this script. Labels come from
+ * /assets/data/layouts.json via the shared PaysendData loader so
+ * a single edit there updates the breadcrumb everywhere.            */
 (function () {
-  const PURPOSES = {
-    hr:         'HR / People',
-    pr:         'PR / News',
-    personal:   'Personal Brand',
-    thought:    'Thought Leadership',
-    product:    'Product / Sales',
-    engagement: 'Engagement / Reach',
-  };
+  function loadPaysendData() {
+    if (window.PaysendData) return window.PaysendData;
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = '/assets/data/loader.js';
+      s.onload = () => resolve(window.PaysendData);
+      s.onerror = reject;
+      document.head.appendChild(s);
+    }).then(p => p);
+  }
 
-  const ACTIVITIES = {
-    hr: {
-      'new-job':       'New Job Announcement',
-      'promotion':     'Promotion Announcement',
-      'hiring':        "We're Hiring",
-      'bts':           'Behind-the-Scenes',
-    },
-    pr: {
-      'company-news':  'Company News',
-      'press-release': 'Press Release',
-      'partnership':   'Partnership Announcement',
-    },
-    thought: {
-      'insight':       'Insight / POV',
-      'educational':   'Educational / How-To',
-      'case-study':    'Case Study',
-    },
-    product: {
-      'feature':       'Feature / Product Highlight',
-      'before-after':  'Before / After',
-      'testimonial':   'Customer Testimonial',
-    },
-    personal: {
-      'story':         'Story / Experience',
-      'unpopular':     'Unpopular Opinion',
-      'founder-pov':   'Founder POV',
-    },
-    engagement: {
-      'question':      'Question Post',
-    },
-  };
+  async function init() {
+    if (document.querySelector('.builder-topbar')) return; // idempotent
 
-  function init() {
-    // Don't double-mount
-    if (document.querySelector('.builder-topbar')) return;
+    const { layouts } = await loadPaysendData();
+    const purposesById = Object.fromEntries(
+      (layouts.purposes || []).map(p => [p.id, p.label])
+    );
+    const activitiesById = Object.fromEntries(
+      Object.entries(layouts.activities || {}).map(([pid, list]) => [
+        pid,
+        Object.fromEntries(list.map(a => [a.id, a.label]))
+      ])
+    );
 
     const params  = new URLSearchParams(location.search);
     const purpose = params.get('p');
     const activity = params.get('a');
 
-    const bar = document.createElement('header');
+    const bar   = document.createElement('header');
     bar.className = 'builder-topbar';
-
     const crumb = document.createElement('nav');
     crumb.className = 'builder-crumb';
 
@@ -70,17 +51,18 @@
       const s = document.createElement('span');
       s.className   = 'crumb-arrow';
       s.textContent = '→';
+      s.setAttribute('aria-hidden', 'true');
       crumb.appendChild(s);
     }
 
     addItem('Main', '/');
-    if (purpose && PURPOSES[purpose]) {
+    if (purpose && purposesById[purpose]) {
       addArrow();
-      addItem(PURPOSES[purpose], '/?screen=2&p=' + purpose);
-      const subList = ACTIVITIES[purpose] || {};
-      if (activity && subList[activity]) {
+      addItem(purposesById[purpose], '/?screen=2&p=' + purpose);
+      const sub = activitiesById[purpose] || {};
+      if (activity && sub[activity]) {
         addArrow();
-        addItem(subList[activity], '/?screen=3&p=' + purpose + '&a=' + activity);
+        addItem(sub[activity], '/?screen=3&p=' + purpose + '&a=' + activity);
       }
     }
     addArrow();
@@ -95,9 +77,7 @@
 
     document.body.insertBefore(bar, document.body.firstChild);
 
-    // Hide the legacy in-builder .header (logo + "Post Builder" + size)
-    // so we don't show two stacked bars. Each builder has its own
-    // .header bar — collapse it to nothing now that the topbar is on.
+    // Hide the legacy in-builder .header so we don't show two stacked bars.
     const legacy = document.querySelector('header.header');
     if (legacy) legacy.style.display = 'none';
   }

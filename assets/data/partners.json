@@ -1,0 +1,12 @@
+[
+  {
+    "id":    "visa",
+    "label": "Visa",
+    "src":   "/assets/partner-logos/visa.png"
+  },
+  {
+    "id":    "mastercard",
+    "label": "Mastercard",
+    "src":   "/assets/partner-logos/master-card.png"
+  }
+]
