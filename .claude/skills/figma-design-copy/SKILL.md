@@ -12,6 +12,28 @@ the work done.
 
 ---
 
+## Standing instruction — keep this skill alive
+
+> **Whenever the user points out ANY mismatch between Figma and
+> the implemented design, BEFORE fixing the code:**
+>
+> 1. Add a row to the **"Patterns the user has objected to"**
+>    table below — paraphrase the correction in the user's own
+>    words and write the right answer.
+> 2. If the failure mode isn't already in the **"Recurring
+>    mistakes"** list near the bottom, add a bullet for it.
+> 3. If a new verification check would have caught it, add a
+>    box to the **Verification checklist**.
+> 4. Commit the skill update in the SAME commit (or one commit
+>    earlier) as the code fix, so the skill never lags the
+>    codebase.
+>
+> The point of the skill is to make every correction the user
+> makes a one-time correction. If a category of mistake repeats,
+> something is missing from this file — add it.
+
+---
+
 ## Mandatory workflow (do these in order, never skip steps)
 
 1. **Get the visual first.** Call `get_screenshot` on the node
