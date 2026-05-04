@@ -1259,8 +1259,11 @@ at ICE Barcelona!</textarea>
     }
     setupLogoUpload({ zoneId: 'partner1-zone', fileId: 'partner1-file', imgId: 'logo-partner-1' })
     setupLogoUpload({ zoneId: 'partner2-zone', fileId: 'partner2-file', imgId: 'logo-partner-2' })
-    /* Partner presets from /assets/data/partners.json */
-    (async function setupPartners() {
+    /* Partner presets from /assets/data/partners.json
+       Leading `;` defends against ASI — the line above is `setupLogoUpload(...)`
+       with no trailing semicolon, so without it JS parses the whole thing as
+       `setupLogoUpload({...})(async function …)()` and throws. */
+    ;(async function setupPartners() {
       const { partners } = await window.PaysendData;
       const presetMap = Object.fromEntries(partners.map(p => [p.id, p.src]));
       function fillSelect(id) {
