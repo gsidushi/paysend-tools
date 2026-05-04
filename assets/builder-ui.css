@@ -634,34 +634,60 @@ header.builder-topbar { border-bottom: 1px solid var(--bui-border); }
   border: 1px solid var(--bui-border) !important;
   border-radius: var(--bui-radius) !important;
   padding: 12px !important;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px 16px;
-  align-items: start;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px 16px !important;
+  align-items: start !important;
 }
 .bui-person-card .bui-person-label {
-  grid-column: 1 / -1;
-  font-family: 'GT Standard', sans-serif;
-  font-size: var(--bui-label-fs);
-  color: var(--bui-label);
-  letter-spacing: -0.12px;
-  line-height: 0.95;
+  grid-column: 1 / -1 !important;
+  font-family: 'GT Standard', sans-serif !important;
+  font-size: var(--bui-label-fs) !important;
+  font-weight: 400 !important;
+  color: var(--bui-label) !important;
+  letter-spacing: -0.12px !important;
+  line-height: 0.95 !important;
+  text-transform: none !important;
+  margin: 0 !important;
 }
 .bui-person-card .bui-person-left {
-  grid-column: 1;
-  display: grid;
-  grid-template-columns: 100px 1fr;
-  gap: 16px;
-  align-items: start;
+  grid-column: 1 !important;
+  display: grid !important;
+  grid-template-columns: 100px 1fr !important;
+  gap: 16px !important;
+  align-items: start !important;
 }
-.bui-person-card .bui-person-left .bui-person-photo { grid-column: 1; display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
-.bui-person-card .bui-person-left .bui-person-mid   { grid-column: 2; display: flex; flex-direction: column; gap: 8px; }
+.bui-person-card .bui-person-left .bui-person-photo {
+  grid-column: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+}
+.bui-person-card .bui-person-left .bui-person-mid   {
+  grid-column: 2 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
 .bui-person-card .bui-person-right {
-  grid-column: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  grid-column: 2 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
 }
+
+/* Position-slider wrap: drop the legacy "Top" / "Bottom" tag spans
+   so only the slider itself renders (Figma shows just the slider). */
+.bui-person-card .position-slider-wrap {
+  display: flex !important;
+  width: 100%;
+}
+.bui-person-card .position-slider-wrap > span { display: none !important; }
+.bui-person-card .position-slider-wrap > input[type="range"] { flex: 1; }
+
+/* Hide the Nameplate toggle row (Figma's Person card has no toggle). */
+.bui-person-card .control-section .section-row:has(.nameplate-toggle) { display: none !important; }
 /* Sub-sections inside the Person card lose their own borders /
    padding so the card reads as one unified container. */
 .bui-person-card .control-section,

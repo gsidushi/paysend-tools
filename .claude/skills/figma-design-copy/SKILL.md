@@ -118,6 +118,13 @@ the thing in the "I shipped" column, stop.**
 | Partner / Color labels at different y because of partner padding | "baselines for partner logos and colors naes must be on the same level" | Remove the partner frame so its content starts at y=0 like Color's; `.bui-row-2 { align-items: start }` |
 | Empty section-body still rendering | "there must be no empty frame under the partner logos section" | Explicitly `.section-body { display: none }` after lifting its content out |
 | Person card 3-column (photo \| sliders \| names) | "person layout must match the figma precisely. it must be divided bu two columns. left column has all the controls for a photo... right column must be just the name and the role" | Outer 2-col (`1fr 1fr`); LEFT is itself a nested 2-col (`100px 1fr`) with photo on far left + sliders/dropdown next to it; RIGHT is name + role only |
+| Person card still rendered single-column even after `.bui-person-card { display: grid }` | "person section is wrong. compare the way it looks in figma..." | Overlay CSS competes with the per-builder inline `<style>` block at equal specificity; the inline block loads LATER so it wins. **Always put `!important` on layout-critical properties** (`display`, `grid-template-columns`, `grid-column`, `align-items`) when fighting an inline `<style>` |
+| "PERSON" rendered uppercase | inferred from screenshot — Figma shows "Person" sentence case | Override the legacy `.person-section-label { text-transform: uppercase }` with `text-transform: none !important` on the new label class |
+| Position slider had "Top" / "Bottom" min/max labels around it | inferred from screenshot — Figma shows a bare slider with just a "Position" label above | Hide every legacy `.position-slider-wrap > span` so only the `<input type="range">` renders |
+| Zoom rendered as `−` / value / `+` stepper buttons | inferred from screenshot — Figma shows a continuous **slider** labelled "Scale" | Provide a Scale slider in the mid column. If the legacy implementation only has stepper buttons, render a slider that drives the same zoom state and hide the stepper |
+| Team-member dropdown rendered at the top of the photo controls | inferred from screenshot — Figma puts it at the BOTTOM of the mid column, BELOW the sliders | Move it last in the mid-column DOM order |
+| Person photo upload zone had no trash button | inferred from screenshot — Figma shows the same trash glyph in the top-right of EVERY upload zone (partners + person) | Call `injectTrashButton()` on every `.upload-zone` discovered, not just the partner ones |
+| "Nameplate" toggle visible in Person card | inferred from screenshot — Figma's Person card has no toggle for the nameplate; it's always present | Hide the legacy `.nameplate-toggle`'s `.section-row` so the title + name fields render as bare default-input fields |
 
 ---
 
@@ -179,6 +186,7 @@ what's pending. Never silently ship an approximation.
 ### CSS hygiene (avoid silent overrides)
 - [ ] No two CSS classes share the same name across the design system overlay and the legacy stylesheet (e.g. `.divider` always loses to legacy `.divider` — rename to `.bui-sep`)
 - [ ] No `display: <flex|grid|block> !important` on a layer whose visibility flips between two states (placeholder ↔ preview, hidden ↔ shown). Use CSS `:has()` instead so visibility is data-driven from one source of truth
+- [ ] **Every layout-critical property is `!important`** when it has to fight the per-builder inline `<style>` block. The inline block loads AFTER `builder-ui.css` so at equal specificity, the inline block wins. Properties to defend: `display`, `grid-template-*`, `grid-column`, `flex-direction`, `align-items`, `justify-content`, `gap`, `text-transform`, `position`, `width`, `height`, padding, margin
 - [ ] Every `(async function …)` IIFE is preceded by `;` to defend against ASI when the previous line ends in `)` (this trap has bitten Layouts 1, 3, 8 already)
 - [ ] DOM refs that helpers depend on are declared **above** the helpers — not below, even with `const` (TDZ)
 - [ ] When a JS reorganisation moves an element out of its original parent, any selector that anchors on **the original parent's contents** (e.g. `:has(select.partner-preset)`) breaks. Add a stable **marker class** (`.bui-partner-section`) so CSS keeps matching after the move
@@ -250,6 +258,24 @@ starting design work.
 
 11. **Skipping the visual.** I read metadata and skip the
     screenshot. Always download and read the screenshot first.
+
+12. **Equal-specificity overlay loses to inline `<style>`.** Each
+    builder ships its own `<style>` block in the `<head>`, AFTER
+    `<link rel="stylesheet" href="builder-ui.css">`. At equal
+    specificity, "later wins" — so a class selector in the
+    overlay loses to the same class in the inline block. **Put
+    `!important` on every layout-critical property** when the
+    overlay needs to dictate layout (`display`, `grid-template-*`,
+    `flex-direction`, `align-items`, `justify-content`, `gap`,
+    text-`transform`, `position`).
+
+13. **Routing whole `.control-section`s into columns** when the
+    Figma layout requires individual elements to land in different
+    columns. Example: the legacy "Photo" section bundles upload
+    zone + dropdown + bg-remove + zoom into one block; Figma puts
+    upload + bg-remove in the photo column but the dropdown +
+    sliders in the mid column. Extract individual elements and
+    route them precisely.
 
 ---
 

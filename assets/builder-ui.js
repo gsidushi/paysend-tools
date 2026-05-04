@@ -489,15 +489,83 @@
     const midCol    = document.createElement('div'); midCol.className   = 'bui-person-mid';
     const right     = document.createElement('div'); right.className    = 'bui-person-right';
 
-    /* Sub-section routing:
-       - any .upload-zone → photo column
-       - any input[type=range] OR zoom-control → mid column
-       - everything else (Title / Name fields) → right column   */
-    const subSections = Array.from(section.querySelectorAll(':scope > .control-section'));
-    subSections.forEach(s => {
-      if (s.querySelector('.upload-zone'))                                photoCol.appendChild(s);
-      else if (s.querySelector('input[type="range"], .zoom-control'))     midCol.appendChild(s);
-      else                                                                 right.appendChild(s);
+    /* Find the sub-sections we need to dismantle. Layout 1's
+       Person section ships:
+         - Nameplate section: section-row (toggle + label) + body
+           with Title and Name inputs (sometimes; Person 3 stores
+           them in their own siblings)
+         - Photo section: team-preset SELECT, .upload-zone, file
+           input, .bg-remove-btn, .zoom-control — all bundled
+         - Image Position section: .position-slider-wrap with a
+           Top/Bottom-flanked range slider                       */
+    const photoSection    = section.querySelector(':scope > .control-section:has(.upload-zone)');
+    const positionSection = section.querySelector(':scope > .control-section:has(.position-slider, input[type="range"])');
+
+    /* Extract the bits we want to relocate out of the photo section. */
+    let bgRemoveBtn = null, zoomControl = null, teamPreset = null;
+    if (photoSection) {
+      bgRemoveBtn = photoSection.querySelector('.bg-remove-btn');
+      zoomControl = photoSection.querySelector('.zoom-control');
+      teamPreset  = photoSection.querySelector('select.team-preset');
+
+      const upload = photoSection.querySelector('.upload-zone');
+      if (upload) injectTrashButton(upload);
+
+      /* Strip the legacy "Photo" `<label>` — Figma doesn't show a
+         sub-label above the upload box. */
+      const photoLabel = photoSection.querySelector(':scope > .control-label');
+      if (photoLabel) photoLabel.style.display = 'none';
+    }
+
+    /* PHOTO column = upload zone (still inside its section so the
+       file input rides along) + the Remove BG button below. */
+    if (photoSection) photoCol.appendChild(photoSection);
+    if (bgRemoveBtn)  photoCol.appendChild(bgRemoveBtn);
+
+    /* MID column = position slider, then the zoom stepper relabelled
+       as "Scale", then the team-preset dropdown last (Figma order). */
+    if (positionSection) {
+      const lab = positionSection.querySelector(':scope > .control-label');
+      if (lab) lab.textContent = 'Position';
+      midCol.appendChild(positionSection);
+    }
+    if (zoomControl) {
+      const scaleSec = document.createElement('div');
+      scaleSec.className = 'control-section';
+      const scaleLab = document.createElement('label');
+      scaleLab.className = 'control-label';
+      scaleLab.textContent = 'Scale';
+      scaleSec.appendChild(scaleLab);
+      scaleSec.appendChild(zoomControl);
+      midCol.appendChild(scaleSec);
+    }
+    if (teamPreset) {
+      const presetSec = document.createElement('div');
+      presetSec.className = 'control-section';
+      presetSec.appendChild(teamPreset);
+      midCol.appendChild(presetSec);
+    }
+
+    /* RIGHT column = whatever else is left: Title + Name inputs.
+       In Layout 1 person 1/2/4 these are in a Nameplate section
+       with a section-row (toggle) and a section-body wrapping the
+       two input pairs. We hoist the inputs out so the toggle row
+       no longer takes space, and each lives in its own bare
+       control-section.                                            */
+    const remaining = Array.from(section.querySelectorAll(':scope > .control-section'));
+    remaining.forEach(s => {
+      const sectionBody = s.querySelector(':scope > .section-body');
+      if (sectionBody) {
+        Array.from(sectionBody.children).forEach(child => {
+          const block = document.createElement('div');
+          block.className = 'control-section';
+          block.appendChild(child);
+          right.appendChild(block);
+        });
+        s.remove(); // drop the empty nameplate shell + its toggle row
+      } else {
+        right.appendChild(s); // already a bare title/name section
+      }
     });
 
     left.appendChild(photoCol);
