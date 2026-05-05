@@ -216,6 +216,19 @@ body {
   background: transparent !important;
 }
 
+/* Toggle-off sections drop the bordered frame entirely — when the
+   user disables a Date / Location / etc card, only the toggle row
+   should remain (the legacy `.section-off .section-body { display:
+   none }` rule already hides the body). The user's words: "remove
+   date and location frame where there are no inputs. we don't
+   need that." */
+.controls .control-section.section-off:has(.section-row) {
+  border: none !important;
+  padding: 8px 0 !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
 /* Label */
 .control-label,
 .sub-label {

@@ -695,10 +695,21 @@
 
       row.appendChild(toggleEl);
       row.appendChild(lab);
+
+      /* Wrap the input in a `.section-body` so the legacy
+         `.control-section.section-off .section-body { display: none }`
+         rule fires when the toggle is off — this is what hides
+         the input. The `.section-off` class is also what our CSS
+         uses to drop the bordered card frame. */
+      const body = document.createElement('div');
+      body.className = 'section-body';
+      body.appendChild(input);
+
       sec.appendChild(row);
-      sec.appendChild(input);
+      sec.appendChild(body);
 
       cb.addEventListener('change', () => {
+        sec.classList.toggle('section-off', !cb.checked);
         const badge = document.querySelector(badgeSelector);
         if (badge) badge.classList.toggle('bui-hidden', !cb.checked);
       });
