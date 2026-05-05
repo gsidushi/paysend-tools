@@ -125,6 +125,7 @@ the thing in the "I shipped" column, stop.**
 | Team-member dropdown rendered at the top of the photo controls | inferred from screenshot — Figma puts it at the BOTTOM of the mid column, BELOW the sliders | Move it last in the mid-column DOM order |
 | Person photo upload zone had no trash button | inferred from screenshot — Figma shows the same trash glyph in the top-right of EVERY upload zone (partners + person) | Call `injectTrashButton()` on every `.upload-zone` discovered, not just the partner ones |
 | "Nameplate" toggle visible in Person card | inferred from screenshot — Figma's Person card has no toggle for the nameplate; it's always present | Hide the legacy `.nameplate-toggle`'s `.section-row` so the title + name fields render as bare default-input fields |
+| All 4 person cards visible in 1-person mode | "why the fuck do we have 4 people inputs for layout with just 1?" | `display: grid !important` on `.bui-person-card` beat the per-builder mode-switcher's inline `style="display: none"` on the inactive person sections. Override only when the section is NOT inline-hidden: `.bui-person-card:not([style*="display: none"]):not([style*="display:none"]) { display: grid !important; … }`. Same trick for any other layout-critical override that has to coexist with inline `display: none` toggling. |
 
 ---
 
@@ -187,6 +188,7 @@ what's pending. Never silently ship an approximation.
 - [ ] No two CSS classes share the same name across the design system overlay and the legacy stylesheet (e.g. `.divider` always loses to legacy `.divider` — rename to `.bui-sep`)
 - [ ] No `display: <flex|grid|block> !important` on a layer whose visibility flips between two states (placeholder ↔ preview, hidden ↔ shown). Use CSS `:has()` instead so visibility is data-driven from one source of truth
 - [ ] **Every layout-critical property is `!important`** when it has to fight the per-builder inline `<style>` block. The inline block loads AFTER `builder-ui.css` so at equal specificity, the inline block wins. Properties to defend: `display`, `grid-template-*`, `grid-column`, `flex-direction`, `align-items`, `justify-content`, `gap`, `text-transform`, `position`, `width`, `height`, padding, margin
+- [ ] If the overlay's `display: x !important` rule applies to elements that the per-builder code hides via inline `style="display: none"`, **guard the overlay rule** with `:not([style*="display: none"]):not([style*="display:none"])` so the inline hide still works. Not just person cards — any element a builder toggles by setting inline `style.display`
 - [ ] Every `(async function …)` IIFE is preceded by `;` to defend against ASI when the previous line ends in `)` (this trap has bitten Layouts 1, 3, 8 already)
 - [ ] DOM refs that helpers depend on are declared **above** the helpers — not below, even with `const` (TDZ)
 - [ ] When a JS reorganisation moves an element out of its original parent, any selector that anchors on **the original parent's contents** (e.g. `:has(select.partner-preset)`) breaks. Add a stable **marker class** (`.bui-partner-section`) so CSS keeps matching after the move
@@ -276,6 +278,16 @@ starting design work.
     upload + bg-remove in the photo column but the dropdown +
     sliders in the mid column. Extract individual elements and
     route them precisely.
+
+14. **`display: x !important` collides with inline
+    `style="display: none"` toggling.** When the per-builder code
+    shows / hides things by setting inline `style.display`, any
+    overlay rule that uses `display: <something> !important`
+    will beat the inline `none` and force the element visible.
+    Guard your overlay rule with
+    `:not([style*="display: none"]):not([style*="display:none"])`
+    (cover both spaced and unspaced variants) so the element
+    can still be hidden by its own builder.
 
 ---
 
