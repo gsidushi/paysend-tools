@@ -128,6 +128,7 @@ the thing in the "I shipped" column, stop.**
 | All 4 person cards visible in 1-person mode | "why the fuck do we have 4 people inputs for layout with just 1?" | `display: grid !important` on `.bui-person-card` beat the per-builder mode-switcher's inline `style="display: none"` on the inactive person sections. Override only when the section is NOT inline-hidden: `.bui-person-card:not([style*="display: none"]):not([style*="display:none"]) { display: grid !important; … }`. Same trick for any other layout-critical override that has to coexist with inline `display: none` toggling. |
 | Zoom rendered as `−` / `100%` / `+` stepper buttons | "zoom controller must be a slider as well. as in figma" | Hide the legacy `.zoom-label`, `.zoom-btn`, `.zoom-value` children and inject a `<input type="range">` in their place. Slider movement fires synthetic clicks on the original +/- buttons (one click per `step`) so every existing per-builder zoom handler keeps running. Re-sync slider value back from `.zoom-value` after the clicks complete to absorb any rounding the underlying handler does. |
 | Toggle-off sections still render an empty bordered frame | "remove date and location frame where there are no inputs. we don't need that" | When a toggleable card's toggle is OFF, drop the frame entirely AND hide the input. Two parts: (a) wrap the input in a `.section-body` so the legacy `.control-section.section-off .section-body { display: none }` rule fires; (b) add an overlay rule `.control-section.section-off:has(.section-row) { border: none; padding: 8px 0 }` so the bordered card style disappears with the body. Sync `section-off` class on the toggle's `change` event. Apply this to ANY split card we generate (Location, Date, future ones). |
+| Legacy combined "Date & Location" section visible BELOW the new split cards | "no, you got it wrong. we don't need this thing at all" (pointing at the original toggle + sub-labels left behind after splitBadgesSection) | The JS sets `oldSection.style.display = 'none'` to hide the original — but the overlay CSS sets `.control-section { display: flex !important }`, which beats inline `display: none`. **NEVER use inline `style.display = 'none'` to hide things in JS that the overlay also styles.** Toggle the shared `.bui-hidden` class instead (`{ display: none !important }`). Audit everywhere in `builder-ui.js` for `.style.display = 'none'` and switch to `.classList.add('bui-hidden')`. |
 
 ---
 
@@ -191,6 +192,7 @@ what's pending. Never silently ship an approximation.
 - [ ] No `display: <flex|grid|block> !important` on a layer whose visibility flips between two states (placeholder ↔ preview, hidden ↔ shown). Use CSS `:has()` instead so visibility is data-driven from one source of truth
 - [ ] **Every layout-critical property is `!important`** when it has to fight the per-builder inline `<style>` block. The inline block loads AFTER `builder-ui.css` so at equal specificity, the inline block wins. Properties to defend: `display`, `grid-template-*`, `grid-column`, `flex-direction`, `align-items`, `justify-content`, `gap`, `text-transform`, `position`, `width`, `height`, padding, margin
 - [ ] If the overlay's `display: x !important` rule applies to elements that the per-builder code hides via inline `style="display: none"`, **guard the overlay rule** with `:not([style*="display: none"]):not([style*="display:none"])` so the inline hide still works. Not just person cards — any element a builder toggles by setting inline `style.display`
+- [ ] In `builder-ui.js`, **never** hide elements by setting `el.style.display = 'none'` — that loses to overlay `display: x !important` rules. Toggle the shared `.bui-hidden` class instead (`{ display: none !important }`). Grep `style.display = 'none'` in the overlay JS and replace each with `classList.add('bui-hidden')`
 - [ ] Every `(async function …)` IIFE is preceded by `;` to defend against ASI when the previous line ends in `)` (this trap has bitten Layouts 1, 3, 8 already)
 - [ ] DOM refs that helpers depend on are declared **above** the helpers — not below, even with `const` (TDZ)
 - [ ] When a JS reorganisation moves an element out of its original parent, any selector that anchors on **the original parent's contents** (e.g. `:has(select.partner-preset)`) breaks. Add a stable **marker class** (`.bui-partner-section`) so CSS keeps matching after the move
@@ -290,6 +292,15 @@ starting design work.
     `:not([style*="display: none"]):not([style*="display:none"])`
     (cover both spaced and unspaced variants) so the element
     can still be hidden by its own builder.
+
+15. **My OWN JS using `style.display = 'none'` to hide things.**
+    Same trap as #14 but self-inflicted. The overlay's
+    `.control-section { display: flex !important }` (and friends)
+    will win. The fix is to **never write `el.style.display = 'none'`
+    in `builder-ui.js`** — toggle the `.bui-hidden` class instead
+    (`.bui-hidden { display: none !important }`). The `!important`
+    on the helper class is what makes it strictly stronger than
+    every other layout-rule in the overlay.
 
 ---
 

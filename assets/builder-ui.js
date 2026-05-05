@@ -156,8 +156,8 @@
       } else {
         const preview = uploadZone.querySelector('.upload-preview');
         const placeholder = uploadZone.querySelector('.upload-placeholder');
-        if (preview)     preview.style.display = 'none';
-        if (placeholder) placeholder.style.display = '';
+        if (preview)     preview.classList.add('bui-hidden');
+        if (placeholder) placeholder.classList.remove('bui-hidden');
       }
     });
     uploadZone.appendChild(btn);
@@ -269,7 +269,7 @@
     if (headlineSection) {
       headlineSection.classList.add('bui-no-frame');
       const row = headlineSection.querySelector('.section-row');
-      if (row) row.style.display = 'none';
+      if (row) row.classList.add('bui-hidden');
       if (!headlineSection.querySelector('.bui-heading-label')) {
         const label = document.createElement('label');
         label.className = 'control-label bui-heading-label';
@@ -334,7 +334,7 @@
       function refreshPlus() {
         const visibleCount = cards.filter(c => !c.card.classList.contains('bui-hidden')).length;
         if (plusBtn) {
-          plusBtn.style.display = visibleCount < cards.length ? '' : 'none';
+          plusBtn.classList.toggle('bui-hidden', visibleCount >= cards.length);
         }
         row.classList.toggle('expanded', visibleCount === cards.length);
       }
@@ -424,9 +424,9 @@
          — its visible bits were lifted into the row. Hide it so
          it doesn't reserve any vertical space. */
       const firstBody = firstSection.querySelector('.section-body');
-      if (firstBody) firstBody.style.display = 'none';
+      if (firstBody) firstBody.classList.add('bui-hidden');
       /* Hide every other partner section's leftover plumbing. */
-      partnerSections.slice(1).forEach(s => { s.style.display = 'none'; });
+      partnerSections.slice(1).forEach(s => { s.classList.add('bui-hidden'); });
 
       /* "Partner Logo 1" → "Partner logo" (Figma label).
          The whole `.section-row` (toggle + label) is hidden — the
@@ -440,7 +440,7 @@
         if (firstLabel && firstSectionRow.contains(firstLabel)) {
           partnerSections[0].insertBefore(firstLabel, firstSectionRow);
         }
-        firstSectionRow.style.display = 'none';
+        firstSectionRow.classList.add('bui-hidden');
       }
     }
 
@@ -494,10 +494,10 @@
     if (!minusBtn || !plusBtn) return;
 
     /* Hide every legacy bit — we only want the slider visible. */
-    if (labelEl) labelEl.style.display = 'none';
-    minusBtn.style.display = 'none';
-    plusBtn.style.display  = 'none';
-    if (valueEl) valueEl.style.display = 'none';
+    if (labelEl) labelEl.classList.add('bui-hidden');
+    minusBtn.classList.add('bui-hidden');
+    plusBtn.classList.add('bui-hidden');
+    if (valueEl) valueEl.classList.add('bui-hidden');
 
     const slider = document.createElement('input');
     slider.type  = 'range';
@@ -577,7 +577,7 @@
       /* Strip the legacy "Photo" `<label>` — Figma doesn't show a
          sub-label above the upload box. */
       const photoLabel = photoSection.querySelector(':scope > .control-label');
-      if (photoLabel) photoLabel.style.display = 'none';
+      if (photoLabel) photoLabel.classList.add('bui-hidden');
     }
 
     /* PHOTO column = upload zone (still inside its section so the
@@ -726,7 +726,7 @@
     row.appendChild(dateCard);
 
     badgesSection.parentNode.insertBefore(row, badgesSection);
-    badgesSection.style.display = 'none';
+    badgesSection.classList.add('bui-hidden');
   }
 
   /* Build the strip from a list of `.layout-btn` buttons (Layout 1).
