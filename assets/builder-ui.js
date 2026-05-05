@@ -477,6 +477,69 @@
      direct `.control-section` is moved wholesale into its column
      — every hidden file input / zoom button / event handler
      survives untouched. */
+  /* Replace the legacy `−` / `100%` / `+` zoom stepper with a real
+     slider (Figma calls this control "Scale"). The slider drives
+     the same per-builder zoom state by SYNTHESISING clicks on the
+     original +/- buttons — so every existing handler keeps running
+     untouched. After the clicks settle, the slider re-syncs to
+     whatever the canvas-side state actually became. */
+  function replaceZoomWithSlider(zoomControl) {
+    if (!zoomControl || zoomControl.dataset.buiSlider) return;
+    zoomControl.dataset.buiSlider = '1';
+
+    const minusBtn = zoomControl.querySelector('.zoom-btn[data-dir="-1"], .zoom-btn:nth-of-type(1)');
+    const plusBtn  = zoomControl.querySelector('.zoom-btn[data-dir="1"], .zoom-btn:nth-of-type(2)');
+    const valueEl  = zoomControl.querySelector('.zoom-value');
+    const labelEl  = zoomControl.querySelector('.zoom-label');
+    if (!minusBtn || !plusBtn) return;
+
+    /* Hide every legacy bit — we only want the slider visible. */
+    if (labelEl) labelEl.style.display = 'none';
+    minusBtn.style.display = 'none';
+    plusBtn.style.display  = 'none';
+    if (valueEl) valueEl.style.display = 'none';
+
+    const slider = document.createElement('input');
+    slider.type  = 'range';
+    slider.min   = '50';
+    slider.max   = '200';
+    slider.step  = '10'; /* matches the per-builder click increment;
+                            if a builder uses a different step, the
+                            slider just snaps after each input. */
+    function readZoom() {
+      const txt = (valueEl && valueEl.textContent) || '100%';
+      return parseInt(txt, 10) || 100;
+    }
+    slider.value = String(readZoom());
+    zoomControl.appendChild(slider);
+
+    let last = +slider.value;
+    slider.addEventListener('input', () => {
+      const target = +slider.value;
+      const diff   = target - last;
+      const stepN  = Math.max(1, Math.round(Math.abs(diff) / +slider.step));
+      const btn    = diff > 0 ? plusBtn : minusBtn;
+      for (let i = 0; i < stepN; i++) btn.click();
+      /* Re-sync to whatever the underlying state became (the per-
+         builder handler may clamp / round differently). */
+      const actual = readZoom();
+      slider.value = String(actual);
+      last = actual;
+    });
+
+    /* If the canvas state is changed via something OTHER than this
+       slider (e.g. some future shortcut), keep the slider in sync. */
+    if (valueEl) {
+      new MutationObserver(() => {
+        const actual = readZoom();
+        if (+slider.value !== actual) {
+          slider.value = String(actual);
+          last = actual;
+        }
+      }).observe(valueEl, { childList: true, characterData: true, subtree: true });
+    }
+  }
+
   function buildPersonCard(section) {
     if (section.dataset.buiCard) return;
     section.dataset.buiCard = '1';
@@ -537,6 +600,7 @@
       scaleLab.textContent = 'Scale';
       scaleSec.appendChild(scaleLab);
       scaleSec.appendChild(zoomControl);
+      replaceZoomWithSlider(zoomControl);
       midCol.appendChild(scaleSec);
     }
     if (teamPreset) {
