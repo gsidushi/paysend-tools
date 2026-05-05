@@ -21,6 +21,58 @@
    • Export button is moved out of the right-hand controls panel
      and into the canvas area's flex flow at the bottom. ───────── */
 (function () {
+  /* ── Patch html2canvas so the EXPORT renders at native size ──
+     Each builder pipes `#post-canvas` through `html2canvas(canvas,
+     { width: 1080, height: 1360 })`. That captures the element AS
+     IT IS in the DOM — including the `transform: scale(0.4)` our
+     preview-fitter applies to make the canvas fit the soft-grey
+     square. The result: the design is shrunk into the top-left
+     corner of an otherwise-blank 1080×1360 PNG.
+
+     We override `window.html2canvas` once it shows up: before the
+     original implementation runs, strip the `transform` and the
+     pixel `width / height` we set on the wrapper so the element
+     paints at its native dimensions; restore them afterwards and
+     fire a synthetic resize so the preview-fitter re-snaps. */
+  function patchHtml2Canvas() {
+    if (window.__buiH2cPatched) return;
+    if (typeof window.html2canvas !== 'function') {
+      // Library not yet loaded — try again next frame.
+      return setTimeout(patchHtml2Canvas, 50);
+    }
+    window.__buiH2cPatched = true;
+
+    const orig = window.html2canvas;
+    window.html2canvas = async function (target, options) {
+      const wrap = document.querySelector('.preview-wrapper');
+      const saved = {
+        transform: target?.style.transform,
+        wrapW:     wrap?.style.width,
+        wrapH:     wrap?.style.height,
+      };
+      if (target) target.style.transform = 'none';
+      if (wrap) {
+        wrap.style.width  = '';
+        wrap.style.height = '';
+      }
+      // Wait one frame so the layout settles at native dimensions.
+      await new Promise(r => requestAnimationFrame(r));
+      try {
+        return await orig(target, options);
+      } finally {
+        if (target) target.style.transform = saved.transform || '';
+        if (wrap) {
+          wrap.style.width  = saved.wrapW || '';
+          wrap.style.height = saved.wrapH || '';
+        }
+        // Re-snap the preview to the soft-grey square.
+        requestAnimationFrame(() =>
+          window.dispatchEvent(new Event('resize')));
+      }
+    };
+  }
+  patchHtml2Canvas();
+
   function init() {
     const wrapper      = document.querySelector('.preview-wrapper');
     const canvas       = document.getElementById('post-canvas');
